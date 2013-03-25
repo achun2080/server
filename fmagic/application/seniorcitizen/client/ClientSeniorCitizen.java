@@ -1,0 +1,125 @@
+package fmagic.application.seniorcitizen.client;
+
+import fmagic.basic.ApplicationManager;
+import fmagic.basic.Context;
+import fmagic.client.ClientManager;
+
+/**
+ * This class implements the client of the FMAGIC application "Senior Citizen".
+ * 
+ * @author frank.wuensche (FW)
+ * 
+ * @changed FW 24.11.2012 - Created
+ * 
+ */
+public class ClientSeniorCitizen extends ClientManager
+{
+	// Server version
+	final static private int clientVersionSeniorCitizen = 1;
+
+	/**
+	 * Constructor
+	 * 
+	 * @param codeName
+	 *            Code name of the application.
+	 */
+	private ClientSeniorCitizen(String codeName)
+	{
+		// Invoke super class
+		super(ApplicationManager.ApplicationIdentifierEnum.SeniorCitizen, ClientSeniorCitizen.clientVersionSeniorCitizen, codeName);
+	}
+
+	@Override
+	public String printTemplate(Context context, boolean includingResourceIdentifiers)
+	{
+		String dumpText = "";
+
+		String typeCriteria[] = null;
+		String applicationCriteria[] = { ApplicationManager.ApplicationIdentifierEnum.SeniorCitizen.toString() };
+		String originCriteria[] = { "Client", "All" };
+		String usageCriteria[] = null;
+		String groupCriteria[] = null;
+		dumpText += context.getResourceManager().printResourceTemplate(context, includingResourceIdentifiers, typeCriteria, applicationCriteria, originCriteria, usageCriteria, groupCriteria);
+
+		// Return
+		return dumpText;
+	}
+
+	@Override
+	public String printManual(Context context)
+	{
+		String dumpText = "";
+
+		String typeCriteria[] = null;
+		String applicationCriteria[] = { ApplicationManager.ApplicationIdentifierEnum.SeniorCitizen.toString() };
+		String originCriteria[] = { "Client", "All" };
+		String usageCriteria[] = null;
+		String groupCriteria[] = null;
+		dumpText += context.getResourceManager().printResourceManual(context, typeCriteria, applicationCriteria, originCriteria, usageCriteria, groupCriteria);
+
+		// Return
+		return dumpText;
+	}
+
+	@Override
+	public String printIdentifierList(Context context)
+	{
+		String dumpText = "";
+
+		String typeCriteria[] = null;
+		String applicationCriteria[] = { ApplicationManager.ApplicationIdentifierEnum.SeniorCitizen.toString() };
+		String originCriteria[] = { "Client", "All" };
+		String usageCriteria[] = null;
+		String groupCriteria[] = null;
+		dumpText += context.getResourceManager().printResourceIdentifierList(context, typeCriteria, applicationCriteria, originCriteria, usageCriteria, groupCriteria);
+
+		// Return
+		return dumpText;
+	}
+
+	@Override
+	public boolean ckeckOnResourceIdentifierIntegrityError(Context context)
+	{
+		return false;
+	}
+
+	@Override
+	protected boolean assignRightGroups(Context context)
+	{
+		return true;
+	}
+
+	@Override
+	protected boolean assignLicenseModels(Context context)
+	{
+		return true;
+	}
+
+	/**
+	 * Factory method to create an instance of the Senior Citizen CLIENT
+	 * application.
+	 * 
+	 * @param codeName
+	 *            Code name of the application.
+	 * 
+	 * @return Returns the created instance or <TT>null</TT> if the instance
+	 *         couldn't be created. In this case please see the log files or the
+	 *         console for further information.
+	 */
+	public static ClientSeniorCitizen getInstance(String codeName)
+	{
+		// Instance will always be build because it is a regular constructor
+		ClientSeniorCitizen instance = new ClientSeniorCitizen(codeName);
+
+		// If there was an error during building the application, the factory
+		// method returns wit NULL
+		if (instance.isShutdown())
+		{
+			return null;
+		}
+		else
+		{
+			return instance;
+		}
+	}
+}
