@@ -50,7 +50,8 @@ public class FileLocationManager
 	private static final String logTicketFileType = ".log";
 
 	private static final String licenseSubPath = "fmagic.license";
-	private static final String licenseFileName = "fmagic.license.${application}.${licensekey}.properties";
+	private static final String licenseFileName = "fmagic.license.${application}.${licensekey}.license";
+	private static final String licenseFileNameType = "license";
 
 	private static final String licenseTemplateSubPath = "fmagic.license\\templates";
 	private static final String licenseTemplateFileName = "fmagic.template.license.${application}.${licensemodel}.properties";
@@ -394,6 +395,14 @@ public class FileLocationManager
 	public static String getLicenseFileName()
 	{
 		return licenseFileName;
+	}
+
+	/**
+	 * Getter
+	 */
+	public static String getLicenseFileNameType()
+	{
+		return licenseFileNameType;
 	}
 
 	/**

@@ -108,6 +108,100 @@ public class LicenseManager implements ResourceInterface
 	}
 
 	/**
+	 * Composes the path of the data directory of license files.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @return Returns the directory were the license files are stored.
+	 * 
+	 */
+	private String getLicenseFilePath(Context context)
+	{
+		return FileLocationManager.getRootPath() + FileLocationManager.getLicenseSubPath() + "\\";
+	}
+
+	/**
+	 * Get the file name type of license files.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @return Returns the license file name type.
+	 * 
+	 */
+	private String getLicenseFileNameType(Context context)
+	{
+		return FileLocationManager.getLicenseFileNameType();
+	}
+
+	/**
+	 * Load all license files of the system.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param applicationResource
+	 *            Application to consider.
+	 * 
+	 * @param applicationVersion
+	 *            Current version of the application.
+	 * 
+	 * @return Returns <TT>true</TT> if the license file could be read
+	 *         successfully, otherwise <TT>false</TT>.
+	 */
+	public boolean loadLicenseFiles(Context context, String applicationIdentifier, int applicationVersion)
+	{
+		// Get all files of the license directory as a list
+		String licenseFilePath = this.getLicenseFilePath(context);
+		File[] fileList = null;
+
+		try
+		{
+			File dir = new File(licenseFilePath);
+			fileList = dir.listFiles();
+		}
+		catch (Exception e)
+		{
+			String additionalText = "--> Error on parsing license file path";
+			additionalText += "\n--> Searched in path: '" + licenseFilePath + "'";
+			context.getNotificationManager().notifyEvent(context, ResourceManager.notification(context, "License", "ErrorOnReadingLicenseFile"), additionalText, e);
+			return false;
+		}
+
+		if (fileList == null) return false;
+
+		// Go through the list of license files
+		String licenseFileNameType = this.getLicenseFileNameType(context);
+		String licenseFileName = null;
+		boolean isSuccessful = true;
+
+		try
+		{
+			for (File file : fileList)
+			{
+				HashMap<String, String> organizationalProperties = new HashMap<String, String>();
+
+				licenseFileName = file.getAbsolutePath();
+
+				if (!licenseFileName.endsWith(licenseFileNameType)) continue;
+
+				if (context.getResourceManager().loadResourceFile(context, applicationIdentifier, null, licenseFileName, null, true, organizationalProperties) == false) isSuccessful = false;
+			}
+		}
+		catch (Exception e)
+		{
+			String additionalText = "--> Error on reading license file";
+			additionalText += "\n--> On license file: '" + "*." + licenseFileName + "'";
+			context.getNotificationManager().notifyEvent(context, ResourceManager.notification(context, "License", "ErrorOnReadingLicenseFile"), additionalText, e);
+			isSuccessful = false;
+		}
+
+		// Return
+		return isSuccessful;
+	}
+
+	/**
 	 * Notify the WATCHDOG about license item access.
 	 * 
 	 * @param context
@@ -974,28 +1068,27 @@ public class LicenseManager implements ResourceInterface
 							licenseTemplateText += "\n";
 						}
 
-						// Print license item identifier
-						licenseTemplateText += licenseItem + "=";
-
 						// Get and print default values
 						List<String> valueSet = this.getLicenseDefaultValue(licenseModelIdentifier, licenseItem);
 
 						if (valueSet != null && valueSet.size() > 0)
 						{
-							int valueNumber = 1;
+							int valueNumber = 0;
 
 							for (String value : valueSet)
 							{
+								valueNumber++;
+								
 								// There is only one value set --> "|Value="
 								if (valueNumber == 1 && valueSet.size() == 1)
 								{
-									licenseTemplateText += "\n" + ResourceManager.getAttributeDelimiterString() + licenseItemResourceContainer.getAttributeResourceIdentifier(context, 0, LICENSE_KEY_PLACEHOLDER) + "=" + value.trim();
+									licenseTemplateText += licenseItemResourceContainer.getRecourceIdentifier() + ResourceManager.getAttributeDelimiterString() + licenseItemResourceContainer.getAttributeResourceIdentifier(context, 0, LICENSE_KEY_PLACEHOLDER) + "=" + value.trim() + "\n";
 								}
 								// There are several values set --> "|Value.1=",
 								// "|Value.2=", "|Value.3="
 								else
 								{
-									licenseTemplateText += "\n" + ResourceManager.getAttributeDelimiterString() + licenseItemResourceContainer.getAttributeResourceIdentifier(context, valueNumber, LICENSE_KEY_PLACEHOLDER) + "=" + value.trim();
+									licenseTemplateText += licenseItemResourceContainer.getRecourceIdentifier() + ResourceManager.getAttributeDelimiterString() + licenseItemResourceContainer.getAttributeResourceIdentifier(context, valueNumber, LICENSE_KEY_PLACEHOLDER) + "=" + value.trim() + "\n";
 								}
 							}
 						}

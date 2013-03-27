@@ -37,10 +37,10 @@ public class ResourceManager implements ResourceInterface
 	final private HashMap<String, ResourceContainer> resources = new HashMap<String, ResourceContainer>();
 
 	// Constants for data
-	final private static String RESOURCE_FILE_APPLCIATION = "ResourceFile.Application";
-	final private static String RESOURCE_FILE_VERSION = "ResourceFile.Version";
-	final private static String RESOURCE_FILE_LANGUAGE = "ResourceFile.Language";
-	final private static String RESOURCE_FILE_LICENSEKEY = "ResourceFile.LicenseKey";
+	final public static String RESOURCE_FILE_APPLCIATION = "ResourceFile.Application";
+	final public static String RESOURCE_FILE_VERSION = "ResourceFile.Version";
+	final public static String RESOURCE_FILE_LANGUAGE = "ResourceFile.Language";
+	final public static String RESOURCE_FILE_LICENSEKEY = "ResourceFile.LicenseKey";
 
 	// List of additional information
 	private HashMap<String, String> notFoundProperties = new HashMap<String, String>();
@@ -233,35 +233,6 @@ public class ResourceManager implements ResourceInterface
 	}
 
 	/**
-	 * Composes the path of the data directory of label resource files.
-	 * 
-	 * @param context
-	 *            The context to use.
-	 * 
-	 * @return Returns the directory were the data files are stored.
-	 * 
-	 */
-	private String getResourceLabelFilePath(Context context)
-	{
-		return FileLocationManager.getRootPath() + FileLocationManager.getResourceLabelSubPath() + "\\";
-	}
-
-	/**
-	 * Composes the path of the data directory of translated label resource
-	 * files.
-	 * 
-	 * @param context
-	 *            The context to use.
-	 * 
-	 * @return Returns the directory were the data files are stored.
-	 * 
-	 */
-	private String getTranslatedLabelFilePath(Context context)
-	{
-		return FileLocationManager.getRootPath() + FileLocationManager.getResourceLabelTranslatedSubPath() + "\\";
-	}
-
-	/**
 	 * Composes the file name of common resource files.
 	 * 
 	 * @param context
@@ -278,49 +249,6 @@ public class ResourceManager implements ResourceInterface
 	{
 		String fileName = FileLocationManager.getResourceFileName();
 		fileName = FileLocationManager.replacePlaceholder(context, fileName, applicationName, null);
-		return fileName;
-	}
-
-	/**
-	 * Composes the file name of the label resource file.
-	 * 
-	 * @param context
-	 *            The context to use.
-	 * 
-	 * @param applicationName
-	 *            The name of the application from the point of view of the
-	 *            resource files, including Basic, Common and Extension.
-	 * 
-	 * @return Returns the file name of the data files.
-	 * 
-	 */
-	private String getResourceLabelFileName(Context context, String applicationName)
-	{
-		String fileName = FileLocationManager.getResourceLabelFileName();
-		fileName = FileLocationManager.replacePlaceholder(context, fileName, applicationName, null);
-		return fileName;
-	}
-
-	/**
-	 * Composes the file name of the translated label resource file.
-	 * 
-	 * @param context
-	 *            The context to use.
-	 * 
-	 * @param applicationName
-	 *            The name of the application from the point of view of the
-	 *            resource files, including Basic, Common and Extension.
-	 * 
-	 * @param language
-	 *            The short name of the language.
-	 * 
-	 * @return Returns the file name of the data files.
-	 * 
-	 */
-	private String getTranslatedLabelFileName(Context context, String applicationName, String language)
-	{
-		String fileName = FileLocationManager.getResourceLabelTranslatedFileName();
-		fileName = FileLocationManager.replacePlaceholder(context, fileName, applicationName, language);
 		return fileName;
 	}
 
@@ -1744,22 +1672,22 @@ public class ResourceManager implements ResourceInterface
 	 * @return Returns <TT>true</TT> if the resource file could be read
 	 *         successfully, otherwise <TT>false</TT>.
 	 */
-	public boolean loadCommonResourceFile(Context context, ApplicationManager.ApplicationIdentifierEnum applicationResource, int applicationVersion)
+	public boolean loadCommonResourceFile(Context context, String applicationIdentifier, int applicationVersion)
 	{
 		HashMap<String, String> organizationalProperties = new HashMap<String, String>();
 
 		// Set File name
-		String fileName = this.getResourceFilePath(context) + "\\" + getResourceFileName(context, applicationResource.toString());
+		String fileName = this.getResourceFilePath(context) + "\\" + getResourceFileName(context, applicationIdentifier);
 
 		// Invoke general function to read resource files
-		boolean isSuccessful = loadResourceFile(context, applicationResource, applicationVersion, fileName, null, false, organizationalProperties);
+		boolean isSuccessful = loadResourceFile(context, applicationIdentifier, applicationVersion, fileName, null, false, organizationalProperties);
 
 		// Save common property: application
 		String propertyApplicationIdentifier = organizationalProperties.get(RESOURCE_FILE_APPLCIATION);
 
-		if (propertyApplicationIdentifier != null && propertyApplicationIdentifier.equals(applicationResource.toString()))
+		if (propertyApplicationIdentifier != null && propertyApplicationIdentifier.equals(applicationIdentifier))
 		{
-			this.commonIdentifiersProperties.put(applicationResource.toString() + "." + RESOURCE_FILE_APPLCIATION, propertyApplicationIdentifier);
+			this.commonIdentifiersProperties.put(applicationIdentifier + "." + RESOURCE_FILE_APPLCIATION, propertyApplicationIdentifier);
 		}
 
 		// Save common property: version
@@ -1767,7 +1695,7 @@ public class ResourceManager implements ResourceInterface
 
 		if (propertyVersionIdentifier != null && propertyVersionIdentifier.equals(String.valueOf(applicationVersion)))
 		{
-			this.commonIdentifiersProperties.put(applicationResource.toString() + "." + RESOURCE_FILE_VERSION, propertyVersionIdentifier);
+			this.commonIdentifiersProperties.put(applicationIdentifier + "." + RESOURCE_FILE_VERSION, propertyVersionIdentifier);
 		}
 
 		// Save common property: language
@@ -1775,7 +1703,7 @@ public class ResourceManager implements ResourceInterface
 
 		if (propertyLanguageIdentifier != null)
 		{
-			this.commonIdentifiersProperties.put(applicationResource.toString() + "." + RESOURCE_FILE_LANGUAGE, propertyLanguageIdentifier);
+			this.commonIdentifiersProperties.put(applicationIdentifier + "." + RESOURCE_FILE_LANGUAGE, propertyLanguageIdentifier);
 		}
 
 		// Return
@@ -1804,87 +1732,17 @@ public class ResourceManager implements ResourceInterface
 	}
 
 	/**
-	 * Load label resources from a resource file.
-	 * 
-	 * @param context
-	 *            The context to use.
-	 * 
-	 * @param applicationResource
-	 *            Application to consider.
-	 * 
-	 * @param applicationVersion
-	 *            Current version of the application.
-	 * 
-	 * @return Returns <TT>true</TT> if the resource file could be read
-	 *         successfully, otherwise <TT>false</TT>.
-	 */
-	public boolean loadLabelResourceFile(Context context, ApplicationManager.ApplicationIdentifierEnum applicationResource, int applicationVersion)
-	{
-		HashMap<String, String> organizationalProperties = new HashMap<String, String>();
-
-		// Set File name
-		String fileName = this.getResourceLabelFilePath(context) + "\\" + getResourceLabelFileName(context, applicationResource.toString());
-
-		// Invoke general function to read resource files
-		boolean isSuccessful = loadResourceFile(context, applicationResource, applicationVersion, fileName, null, false, organizationalProperties);
-
-		// Check language specific
-		String propertyLanguageIdentifier = organizationalProperties.get(RESOURCE_FILE_LANGUAGE);
-
-		if (propertyLanguageIdentifier == null || context.getApplicationManager().getSupportedLanguages().get(propertyLanguageIdentifier) == null)
-		{
-			String errorString = "--> Language item missing or does not match the supported languages";
-			errorString += "\n--> Supported languages: '" + context.getApplicationManager().getSupportedLanguagesString() + "'";
-			errorString += "\n--> Resource file item [" + RESOURCE_FILE_LANGUAGE + "] was set to '" + propertyLanguageIdentifier + "'";
-			errorString += "\n--> Resource file name: '" + fileName + "'";
-			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Resource", "ErrorOnReadingResourceFile"), errorString, null);
-			isSuccessful = false;
-		}
-
-		// Return
-		return isSuccessful;
-	}
-
-	/**
-	 * Load translated labels from resource file.
-	 * 
-	 * @param context
-	 *            The context to use.
-	 * 
-	 * @param applicationResource
-	 *            Application to consider.
-	 * 
-	 * @param applicationVersion
-	 *            Current version of the application.
-	 * 
-	 * @return Returns <TT>true</TT> if the resource file could be read
-	 *         successfully, otherwise <TT>false</TT>.
-	 */
-	public boolean loadTranslatedLabelFile(Context context, ApplicationManager.ApplicationIdentifierEnum applicationResource, int applicationVersion, String language)
-	{
-		HashMap<String, String> organizationalProperties = new HashMap<String, String>();
-
-		// Set File name
-		String fileName = this.getTranslatedLabelFilePath(context) + "\\" + this.getTranslatedLabelFileName(context, applicationResource.toString(), language);
-
-		// Invoke general function to read resource files
-		boolean isSuccessful = loadResourceFile(context, applicationResource, applicationVersion, fileName, language, true, organizationalProperties);
-
-		// Return
-		return isSuccessful;
-	}
-
-	/**
 	 * Load resources from a resource file.
 	 * 
 	 * @param context
 	 *            The context to use.
 	 * 
 	 * @param applicationResource
-	 *            Application to consider.
+	 *            The application to consider.
 	 * 
 	 * @param applicationVersion
-	 *            Current version of the application.
+	 *            Current version of the application, or <TT>null</TT> if the
+	 *            version is not to be checked.
 	 * 
 	 * @param fileName
 	 *            The file name to be read.
@@ -1893,18 +1751,23 @@ public class ResourceManager implements ResourceInterface
 	 *            Language string to check for in the resource file, or
 	 *            <TT>null</TT> if the language is not to be checked.
 	 * 
+	 * @param resourceItemAlreadyMustExist
+	 *            Marks if the resource item already must exist in the resource
+	 *            list.
+	 * 
+	 * 
 	 * @param organizationalProperties
 	 *            Hash map to be used for all read resource items.
 	 * 
 	 * @return Returns <TT>true</TT> if the resource file could be read
 	 *         successfully, otherwise <TT>false</TT>.
 	 */
-	private boolean loadResourceFile(Context context, ApplicationManager.ApplicationIdentifierEnum applicationResource, int applicationVersion, String fileName, String language, boolean resourceItemAlreadyMustExist, HashMap<String, String> organizationalProperties)
+	public boolean loadResourceFile(Context context, String applicationIdentifier, Integer applicationVersion, String fileName, String language, boolean resourceItemAlreadyMustExist, HashMap<String, String> organizationalProperties)
 	{
 		/*
 		 * Check parameter
 		 */
-		if (applicationResource == null)
+		if (applicationIdentifier == null)
 		{
 			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Resource", "ErrorOnReadingResourceFile"), "--> Application identifier not set", null);
 			return false;
@@ -1927,10 +1790,10 @@ public class ResourceManager implements ResourceInterface
 			// Check application
 			String propertyApplicationIdentifier = organizationalProperties.get(RESOURCE_FILE_APPLCIATION);
 
-			if (propertyApplicationIdentifier == null || !propertyApplicationIdentifier.equals(applicationResource.toString()))
+			if (propertyApplicationIdentifier == null || !propertyApplicationIdentifier.equals(applicationIdentifier))
 			{
 				String errorString = "--> Application confusion";
-				errorString += "\n--> Searched for application '" + applicationResource.toString() + "'";
+				errorString += "\n--> Searched for application '" + applicationIdentifier + "'";
 				errorString += "\n--> But resource file item [" + RESOURCE_FILE_APPLCIATION + "] was set to '" + propertyApplicationIdentifier + "'";
 				errorString += "\n--> resource file name: '" + fileName + "'";
 				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Resource", "ErrorOnReadingResourceFile"), errorString, null);
@@ -1938,17 +1801,20 @@ public class ResourceManager implements ResourceInterface
 			}
 
 			// Check version
-			String propertyApplicationVersion = organizationalProperties.get(RESOURCE_FILE_VERSION);
-
-			if (propertyApplicationVersion == null || !propertyApplicationVersion.equals(String.valueOf(applicationVersion)))
+			if (applicationVersion != null)
 			{
-				String errorString = "--> Version confusion";
-				errorString += "\n--> On ressource type '" + applicationResource.toString() + "'";
-				errorString += "\n--> Searched for version '" + String.valueOf(applicationVersion) + "'";
-				errorString += "\n--> But resource file item [" + RESOURCE_FILE_VERSION + "] was set to '" + propertyApplicationVersion + "'";
-				errorString += "\n--> resource file name: '" + fileName + "'";
-				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Resource", "ErrorOnReadingResourceFile"), errorString, null);
-				isError = true;
+				String propertyApplicationVersion = organizationalProperties.get(RESOURCE_FILE_VERSION);
+
+				if (propertyApplicationVersion == null || !propertyApplicationVersion.equals(String.valueOf(applicationVersion)))
+				{
+					String errorString = "--> Version confusion";
+					errorString += "\n--> On ressource type '" + applicationIdentifier + "'";
+					errorString += "\n--> Searched for version '" + String.valueOf(applicationVersion) + "'";
+					errorString += "\n--> But resource file item [" + RESOURCE_FILE_VERSION + "] was set to '" + propertyApplicationVersion + "'";
+					errorString += "\n--> resource file name: '" + fileName + "'";
+					context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Resource", "ErrorOnReadingResourceFile"), errorString, null);
+					isError = true;
+				}
 			}
 
 			// Check a specific language, if there was handed over one as

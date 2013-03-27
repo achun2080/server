@@ -36,47 +36,46 @@ import fmagic.server.ServerManager;
  * @changed AG 27.03.2009 - Created
  * 
  */
-public class ApplicationTest {
+public class ApplicationTest
+{
 
 	/**
 	 * main() function for invoking all tests
 	 */
-	public static void mainXXX(String[] args) {
+	public static void mainXXX(String[] args)
+	{
 		EncodingHandler encodingHandler = new EncodingHandler();
 		KeyPair keyPair = encodingHandler.getPublicPrivateKeyPair();
 
-		System.out.println(Base64.encodeBase64String(keyPair.getPublic()
-				.getEncoded()));
-		System.out.println(Base64.encodeBase64String(keyPair.getPrivate()
-				.getEncoded()));
+		System.out.println(Base64.encodeBase64String(keyPair.getPublic().getEncoded()));
+		System.out.println(Base64.encodeBase64String(keyPair.getPrivate().getEncoded()));
 	}
 
 	/**
 	 * main() function for invoking all tests
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args)
+	{
 		// Start Application server
 		ServerManager server = null;
 
-		try {
+		try
+		{
 			server = ServerSeniorCitizen.getInstance("ap1", 8090, 1000000);
 
-			if (server != null)
-				server.startApplication();
+			if (server != null) server.startApplication();
 
-			if (server != null) {
+			if (server != null)
+			{
 				// Test preparing
 				Context context = server.getContext();
 
-				ResourceContainer licenseItemProvisionRate = ResourceManager
-						.license(context, "Service", "ProvisionRate");
+				ResourceContainer licenseItemProvisionRate = ResourceManager.license(context, "Service", "ProvisionRate");
 
-				ResourceContainer licenseModelStarter = ResourceManager
-						.license(context, "SellerProfile", "Starter");
+				ResourceContainer licenseModelStarter = ResourceManager.license(context, "SellerProfile", "Starter");
 
 				// Right test 1
-				String documentation = licenseItemProvisionRate
-						.printManual(context);
+				String documentation = licenseItemProvisionRate.printManual(context);
 
 				System.out.println("");
 				System.out.println("111111111111111111111111111111");
@@ -92,47 +91,55 @@ public class ApplicationTest {
 				System.out.println("222222222222222222222222222222");
 
 				// Right test 3
-				documentation = context
-						.getLicenseManager()
-						.printDistributionConfiguration(
-								context.getLicenseManager()
-										.getAssignedLicenseItemToLicenseModel());
+				documentation = context.getLicenseManager().printDistributionConfiguration(context.getLicenseManager().getAssignedLicenseItemToLicenseModel());
 
 				System.out.println("");
 				System.out.println("333333333333333333333333333333");
 				System.out.println(documentation);
 				System.out.println("333333333333333333333333333333");
+
+				// Right test 4
+				String licenseValue1234 = licenseItemProvisionRate.getAttributeValue(context, 1, "1234");
+				String licenseValue5678 = licenseItemProvisionRate.getAttributeValue(context, 1, "5678");
+
+				System.out.println("");
+				System.out.println("444444444444444444444444444444");
+				System.out.println("License Value 1234 = '" + licenseValue1234);
+				System.out.println("License Value 5678 = '" + licenseValue5678);
+				System.out.println("444444444444444444444444444444");
 			}
-		} catch (Exception e) {
+		}
+		catch (Exception e)
+		{
 			e.printStackTrace();
 		}
 
 		// Start client
 		ClientManager client;
 
-		try {
-			if (server != null) {
+		try
+		{
+			if (server != null)
+			{
 				// Create client
 				client = ClientSeniorCitizen.getInstance("cl1");
 
-				if (client != null) {
+				if (client != null)
+				{
 					// Start client
 					client.startApplication();
-					client.setSocketConnectionParameter("localhost", 8090,
-							1000000);
+					client.setSocketConnectionParameter("localhost", 8090, 1000000);
 
 					// Do something
 					ClientCommand command;
 					ResponseContainer responseContainer;
 
 					// COMMAND Create Session 1
-					command = new ClientCommandCreateSession(
-							client.getContext(), client);
+					command = new ClientCommandCreateSession(client.getContext(), client);
 					responseContainer = command.execute();
 
 					// COMMAND Handshake 1
-					command = new ClientCommandHandshake(client.getContext(),
-							client);
+					command = new ClientCommandHandshake(client.getContext(), client);
 					responseContainer = command.execute();
 
 					// COMMAND Handshake 2
@@ -150,103 +157,33 @@ public class ApplicationTest {
 					client.stopApplication();
 				}
 			}
-		} catch (Exception e) {
+		}
+		catch (Exception e)
+		{
 			e.printStackTrace();
 		}
 
 		// Shutdown Application server
-		try {
-			if (server != null) {
+		try
+		{
+			if (server != null)
+			{
 				// Test preparing
 				Context context = server.getContext();
-
-				ResourceContainer rightItemUpdate = ResourceManager.right(
-						context, "ArticleData", "Update");
-				ResourceContainer rightItemProcess = ResourceManager.right(
-						context, "ArticleData", "Process");
-				ResourceContainer rightItemRead = ResourceManager.right(
-						context, "ArticleData", "Read");
-				ResourceContainer rightItemLogging = ResourceManager.right(
-						context, "ArticleData", "Logging");
-
-				ResourceContainer rightGroup = ResourceManager.right(context,
-						"UserProfile", "Manager");
-
-				SessionContainer sessionContainer = server
-						.sessionGetClientSession("1364210073453");
-				sessionContainer.setUserRightGroup(rightGroup);
-				context.setServerSession(sessionContainer);
-
-				// Right test 1
-				boolean isGranted = RightManager.hasRight(context,
-						rightItemUpdate);
-
-				System.out.println("");
-				System.out.println("111111111111111111111111111111");
-				System.out.println("RightManager.hasRight() Granted: "
-						+ String.valueOf(isGranted));
-				System.out.println("111111111111111111111111111111");
-
-				// Right test 2
-				isGranted = RightManager.hasRightCombinationAnd(context,
-						rightItemUpdate, rightItemProcess, rightItemRead);
-
-				System.out.println("");
-				System.out.println("222222222222222222222222222222");
-				System.out
-						.println("RightManager.hasRightCombinationAnd() Granted: "
-								+ String.valueOf(isGranted));
-				System.out.println("222222222222222222222222222222");
-
-				// Right test 3
-				List<ResourceContainer> clAnd = new ArrayList<ResourceContainer>();
-				clAnd.add(rightItemUpdate);
-				clAnd.add(rightItemProcess);
-				clAnd.add(rightItemRead);
-
-				isGranted = RightManager.hasRightCombinationAnd(context, clAnd);
-
-				System.out.println("");
-				System.out.println("333333333333333333333333333333");
-				System.out
-						.println("RightManager.hasRightCombinationAnd() Granted: "
-								+ String.valueOf(isGranted));
-				System.out.println("333333333333333333333333333333");
-
-				// Right test 4
-				isGranted = RightManager.hasRightCombinationOr(context,
-						rightItemUpdate, rightItemLogging);
-
-				System.out.println("");
-				System.out.println("444444444444444444444444444444");
-				System.out
-						.println("RightManager.hasRightCombinationOr() Granted: "
-								+ String.valueOf(isGranted));
-				System.out.println("444444444444444444444444444444");
-
-				// Right test 5
-				List<ResourceContainer> clOr = new ArrayList<ResourceContainer>();
-				clOr.add(rightItemUpdate);
-				clOr.add(rightItemLogging);
-
-				isGranted = RightManager.hasRightCombinationOr(context, clOr);
-
-				System.out.println("");
-				System.out.println("5555555555555555555555555555555");
-				System.out
-						.println("RightManager.hasRightCombinationOr() Granted: "
-								+ String.valueOf(isGranted));
-				System.out.println("5555555555555555555555555555555");
 			}
-		} catch (Exception e) {
+		}
+		catch (Exception e)
+		{
 			e.printStackTrace();
-		} finally {
+		}
+		finally
+		{
 
 			// Stop server
 			Util.sleepSeconds(1);
-			server.stopApplication();
+			if (server != null) server.stopApplication();
 		}
-		
+
 		// Stage Test
 		// and number 2
 	}

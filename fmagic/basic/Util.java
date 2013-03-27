@@ -36,6 +36,33 @@ public class Util
 	}
 
 	/**
+	 * Convert regular wildcards "*" and "?" to <TT>regex</TT> wildcards.
+	 * 
+	 * @param regularPattern
+	 *            Text to be converted.
+	 * 
+	 * @return Returns the converted string, or <TT>null</TT> if an error
+	 *         occurred.
+	 */
+	public static String convertRegularWildcardsToRegexWildcards(String regularPattern)
+	{
+		if (regularPattern == null) return null;
+		
+		String regexPattern = null;
+
+		try
+		{
+			regexPattern = regularPattern.replace("*", ".*").replace("?", ".");
+		}
+		catch (Exception e)
+		{
+			return null;
+		}
+
+		return regexPattern;
+	}
+
+	/**
 	 * Checks a string if it contains special characters and transforms them to
 	 * underline characters.
 	 * 

@@ -131,6 +131,9 @@ public abstract class ApplicationManager implements ResourceInterface
 				// Write license template files
 				if (this.getContext().getLicenseManager().createTemplateLicenseFiles(this.getContext(), this.getApplicationIdentifier().toString(), applicationVersion) == false) isError = true;
 
+				// Read real customer license files
+				if (this.getContext().getLicenseManager().loadLicenseFiles(this.getContext(), this.getApplicationIdentifier().toString(), applicationVersion) == false) isError = true;
+
 				// Start WATCHDOG
 				this.watchdogServer = new WatchdogServer(this.getContext(), this.getContext().getWatchdogManager());
 				if (watchdogServer.startServer(this.getContext()) == false) isError = true;
@@ -226,10 +229,10 @@ public abstract class ApplicationManager implements ResourceInterface
 		// Read and check
 		try
 		{
-			if (this.getContext().getResourceManager().loadCommonResourceFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Basic, applicationVersion) == false) isSuccessful = false;
-			if (this.getContext().getResourceManager().loadCommonResourceFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Common, applicationVersion) == false) isSuccessful = false;
-			if (this.getContext().getResourceManager().loadCommonResourceFile(this.getContext(), applicationIdentifier, applicationVersion) == false) isSuccessful = false;
-			if (this.getContext().getResourceManager().loadCommonResourceFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Extension, applicationVersion) == false) isSuccessful = false;
+			if (this.getContext().getResourceManager().loadCommonResourceFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Basic.toString(), applicationVersion) == false) isSuccessful = false;
+			if (this.getContext().getResourceManager().loadCommonResourceFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Common.toString(), applicationVersion) == false) isSuccessful = false;
+			if (this.getContext().getResourceManager().loadCommonResourceFile(this.getContext(), this.getApplicationIdentifier().toString(), applicationVersion) == false) isSuccessful = false;
+			if (this.getContext().getResourceManager().loadCommonResourceFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Extension.toString(), applicationVersion) == false) isSuccessful = false;
 		}
 		catch (Exception e)
 		{
@@ -254,10 +257,10 @@ public abstract class ApplicationManager implements ResourceInterface
 		// Read and check
 		try
 		{
-			if (this.getContext().getResourceManager().loadLabelResourceFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Basic, applicationVersion) == false) isSuccessful = false;
-			if (this.getContext().getResourceManager().loadLabelResourceFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Common, applicationVersion) == false) isSuccessful = false;
-			if (this.getContext().getResourceManager().loadLabelResourceFile(this.getContext(), applicationIdentifier, applicationVersion) == false) isSuccessful = false;
-			if (this.getContext().getResourceManager().loadLabelResourceFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Extension, applicationVersion) == false) isSuccessful = false;
+			if (this.getContext().getLabelManager().loadLabelResourceFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Basic.toString(), applicationVersion) == false) isSuccessful = false;
+			if (this.getContext().getLabelManager().loadLabelResourceFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Common.toString(), applicationVersion) == false) isSuccessful = false;
+			if (this.getContext().getLabelManager().loadLabelResourceFile(this.getContext(), this.getApplicationIdentifier().toString(), applicationVersion) == false) isSuccessful = false;
+			if (this.getContext().getLabelManager().loadLabelResourceFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Extension.toString(), applicationVersion) == false) isSuccessful = false;
 		}
 		catch (Exception e)
 		{
@@ -284,10 +287,10 @@ public abstract class ApplicationManager implements ResourceInterface
 		{
 			for (String language : this.supportedLanguages.values())
 			{
-				if (this.getContext().getResourceManager().loadTranslatedLabelFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Basic, applicationVersion, language) == false) isSuccessful = false;
-				if (this.getContext().getResourceManager().loadTranslatedLabelFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Common, applicationVersion, language) == false) isSuccessful = false;
-				if (this.getContext().getResourceManager().loadTranslatedLabelFile(this.getContext(), applicationIdentifier, applicationVersion, language) == false) isSuccessful = false;
-				if (this.getContext().getResourceManager().loadTranslatedLabelFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Extension, applicationVersion, language) == false) isSuccessful = false;
+				if (this.getContext().getLabelManager().loadTranslatedLabelFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Basic.toString(), applicationVersion, language) == false) isSuccessful = false;
+				if (this.getContext().getLabelManager().loadTranslatedLabelFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Common.toString(), applicationVersion, language) == false) isSuccessful = false;
+				if (this.getContext().getLabelManager().loadTranslatedLabelFile(this.getContext(),this.getApplicationIdentifier().toString(), applicationVersion, language) == false) isSuccessful = false;
+				if (this.getContext().getLabelManager().loadTranslatedLabelFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Extension.toString(), applicationVersion, language) == false) isSuccessful = false;
 			}
 		}
 		catch (Exception e)

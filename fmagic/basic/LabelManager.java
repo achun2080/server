@@ -88,6 +88,149 @@ public class LabelManager implements ResourceInterface
 	}
 
 	/**
+	 * Composes the path of the data directory of label resource files.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @return Returns the directory were the data files are stored.
+	 * 
+	 */
+	private String getResourceLabelFilePath(Context context)
+	{
+		return FileLocationManager.getRootPath() + FileLocationManager.getResourceLabelSubPath() + "\\";
+	}
+
+	/**
+	 * Composes the path of the data directory of translated label resource
+	 * files.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @return Returns the directory were the data files are stored.
+	 * 
+	 */
+	private String getTranslatedLabelFilePath(Context context)
+	{
+		return FileLocationManager.getRootPath() + FileLocationManager.getResourceLabelTranslatedSubPath() + "\\";
+	}
+
+	/**
+	 * Composes the file name of the label resource file.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param applicationName
+	 *            The name of the application from the point of view of the
+	 *            resource files, including Basic, Common and Extension.
+	 * 
+	 * @return Returns the file name of the data files.
+	 * 
+	 */
+	private String getResourceLabelFileName(Context context, String applicationName)
+	{
+		String fileName = FileLocationManager.getResourceLabelFileName();
+		fileName = FileLocationManager.replacePlaceholder(context, fileName, applicationName, null);
+		return fileName;
+	}
+
+	/**
+	 * Composes the file name of the translated label resource file.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param applicationName
+	 *            The name of the application from the point of view of the
+	 *            resource files, including Basic, Common and Extension.
+	 * 
+	 * @param language
+	 *            The short name of the language.
+	 * 
+	 * @return Returns the file name of the data files.
+	 * 
+	 */
+	private String getTranslatedLabelFileName(Context context, String applicationName, String language)
+	{
+		String fileName = FileLocationManager.getResourceLabelTranslatedFileName();
+		fileName = FileLocationManager.replacePlaceholder(context, fileName, applicationName, language);
+		return fileName;
+	}
+
+	/**
+	 * Load label resources from a resource file.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param applicationResource
+	 *            Application to consider.
+	 * 
+	 * @param applicationVersion
+	 *            Current version of the application.
+	 * 
+	 * @return Returns <TT>true</TT> if the resource file could be read
+	 *         successfully, otherwise <TT>false</TT>.
+	 */
+	public boolean loadLabelResourceFile(Context context, String applicationIdentifier, int applicationVersion)
+	{
+		HashMap<String, String> organizationalProperties = new HashMap<String, String>();
+
+		// Set File name
+		String fileName = this.getResourceLabelFilePath(context) + "\\" + this.getResourceLabelFileName(context, applicationIdentifier);
+
+		// Invoke general function to read resource files
+		boolean isSuccessful = context.getResourceManager().loadResourceFile(context, applicationIdentifier, applicationVersion, fileName, null, false, organizationalProperties);
+
+		// Check language specific
+		String propertyLanguageIdentifier = organizationalProperties.get(ResourceManager.RESOURCE_FILE_LANGUAGE);
+
+		if (propertyLanguageIdentifier == null || context.getApplicationManager().getSupportedLanguages().get(propertyLanguageIdentifier) == null)
+		{
+			String errorString = "--> Language item missing or does not match the supported languages";
+			errorString += "\n--> Supported languages: '" + context.getApplicationManager().getSupportedLanguagesString() + "'";
+			errorString += "\n--> Resource file item [" + ResourceManager.RESOURCE_FILE_LANGUAGE + "] was set to '" + propertyLanguageIdentifier + "'";
+			errorString += "\n--> Resource file name: '" + fileName + "'";
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Resource", "ErrorOnReadingResourceFile"), errorString, null);
+			isSuccessful = false;
+		}
+
+		// Return
+		return isSuccessful;
+	}
+
+	/**
+	 * Load translated labels from resource file.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param applicationResource
+	 *            Application to consider.
+	 * 
+	 * @param applicationVersion
+	 *            Current version of the application.
+	 * 
+	 * @return Returns <TT>true</TT> if the resource file could be read
+	 *         successfully, otherwise <TT>false</TT>.
+	 */
+	public boolean loadTranslatedLabelFile(Context context, String applicationIdentifier, int applicationVersion, String language)
+	{
+		HashMap<String, String> organizationalProperties = new HashMap<String, String>();
+
+		// Set File name
+		String fileName = this.getTranslatedLabelFilePath(context) + "\\" + this.getTranslatedLabelFileName(context, applicationIdentifier, language);
+
+		// Invoke general function to read resource files
+		boolean isSuccessful = context.getResourceManager().loadResourceFile(context, applicationIdentifier, applicationVersion, fileName, language, true, organizationalProperties);
+
+		// Return
+		return isSuccessful;
+	}
+
+	/**
 	 * Get the value (text) of a label.
 	 * 
 	 * @param context
