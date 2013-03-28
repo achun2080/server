@@ -1,0 +1,107 @@
+ResourceFile.Application=SeniorCitizen
+ResourceFile.Version=2
+ResourceFile.Language=eng
+ResourceFile.LicenseKey=1234
+
+#
+# License Item: Organize.ApplyFromDate
+#
+# --------------------
+# --------------------
+#
+License.SeniorCitizen.Server.Item.Organize.ApplyFromDate|Value.1234=123
+
+
+#
+# License Item: Organize.ApplyTooDate
+#
+# --------------------
+# --------------------
+#
+License.SeniorCitizen.Server.Item.Organize.ApplyTooDate|Value.1234=999999
+
+
+#
+# License Item: Organize.CopyrightText
+#
+# --------------------
+# --------------------
+#
+License.SeniorCitizen.Server.Item.Organize.CopyrightText|Value.1234=Copyright 2013
+
+
+#
+# License Item: Organize.SiteName
+#
+# --------------------
+# --------------------
+#
+License.SeniorCitizen.Server.Item.Organize.SiteName|Value.1234=Premium Site
+
+
+#
+# License Item: Service.BudgetPerMonth
+#
+# --------------------
+# --------------------
+#
+License.SeniorCitizen.Server.Item.Service.BudgetPerMonth|Value.1234=75000
+
+
+#
+# License Item: Service.NuOfArticlesInStock
+#
+# --------------------
+# --------------------
+#
+License.SeniorCitizen.Server.Item.Service.NuOfArticlesInStock|Value.1234=1000
+
+
+#
+# License Item: Service.NuOfFreeArticles
+#
+# --------------------
+# --------------------
+#
+License.SeniorCitizen.Server.Item.Service.NuOfFreeArticles|Value.1234=50
+
+
+#
+# License Item: Service.NuOfSoldArticles
+#
+# --------------------
+# --------------------
+#
+
+
+#
+# License Item: Service.OnlineBilling
+#
+# --------------------
+# --------------------
+#
+License.SeniorCitizen.Server.Item.Service.OnlineBilling|Value.1234=true
+
+
+#
+# License Item: Service.ProvisionRate
+#
+# --------------------
+# Manual
+# --------------------
+#
+# The provision rate sets the rate the web shop gets for each selling.
+#
+# There are two values to consider depending on the amount of selling
+# per month. If the accumulated amount is under 100.000 EUR the
+# first value "Value.1" is used.  If the accumulated amount is over
+# 100.000 EUR the second value "Value.2" is used.
+#
+# The value is to be set as an integer value in the range of 0 to
+# 100, meaning 0% to 100% provision rate.
+#
+# --------------------
+#
+License.SeniorCitizen.Server.Item.Service.ProvisionRate|Value.1.1234=true
+License.SeniorCitizen.Server.Item.Service.ProvisionRate|Value.2.1234=false
+

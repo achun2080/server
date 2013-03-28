@@ -22,6 +22,9 @@ public class SessionContainer
 	// Right group of the current user
 	private ResourceContainer userRightGroup = null;
 
+	// License key of the current user
+	private String userLicenseKey = null;
+
 	// Date of creation and modification
 	final private Date creationDate;
 	private Date lastModificationDate;
@@ -97,5 +100,21 @@ public class SessionContainer
 	public void setUserRightGroup(ResourceContainer userRightGroup)
 	{
 		this.userRightGroup = userRightGroup;
+	}
+
+	/**
+	 * Getter
+	 */
+	public String getUserLicenseKey()
+	{
+		return userLicenseKey;
+	}
+
+	/**
+	 * Setter
+	 */
+	public void setUserLicenseKey(String userLicenseKey)
+	{
+		this.userLicenseKey = userLicenseKey;
 	}	
 }

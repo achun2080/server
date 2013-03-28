@@ -840,7 +840,7 @@ public class LicenseManager implements ResourceInterface
 	{
 		boolean isDefined = false;
 
-		// Check if defined
+		// Check if license is defined
 		while (true)
 		{
 			// Validate parameter
@@ -850,7 +850,7 @@ public class LicenseManager implements ResourceInterface
 			// Check license
 			String value0 = licenseItemToCheck.getAttributeValue(context, 0, licenseKey);
 			String value1 = licenseItemToCheck.getAttributeValue(context, 1, licenseKey);
-			if (value0 == null || value1 == null) break;
+			if (value0 == null && value1 == null) break;
 			isDefined = true;
 
 			// Break
@@ -874,6 +874,498 @@ public class LicenseManager implements ResourceInterface
 
 		// Return
 		return isDefined;
+	}
+
+	/**
+	 * Get a value from a license item.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param licenseKey
+	 *            The license key of the current user to check for.
+	 * 
+	 * @param licenseItemToCheck
+	 *            The license item that is to be checked, if access is granted.
+	 * 
+	 * @param valueNumber
+	 *            The number of the "Value" attribute to be read.
+	 * 
+	 * @return Returns the value read, or <TT>null</TT>, if no value is
+	 *         available.
+	 */
+	private String getValue(Context context, String licenseKey, ResourceContainer licenseItemToCheck, int valueNumber)
+	{
+		String value = null;
+
+		// Check if license is defined
+		while (true)
+		{
+			// Validate parameter
+			if (licenseKey == null || licenseKey.length() == 0) break;
+			if (licenseItemToCheck == null) break;
+			if (valueNumber < 0) break;
+
+			// Read license value
+			value = licenseItemToCheck.getAttributeValue(context, valueNumber, licenseKey);
+
+			// Break
+			break;
+		}
+
+		// Notify WATCHDOG
+		String additionalText = "--> License value read for license key: '" + licenseKey + "'";
+		additionalText += "\n--> License item: '" + licenseItemToCheck.getRecourceIdentifier() + "'";
+
+		if (value != null)
+		{
+			additionalText += "\n--> Result value: '" + value + "'";
+		}
+		else
+		{
+			additionalText += "\n--> Result value: NULL";
+		}
+
+		this.notifyWatchdog(context, licenseItemToCheck.getRecourceIdentifier(), additionalText);
+
+		// Return
+		return value;
+	}
+
+	/**
+	 * Check if a single license is defined for the current user.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param licenseItemToCheck
+	 *            The license item that is to be checked, if access is granted.
+	 * 
+	 * @return Returns <TT>true</TT> if the license is defined, otherwise
+	 *         <TT>false</TT>.
+	 */
+	public static boolean hasLicense(Context context, ResourceContainer licenseItemToCheck)
+	{
+		String licenseKey = context.getServerSession().getUserLicenseKey();
+		return context.getLicenseManager().checkLicense(context, licenseKey, licenseItemToCheck);
+	}
+
+	/**
+	 * Get the main value "Value.0" from a license item.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param licenseItemToCheck
+	 *            The license item that is to be checked.
+	 * 
+	 * @return Returns the value read, or <TT>null</TT>, if no value is
+	 *         available.
+	 */
+	public static String getValue(Context context, ResourceContainer licenseItemToCheck)
+	{
+		String licenseKey = context.getServerSession().getUserLicenseKey();
+		return context.getLicenseManager().getValue(context, licenseKey, licenseItemToCheck, 0);
+	}
+
+	/**
+	 * Get a numbered value "Value.x" from a license item.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param licenseItemToCheck
+	 *            The license item that is to be checked.
+	 * 
+	 * @param valueNumber
+	 *            The number of the "Value" attribute to be read.
+	 * 
+	 * @return Returns the value read, or <TT>null</TT>, if no value is
+	 *         available.
+	 */
+	public static String getValue(Context context, ResourceContainer licenseItemToCheck, int valueNumber)
+	{
+		String licenseKey = context.getServerSession().getUserLicenseKey();
+		return context.getLicenseManager().getValue(context, licenseKey, licenseItemToCheck, valueNumber);
+	}
+
+	/**
+	 * Get the main value "Value.0" from a license item as an integer value.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param licenseItemToCheck
+	 *            The license item that is to be checked.
+	 * 
+	 * @return Returns the value read, or <TT>null</TT>, if no value is
+	 *         available.
+	 */
+	public static Integer getValueAsInteger(Context context, ResourceContainer licenseItemToCheck)
+	{
+		String licenseKey = context.getServerSession().getUserLicenseKey();
+		String value = context.getLicenseManager().getValue(context, licenseKey, licenseItemToCheck, 0);
+		if (value == null) return null;
+
+		try
+		{
+			int integerValue = Integer.parseInt(value);
+			return integerValue;
+		}
+		catch (Exception e)
+		{
+			return null;
+		}
+	}
+
+	/**
+	 * Get a numbered value "Value.x" from a license item as integer value.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param licenseItemToCheck
+	 *            The license item that is to be checked.
+	 * 
+	 * @param valueNumber
+	 *            The number of the "Value" attribute to be read.
+	 * 
+	 * @return Returns the value read, or <TT>null</TT>, if no value is
+	 *         available.
+	 */
+	public static Integer getValueAsInteger(Context context, ResourceContainer licenseItemToCheck, int valueNumber)
+	{
+		String licenseKey = context.getServerSession().getUserLicenseKey();
+		String value = context.getLicenseManager().getValue(context, licenseKey, licenseItemToCheck, valueNumber);
+		if (value == null) return null;
+
+		try
+		{
+			int integerValue = Integer.parseInt(value);
+			return integerValue;
+		}
+		catch (Exception e)
+		{
+			return null;
+		}
+	}
+
+	/**
+	 * Get the main value "Value.0" from a license item as an boolean value.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param licenseItemToCheck
+	 *            The license item that is to be checked.
+	 * 
+	 * @return Returns the value read, or <TT>null</TT>, if no value is
+	 *         available.
+	 */
+	public static Boolean getValueAsBoolean(Context context, ResourceContainer licenseItemToCheck)
+	{
+		String licenseKey = context.getServerSession().getUserLicenseKey();
+		String value = context.getLicenseManager().getValue(context, licenseKey, licenseItemToCheck, 0);
+		if (value == null) return null;
+
+		if (value.equalsIgnoreCase("true")) return true;
+		if (value.equalsIgnoreCase("false")) return false;
+		return null;
+	}
+
+	/**
+	 * Get a numbered value "Value.x" from a license item as boolean value.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param licenseItemToCheck
+	 *            The license item that is to be checked.
+	 * 
+	 * @param valueNumber
+	 *            The number of the "Value" attribute to be read.
+	 * 
+	 * @return Returns the value read, or <TT>null</TT>, if no value is
+	 *         available.
+	 */
+	public static Boolean getValueAsBoolean(Context context, ResourceContainer licenseItemToCheck, int valueNumber)
+	{
+		String licenseKey = context.getServerSession().getUserLicenseKey();
+		String value = context.getLicenseManager().getValue(context, licenseKey, licenseItemToCheck, valueNumber);
+		if (value == null) return null;
+
+		if (value.equalsIgnoreCase("true")) return true;
+		if (value.equalsIgnoreCase("false")) return false;
+		return null;
+	}
+
+	/**
+	 * Compare the main value "Value.0" of a license item to an integer value.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param licenseItemToCheck
+	 *            The license item that is to be checked.
+	 * 
+	 * @param valueToCompareWith
+	 *            The integer value to compare with.
+	 * 
+	 * @return Returns the result of comparing, that is <TT>true</TT> if the
+	 *         license value is greater than the value to compare with, or
+	 *         <TT>false</TT> if the license value is lower or equal to the
+	 *         value to compare with, or <TT>null</TT> if no license value is
+	 *         available or the license value is not an integer value.
+	 */
+	public static Boolean isGreaterThan(Context context, ResourceContainer licenseItemToCheck, int valueToCompareWith)
+	{
+		Integer licenseValue = LicenseManager.getValueAsInteger(context, licenseItemToCheck, 0);
+		if (licenseValue == null) return null;
+
+		if (licenseValue > valueToCompareWith) return true;
+		return false;
+	}
+
+	/**
+	 * Compare a numbered value "Value.x" of a license item to an integer value.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param licenseItemToCheck
+	 *            The license item that is to be checked.
+	 * 
+	 * @param valueToCompareWith
+	 *            The integer value to compare with.
+	 * 
+	 * @param valueNumber
+	 *            The number of the "Value" attribute to be read.
+	 * 
+	 * @return Returns the result of comparing, that is <TT>true</TT> if the
+	 *         license value is greater than the value to compare with, or
+	 *         <TT>false</TT> if the license value is lower or equal to the
+	 *         value to compare with, or <TT>null</TT> if no license value is
+	 *         available or the license value is not an integer value.
+	 */
+	public static Boolean isGreaterThan(Context context, ResourceContainer licenseItemToCheck, int valueToCompareWith, int valueNumber)
+	{
+		Integer licenseValue = LicenseManager.getValueAsInteger(context, licenseItemToCheck, valueNumber);
+		if (licenseValue == null) return null;
+
+		if (licenseValue > valueToCompareWith) return true;
+		return false;
+	}
+
+	/**
+	 * Compare the main value "Value.0" of a license item to an integer value.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param licenseItemToCheck
+	 *            The license item that is to be checked.
+	 * 
+	 * @param valueToCompareWith
+	 *            The integer value to compare with.
+	 * 
+	 * @return Returns the result of comparing, that is <TT>true</TT> if the
+	 *         license value is lower than the value to compare with, or
+	 *         <TT>false</TT> if the license value is greater or equal to the
+	 *         value to compare with, or <TT>null</TT> if no license value is
+	 *         available or the license value is not an integer value.
+	 */
+	public static Boolean isLowerThan(Context context, ResourceContainer licenseItemToCheck, int valueToCompareWith)
+	{
+		Integer licenseValue = LicenseManager.getValueAsInteger(context, licenseItemToCheck, 0);
+		if (licenseValue == null) return null;
+
+		if (licenseValue < valueToCompareWith) return true;
+		return false;
+	}
+
+	/**
+	 * Compare a numbered value "Value.x" of a license item to an integer value.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param licenseItemToCheck
+	 *            The license item that is to be checked.
+	 * 
+	 * @param valueToCompareWith
+	 *            The integer value to compare with.
+	 * 
+	 * @param valueNumber
+	 *            The number of the "Value" attribute to be read.
+	 * 
+	 * @return Returns the result of comparing, that is <TT>true</TT> if the
+	 *         license value is lower than the value to compare with, or
+	 *         <TT>false</TT> if the license value is greater or equal to the
+	 *         value to compare with, or <TT>null</TT> if no license value is
+	 *         available or the license value is not an integer value.
+	 */
+	public static Boolean isLowerThan(Context context, ResourceContainer licenseItemToCheck, int valueToCompareWith, int valueNumber)
+	{
+		Integer licenseValue = LicenseManager.getValueAsInteger(context, licenseItemToCheck, valueNumber);
+		if (licenseValue == null) return null;
+
+		if (licenseValue < valueToCompareWith) return true;
+		return false;
+	}
+
+	/**
+	 * Compare the main value "Value.0" of a license item to an integer value.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param licenseItemToCheck
+	 *            The license item that is to be checked.
+	 * 
+	 * @param valueToCompareWith
+	 *            The integer value to compare with.
+	 * 
+	 * @return Returns the result of comparing, that is <TT>true</TT> if the
+	 *         license value is equal to the value to compare with, or
+	 *         <TT>false</TT> if the license value is not equal to the value to
+	 *         compare with, or <TT>null</TT> if no license value is available
+	 *         or the license value is not an integer value.
+	 */
+	public static Boolean isEqual(Context context, ResourceContainer licenseItemToCheck, int valueToCompareWith)
+	{
+		Integer licenseValue = LicenseManager.getValueAsInteger(context, licenseItemToCheck, 0);
+		if (licenseValue == null) return null;
+
+		if (licenseValue == valueToCompareWith) return true;
+		return false;
+	}
+
+	/**
+	 * Compare a numbered value "Value.x" of a license item to an integer value.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param licenseItemToCheck
+	 *            The license item that is to be checked.
+	 * 
+	 * @param valueToCompareWith
+	 *            The integer value to compare with.
+	 * 
+	 * @param valueNumber
+	 *            The number of the "Value" attribute to be read.
+	 * 
+	 * @return Returns the result of comparing, that is <TT>true</TT> if the
+	 *         license value is equal to the value to compare with, or
+	 *         <TT>false</TT> if the license value is not equal to the value to
+	 *         compare with, or <TT>null</TT> if no license value is available
+	 *         or the license value is not an integer value.
+	 */
+	public static Boolean isEqual(Context context, ResourceContainer licenseItemToCheck, int valueToCompareWith, int valueNumber)
+	{
+		Integer licenseValue = LicenseManager.getValueAsInteger(context, licenseItemToCheck, valueNumber);
+		if (licenseValue == null) return null;
+
+		if (licenseValue == valueToCompareWith) return true;
+		return false;
+	}
+
+	/**
+	 * Compare the main value "Value.0" of a license item to a boolean value.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param licenseItemToCheck
+	 *            The license item that is to be checked.
+	 * 
+	 * @return Returns the result of comparing, that is <TT>true</TT> if the
+	 *         license value is set to "true", or <TT>false</TT> if the license
+	 *         value is set to "false", or <TT>null</TT> if no license value is
+	 *         available or the license value is not a boolean value.
+	 */
+	public static Boolean isTrue(Context context, ResourceContainer licenseItemToCheck)
+	{
+		Boolean licenseValue = LicenseManager.getValueAsBoolean(context, licenseItemToCheck, 0);
+		if (licenseValue == null) return null;
+		
+		if (licenseValue == true) return true;
+		return false;
+	}
+
+	/**
+	 * Compare the numbered value "Value.x" of a license item to a boolean value.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param licenseItemToCheck
+	 *            The license item that is to be checked, if access is granted.
+	 * 
+	 * @param valueNumber
+	 *            The number of the "Value" attribute to be read.
+	 * 
+	 * @return Returns the result of comparing, that is <TT>true</TT> if the
+	 *         license value is set to "true", or <TT>false</TT> if the license
+	 *         value is set to "false", or <TT>null</TT> if no license value is
+	 *         available or the license value is not a boolean value.
+	 */
+	public static Boolean isTrue(Context context, ResourceContainer licenseItemToCheck, int valueNumber)
+	{
+		Boolean licenseValue = LicenseManager.getValueAsBoolean(context, licenseItemToCheck, valueNumber);
+		if (licenseValue == null) return null;
+		
+		if (licenseValue == true) return true;
+		return false;
+	}
+
+	/**
+	 * Compare the main value "Value.0" of a license item to a boolean value.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param licenseItemToCheck
+	 *            The license item that is to be checked.
+	 * 
+	 * @return Returns the result of comparing, that is <TT>true</TT> if the
+	 *         license value is set to "false", or <TT>false</TT> if the license
+	 *         value is set to "true", or <TT>null</TT> if no license value is
+	 *         available or the license value is not a boolean value.
+	 */
+	public static Boolean isFalse(Context context, ResourceContainer licenseItemToCheck)
+	{
+		Boolean licenseValue = LicenseManager.getValueAsBoolean(context, licenseItemToCheck, 0);
+		if (licenseValue == null) return null;
+		
+		if (licenseValue == false) return true;
+		return false;
+	}
+
+	/**
+	 * Compare the numbered value "Value.x" of a license item to a boolean value.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param licenseItemToCheck
+	 *            The license item that is to be checked, if access is granted.
+	 * 
+	 * @param valueNumber
+	 *            The number of the "Value" attribute to be read.
+	 * 
+	 * @return Returns the result of comparing, that is <TT>true</TT> if the
+	 *         license value is set to "false", or <TT>false</TT> if the license
+	 *         value is set to "true", or <TT>null</TT> if no license value is
+	 *         available or the license value is not a boolean value.
+	 */
+	public static Boolean isFalse(Context context, ResourceContainer licenseItemToCheck, int valueNumber)
+	{
+		Boolean licenseValue = LicenseManager.getValueAsBoolean(context, licenseItemToCheck, valueNumber);
+		if (licenseValue == null) return null;
+		
+		if (licenseValue == false) return true;
+		return false;
 	}
 
 	/**
@@ -1078,7 +1570,7 @@ public class LicenseManager implements ResourceInterface
 							for (String value : valueSet)
 							{
 								valueNumber++;
-								
+
 								// There is only one value set --> "|Value="
 								if (valueNumber == 1 && valueSet.size() == 1)
 								{
