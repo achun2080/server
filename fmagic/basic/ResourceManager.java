@@ -45,7 +45,8 @@ public class ResourceManager implements ResourceInterface
 	// List of additional information
 	private HashMap<String, String> notFoundProperties = new HashMap<String, String>();
 	private HashMap<String, String> readResourceIdentifiersList = new HashMap<String, String>();
-	private HashMap<String, String> duplicateTypeGroupNameIdentifierProperties = new HashMap<String, String>();
+	private HashMap<String, String> typeGroupNameIdentifierList = new HashMap<String, String>();
+	private HashMap<String, String> aliasNameIdentifierList = new HashMap<String, String>();
 	private HashMap<String, String> commonIdentifiersProperties = new HashMap<String, String>();
 
 	// Flags for synchronizing the locking of messages
@@ -293,7 +294,7 @@ public class ResourceManager implements ResourceInterface
 			String identifier = ResourceContainer.composeTypeGroupNameIdentifierString(resourceContainer.getType(), resourceContainer.getGroup(), resourceContainer.getName());
 
 			// Check duplicate
-			if (this.duplicateTypeGroupNameIdentifierProperties.containsKey(identifier))
+			if (this.typeGroupNameIdentifierList.containsKey(identifier))
 			{
 				String errorString = "--> Duplicate resource Type/Group/Name found";
 				errorString += "\n--> Identifier: '" + identifier + "'";
@@ -306,7 +307,7 @@ public class ResourceManager implements ResourceInterface
 			}
 
 			// Add to to the list of resources
-			this.duplicateTypeGroupNameIdentifierProperties.put(identifier, resourceContainer.getRecourceIdentifier());
+			this.typeGroupNameIdentifierList.put(identifier, resourceContainer.getRecourceIdentifier());
 		}
 		catch (Exception e)
 		{
@@ -380,6 +381,83 @@ public class ResourceManager implements ResourceInterface
 	}
 
 	/**
+	 * Check an item if there is a duplicate ALIAS name set in another resource
+	 * identifier of the same Type/Usage.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param aliasName
+	 *            The alias name to check.
+	 * 
+	 * @param fileName
+	 *            The file name of the actual resource file.
+	 * 
+	 * @param resourceContainer
+	 *            The resource container to check.
+	 * 
+	 * @param line
+	 *            The text of the actual line of the resource file.
+	 * 
+	 * @param lineNumber
+	 *            The line number of the actual line of the resource file.
+	 * 
+	 * @return Returns <TT>true</TT> if a duplicate ALIAS name was found,
+	 *         otherwise <TT>false</TT>.
+	 */
+	private boolean ckeckDuplicateAliasName(Context context, String aliasName, String fileName, ResourceContainer resourceContainer, String line, int lineNumber)
+	{
+		// Check parameter
+		if (resourceContainer == null) return false;
+		if (aliasName == null) return false;
+		if (aliasName.length() == 0) return false;
+
+		// Variables
+		boolean isDuplicateFound = false;
+
+		// Check for duplicates
+		try
+		{
+			// Check if name is set
+			String name = resourceContainer.getName();
+			if (name == null || name.length() == 0) return false;
+
+			// Compose identifier
+			String type = resourceContainer.getType();
+			if (type == null || type.length() == 0) return false;
+
+			String usage = resourceContainer.getUsage();
+			if (usage == null || usage.length() == 0) return false;
+
+			String identifier = type + "/" + usage + "=" + aliasName;
+
+			// Check duplicate
+			if (this.aliasNameIdentifierList.containsKey(identifier))
+			{
+				String errorString = "--> Duplicate Alias name found, based on the same Type/Usage.";
+				errorString += "\n--> Type/Usage: '" + type + "/" + usage + "'";
+				errorString += "\n--> Alias name: '" + aliasName + "'";
+				errorString += "\n--> In file: '" + fileName + "'";
+				errorString += "\n--> Line number: '" + String.valueOf(lineNumber) + "'";
+				errorString += "\n--> Line text: '" + line + "'";
+				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Resource", "DuplicateOfTypeGroupNameIdentifier"), errorString, null);
+
+				isDuplicateFound = true;
+			}
+
+			// Add to to the list of used alias names
+			this.aliasNameIdentifierList.put(identifier, resourceContainer.getRecourceIdentifier());
+		}
+		catch (Exception e)
+		{
+			// Be silent
+		}
+
+		// Return
+		return isDuplicateFound;
+	}
+
+	/**
 	 * Check if the resource item is already set as a resource identifier.
 	 * 
 	 * @param context
@@ -419,7 +497,7 @@ public class ResourceManager implements ResourceInterface
 			String identifier = ResourceContainer.composeTypeGroupNameIdentifierString(resourceContainer.getType(), resourceContainer.getGroup(), resourceContainer.getName());
 
 			// Check duplicate
-			if (!this.duplicateTypeGroupNameIdentifierProperties.containsKey(identifier))
+			if (!this.typeGroupNameIdentifierList.containsKey(identifier))
 			{
 				String errorString = "--> Resource Type/Group/Name is not set yet.";
 				errorString += "\n--> Please define a regular resource item first, before you use it, e. g. as label text.";
@@ -1387,7 +1465,7 @@ public class ResourceManager implements ResourceInterface
 				}
 
 				// Get full resource identifier
-				String fullIdentifier = context.getResourceManager().duplicateTypeGroupNameIdentifierProperties.get(tgnIdentifier);
+				String fullIdentifier = context.getResourceManager().typeGroupNameIdentifierList.get(tgnIdentifier);
 
 				// Full identifier not found
 				if (fullIdentifier == null)
@@ -2017,7 +2095,17 @@ public class ResourceManager implements ResourceInterface
 					{
 						if (identifierParts.length == 5) resourceContainer = new ResourceContainer(context, identifierParts[0], identifierParts[1], identifierParts[2], identifierParts[3], identifierParts[4]);
 						if (identifierParts.length == 6) resourceContainer = new ResourceContainer(context, identifierParts[0], identifierParts[1], identifierParts[2], identifierParts[3], identifierParts[4], identifierParts[5]);
-						if (value != null && value.length() > 0) resourceContainer.setAliasName(value);
+
+						// Handle Alias name
+						if (value != null && value.length() > 0)
+						{
+							// Assign Alias name to the resource
+							resourceContainer.setAliasName(value);
+
+							// Check if Alias name was used before for the same
+							// Type/Usage
+							if (this.ckeckDuplicateAliasName(context, value, fileName, resourceContainer, rawLine, lineNumber) == true) isError = true;
+						}
 					}
 				}
 				else
@@ -2134,7 +2222,7 @@ public class ResourceManager implements ResourceInterface
 	 * @return Returns <TT>true</TT> if an error was found, otherwise
 	 *         <TT>false</TT>.
 	 */
-	public boolean ckeckOnSystemResourceIdentifierIntegrityError(Context context, ResourceInterface resourceInterface)
+	public boolean ckeckOnSystemResourceIdentifierIntegrityError(Context context, ResourceInterface application)
 	{
 		// Variables
 		boolean isIntegrityError = false;
@@ -2149,8 +2237,9 @@ public class ResourceManager implements ResourceInterface
 			if (context.getConfigurationManager().ckeckOnResourceIdentifierIntegrityError(context) == true) isIntegrityError = true;
 			if (context.getLabelManager().ckeckOnResourceIdentifierIntegrityError(context) == true) isIntegrityError = true;
 			if (context.getLocaldataManager().ckeckOnResourceIdentifierIntegrityError(context) == true) isIntegrityError = true;
-			if (context.getLabelManager().ckeckOnResourceIdentifierIntegrityError(context) == true) isIntegrityError = true;
-			if (resourceInterface.ckeckOnResourceIdentifierIntegrityError(context) == true) isIntegrityError = true;
+			if (context.getRightManager().ckeckOnResourceIdentifierIntegrityError(context) == true) isIntegrityError = true;
+			if (context.getLicenseManager().ckeckOnResourceIdentifierIntegrityError(context) == true) isIntegrityError = true;
+			if (application.ckeckOnResourceIdentifierIntegrityError(context) == true) isIntegrityError = true;
 		}
 		catch (Exception e)
 		{

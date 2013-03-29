@@ -104,7 +104,42 @@ public class LicenseManager implements ResourceInterface
 	@Override
 	public boolean ckeckOnResourceIdentifierIntegrityError(Context context)
 	{
-		return false;
+		// Variables
+		boolean isIntegrityError = false;
+		ResourceManager resourceManager = context.getResourceManager();
+
+		// Check for integrity errors (Named resource identifiers)
+		try
+		{
+			for (ResourceContainer resourceContainer : resourceManager.getResources().values())
+			{
+				// Check if name is set
+				String name = resourceContainer.getName();
+				if (name == null || name.length() == 0) continue;
+
+				// LicenseManager: Alias name must be set
+				if (resourceContainer.getType().equalsIgnoreCase("license") && resourceContainer.getUsage().equalsIgnoreCase("model") && resourceContainer.checkAliasName() == false)
+				{
+					String errorString = "--> Alias name for license model identifier is not set.";
+					String fileName = resourceManager.getReadResourceIdentifiersList().get(resourceContainer.getRecourceIdentifier());
+					if (fileName != null) errorString += "\n--> In file: '" + fileName + "'";
+					errorString += "\n--> Full resource identifier: '" + resourceContainer.getRecourceIdentifier() + "'";
+					errorString += "\n--> The Alias name is used for differentiating model names.";
+					errorString += "\n--> Please set an Alias name that correspondences with the license model name.";
+
+					context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Resource", "IntegrityError"), errorString, null);
+
+					isIntegrityError = true;
+				}
+			}
+		}
+		catch (Exception e)
+		{
+			// Be silent
+		}
+
+		// Return
+		return isIntegrityError;
 	}
 
 	/**
@@ -1288,13 +1323,14 @@ public class LicenseManager implements ResourceInterface
 	{
 		Boolean licenseValue = LicenseManager.getValueAsBoolean(context, licenseItemToCheck, 0);
 		if (licenseValue == null) return null;
-		
+
 		if (licenseValue == true) return true;
 		return false;
 	}
 
 	/**
-	 * Compare the numbered value "Value.x" of a license item to a boolean value.
+	 * Compare the numbered value "Value.x" of a license item to a boolean
+	 * value.
 	 * 
 	 * @param context
 	 *            Application context.
@@ -1314,7 +1350,7 @@ public class LicenseManager implements ResourceInterface
 	{
 		Boolean licenseValue = LicenseManager.getValueAsBoolean(context, licenseItemToCheck, valueNumber);
 		if (licenseValue == null) return null;
-		
+
 		if (licenseValue == true) return true;
 		return false;
 	}
@@ -1337,19 +1373,20 @@ public class LicenseManager implements ResourceInterface
 	{
 		Boolean licenseValue = LicenseManager.getValueAsBoolean(context, licenseItemToCheck, 0);
 		if (licenseValue == null) return null;
-		
+
 		if (licenseValue == false) return true;
 		return false;
 	}
 
 	/**
-	 * Compare the numbered value "Value.x" of a license item to a boolean value.
+	 * Compare the numbered value "Value.x" of a license item to a boolean
+	 * value.
 	 * 
 	 * @param context
 	 *            Application context.
 	 * 
 	 * @param licenseItemToCheck
-	 *            The license item that is to be checked, if access is granted.
+	 *            The license item that is to be checked.
 	 * 
 	 * @param valueNumber
 	 *            The number of the "Value" attribute to be read.
@@ -1363,9 +1400,557 @@ public class LicenseManager implements ResourceInterface
 	{
 		Boolean licenseValue = LicenseManager.getValueAsBoolean(context, licenseItemToCheck, valueNumber);
 		if (licenseValue == null) return null;
-		
+
 		if (licenseValue == false) return true;
 		return false;
+	}
+
+	/**
+	 * Refills credits of an <TT>user</TT> license budget. The credit amount of
+	 * the actual user is initialized to a new value. Existing credits were
+	 * overridden.
+	 * <p>
+	 * Please notice:
+	 * <TT>This function is not implemented yet. You may invoke it to integrate it in your business functions, but it doesn't work yet.</TT>
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param licenseItem
+	 *            The license item to be considered.
+	 * 
+	 * @param credits
+	 *            The number of credits to set.
+	 * 
+	 * @return Returns <TT>true</TT> if the credits could be added, or
+	 *         <TT>false</TT> if an error occurred.
+	 */
+	public static boolean budgetRefillUserCredits(Context context, ResourceContainer licenseItem, int credits)
+	{
+		// Validate parameters
+		if (credits <= 0) return false;
+
+		// TODO
+
+		// Return
+		return true;
+	}
+
+	/**
+	 * Refills credits of a <TT>site</TT> license budget. The credit amount of
+	 * the actual site is initialized to a new value. Existing credits were
+	 * overridden.
+	 * <p>
+	 * Please notice:
+	 * <TT>This function is not implemented yet. You may invoke it to integrate it in your business functions, but it doesn't work yet.</TT>
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param licenseItem
+	 *            The license item to be considered.
+	 * 
+	 * @param credits
+	 *            The number of credits to set.
+	 * 
+	 * @return Returns <TT>true</TT> if the credits could be added, or
+	 *         <TT>false</TT> if an error occurred.
+	 */
+	public static boolean budgetRefillSiteCredits(Context context, ResourceContainer licenseItem, int credits)
+	{
+		// Validate parameters
+		if (credits <= 0) return false;
+
+		// TODO
+
+		// Return
+		return true;
+	}
+
+	/**
+	 * Consuming of credits of an <TT>user</TT> license budget. The credit
+	 * amount of the actual user is decreased.
+	 * <p>
+	 * Please notice:
+	 * <TT>This function is not implemented yet. You may invoke it to integrate it in your business functions, but it doesn't work yet.</TT>
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param licenseItem
+	 *            The license item to be considered.
+	 * 
+	 * @param credits
+	 *            The number of credits to consume.
+	 * 
+	 * @return Returns <TT>true</TT> if the credits could be consumed, or
+	 *         <TT>false</TT> if the limit of available credits would be
+	 *         exceeded by consuming, or if an error occurred.
+	 */
+	public static boolean budgetConsumeUserCredits(Context context, ResourceContainer licenseItem, int credits)
+	{
+		// Validate parameters
+		if (credits <= 0) return false;
+
+		// TODO
+
+		// Return
+		return true;
+	}
+
+	/**
+	 * Consuming of credits of a <TT>site</TT> license budget. The credit amount
+	 * of the actual site is decreased.
+	 * <p>
+	 * Please notice:
+	 * <TT>This function is not implemented yet. You may invoke it to integrate it in your business functions, but it doesn't work yet.</TT>
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param licenseItem
+	 *            The license item to be considered.
+	 * 
+	 * @param credits
+	 *            The number of credits to consume.
+	 * 
+	 * @return Returns <TT>true</TT> if the credits could be consumed, or
+	 *         <TT>false</TT> if the limit of available credits would be
+	 *         exceeded by consuming, or if an error occurred.
+	 */
+	public static boolean budgetConsumeSiteCredits(Context context, ResourceContainer licenseItem, int credits)
+	{
+		// Validate parameters
+		if (credits <= 0) return false;
+
+		// TODO
+
+		// Return
+		return true;
+	}
+
+	/**
+	 * Cancels consumed credits of an <TT>user</TT> license budget. The credit
+	 * amount of the actual user is increased again. Please use this function to
+	 * explicitly cancel credits, that were consumed before, e. g. because an
+	 * error occurred before.
+	 * <p>
+	 * Please notice:
+	 * <TT>This function is not implemented yet. You may invoke it to integrate it in your business functions, but it doesn't work yet.</TT>
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param licenseItem
+	 *            The license item to be considered.
+	 * 
+	 * @param credits
+	 *            The number of credits to be added to the budget.
+	 * 
+	 * @param cancelText
+	 *            A comment describing the background of canceling, e. g. the
+	 *            reason.
+	 * 
+	 * @return Returns <TT>true</TT> if the credits could be added, or
+	 *         <TT>false</TT> if an error occurred.
+	 */
+	public static boolean budgetCancelUserCredits(Context context, ResourceContainer licenseItem, int credits, String cancelText)
+	{
+		// Validate parameters
+		if (credits <= 0) return false;
+
+		// TODO
+
+		// Return
+		return true;
+	}
+
+	/**
+	 * Cancels consumed credits of an <TT>site</TT> license budget. The credit
+	 * amount of the actual site is increased again. Please use this function to
+	 * explicitly cancel credits, that were consumed before, e. g. because an
+	 * error occurred before.
+	 * <p>
+	 * Please notice:
+	 * <TT>This function is not implemented yet. You may invoke it to integrate it in your business functions, but it doesn't work yet.</TT>
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param licenseItem
+	 *            The license item to be considered.
+	 * 
+	 * @param credits
+	 *            The number of credits to be added to the budget.
+	 * 
+	 * @param cancelText
+	 *            A comment describing the background of canceling, e. g. the
+	 *            reason.
+	 * 
+	 * @return Returns <TT>true</TT> if the credits could be added, or
+	 *         <TT>false</TT> if an error occurred.
+	 */
+	public static boolean budgetCancelSiteCredits(Context context, ResourceContainer licenseItem, int credits, String cancelText)
+	{
+		// Validate parameters
+		if (credits <= 0) return false;
+
+		// TODO
+
+		// Return
+		return true;
+	}
+
+	/**
+	 * Add credits to an <TT>user</TT> license budget. The credit amount of the
+	 * actual user is increased.
+	 * <p>
+	 * Please notice:
+	 * <TT>This function is not implemented yet. You may invoke it to integrate it in your business functions, but it doesn't work yet.</TT>
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param licenseItem
+	 *            The license item to be considered.
+	 * 
+	 * @param credits
+	 *            The number of credits to be added to the budget.
+	 * 
+	 * @return Returns <TT>true</TT> if the credits could be added, or
+	 *         <TT>false</TT> if an error occurred.
+	 */
+	public static boolean budgetAddUserCredits(Context context, ResourceContainer licenseItem, int credits)
+	{
+		// Validate parameters
+		if (credits <= 0) return false;
+
+		// TODO
+
+		// Return
+		return true;
+	}
+
+	/**
+	 * Add credits to a <TT>site</TT> license budget. The credit amount of the
+	 * actual site is increased.
+	 * <p>
+	 * Please notice:
+	 * <TT>This function is not implemented yet. You may invoke it to integrate it in your business functions, but it doesn't work yet.</TT>
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param licenseItem
+	 *            The license item to be considered.
+	 * 
+	 * @param credits
+	 *            The number of credits to be added to the budget.
+	 * 
+	 * @return Returns <TT>true</TT> if the credits could be added, or
+	 *         <TT>false</TT> if an error occurred.
+	 */
+	public static boolean budgetAddSiteCredits(Context context, ResourceContainer licenseItem, int credits)
+	{
+		// Validate parameters
+		if (credits <= 0) return false;
+
+		// TODO
+
+		// Return
+		return true;
+	}
+
+	/**
+	 * Checks if a specific amount of credits of the <TT>user</TT> license
+	 * budget of the actual user is available. The budget itself is <u>not</u>
+	 * attached by invoking this function.
+	 * <p>
+	 * Please notice:
+	 * <TT>This function is not implemented yet. You may invoke it to integrate it in your business functions, but it doesn't work yet.</TT>
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param licenseItem
+	 *            The license item to be considered.
+	 * 
+	 * @param credits
+	 *            The number of credits to be checked.
+	 * 
+	 * @return Returns <TT>true</TT> if the credits are available, or
+	 *         <TT>false</TT> if the amount doesn't match the number of credits
+	 *         currently available, or if an error occurred.
+	 */
+	public static boolean budgetHasUserCredits(Context context, ResourceContainer licenseItem, int credits)
+	{
+		// Validate parameters
+		if (credits <= 0) return false;
+
+		// TODO
+
+		// Return
+		return true;
+	}
+
+	/**
+	 * Checks if a specific amount of credits of a <TT>site</TT> license budget
+	 * of the actual site is available. The budget itself is <u>not</u> attached
+	 * by invoking this function.
+	 * <p>
+	 * Please notice:
+	 * <TT>This function is not implemented yet. You may invoke it to integrate it in your business functions, but it doesn't work yet.</TT>
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param licenseItem
+	 *            The license item to be considered.
+	 * 
+	 * @param credits
+	 *            The number of credits to be checked.
+	 * 
+	 * @return Returns <TT>true</TT> if the credits are available, or
+	 *         <TT>false</TT> if the amount doesn't match the number of credits
+	 *         currently available, or if an error occurred.
+	 */
+	public static boolean budgetHasSiteCredits(Context context, ResourceContainer licenseItem, int credits)
+	{
+		// Validate parameters
+		if (credits <= 0) return false;
+
+		// TODO
+
+		// Return
+		return true;
+	}
+
+	/**
+	 * Get the current amount of credits of an <TT>user</TT> license budget. You
+	 * get the amount of credits of the actual user.
+	 * <p>
+	 * Please notice:
+	 * <TT>This function is not implemented yet. You may invoke it to integrate it in your business functions, but it doesn't work yet.</TT>
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param licenseItem
+	 *            The license item to be considered.
+	 * 
+	 * @return Returns the number of credits that are available.
+	 */
+	public static int budgetGetUserCredits(Context context, ResourceContainer licenseItem)
+	{
+		// TODO
+
+		// Return
+		return 0;
+	}
+
+	/**
+	 * Get the current amount of credits of a <TT>site</TT> license budget. You
+	 * get the amount of credits of the actual site.
+	 * <p>
+	 * Please notice:
+	 * <TT>This function is not implemented yet. You may invoke it to integrate it in your business functions, but it doesn't work yet.</TT>
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param licenseItem
+	 *            The license item to be considered.
+	 * 
+	 * @return Returns the number of credits that are available.
+	 */
+	public static int budgetGetsiteCredits(Context context, ResourceContainer licenseItem)
+	{
+		// TODO
+
+		// Return
+		return 0;
+	}
+
+	/**
+	 * Book credits to an <TT>user</TT> license account. The account amount of
+	 * the actual user is increased.
+	 * <p>
+	 * Please notice:
+	 * <TT>This function is not implemented yet. You may invoke it to integrate it in your business functions, but it doesn't work yet.</TT>
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param licenseItem
+	 *            The license item to be considered.
+	 * 
+	 * @param credits
+	 *            The number of credits to be booked to the account.
+	 * 
+	 * @return Returns <TT>true</TT> if the credits could be booked, or
+	 *         <TT>false</TT> if an error occurred.
+	 */
+	public static boolean accountBookUserCredits(Context context, ResourceContainer licenseItem, int credits)
+	{
+		// Validate parameters
+		if (credits <= 0) return false;
+
+		// TODO
+
+		// Return
+		return true;
+	}
+
+	/**
+	 * Book credits to a <TT>site</TT> license account. The account amount of
+	 * the actual site is increased.
+	 * <p>
+	 * Please notice:
+	 * <TT>This function is not implemented yet. You may invoke it to integrate it in your business functions, but it doesn't work yet.</TT>
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param licenseItem
+	 *            The license item to be considered.
+	 * 
+	 * @param credits
+	 *            The number of credits to be booked to the account.
+	 * 
+	 * @return Returns <TT>true</TT> if the credits could be booked, or
+	 *         <TT>false</TT> if an error occurred.
+	 */
+	public static boolean accountBookSiteCredits(Context context, ResourceContainer licenseItem, int credits)
+	{
+		// Validate parameters
+		if (credits <= 0) return false;
+
+		// TODO
+
+		// Return
+		return true;
+	}
+
+	/**
+	 * Cancels booked credits of an <TT>user</TT> license account. The credit
+	 * amount of the actual user is decreased. Please use this function to
+	 * explicitly cancel credits, that were booked before, e. g. because an
+	 * error occurred before.
+	 * <p>
+	 * Please notice:
+	 * <TT>This function is not implemented yet. You may invoke it to integrate it in your business functions, but it doesn't work yet.</TT>
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param licenseItem
+	 *            The license item to be considered.
+	 * 
+	 * @param credits
+	 *            The number of credits to be subtracted from the account.
+	 * 
+	 * @param cancelText
+	 *            A comment describing the background of canceling, e. g. the
+	 *            reason.
+	 * 
+	 * @return Returns <TT>true</TT> if the credits could be subtracted, or
+	 *         <TT>false</TT> if an error occurred. If the actual amount of
+	 *         credits is lower than the number of credits to be subtracted, the
+	 *         amount is set to <TT>0</TT>.
+	 */
+	public static boolean accountCancelUserCredits(Context context, ResourceContainer licenseItem, int credits, String cancelText)
+	{
+		// Validate parameters
+		if (credits <= 0) return false;
+
+		// TODO
+
+		// Return
+		return true;
+	}
+
+	/**
+	 * Cancels booked credits of a <TT>site</TT> license account. The credit
+	 * amount of the actual site is decreased. Please use this function to
+	 * explicitly cancel credits, that were booked before, e. g. because an
+	 * error occurred before.
+	 * <p>
+	 * Please notice:
+	 * <TT>This function is not implemented yet. You may invoke it to integrate it in your business functions, but it doesn't work yet.</TT>
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param licenseItem
+	 *            The license item to be considered.
+	 * 
+	 * @param credits
+	 *            The number of credits to be subtracted from the account.
+	 * 
+	 * @param cancelText
+	 *            A comment describing the background of canceling, e. g. the
+	 *            reason.
+	 * 
+	 * @return Returns <TT>true</TT> if the credits could be subtracted, or
+	 *         <TT>false</TT> if an error occurred. If the actual amount of
+	 *         credits is lower than the number of credits to be subtracted, the
+	 *         amount is set to <TT>0</TT>.
+	 */
+	public static boolean accountCancelSiteCredits(Context context, ResourceContainer licenseItem, int credits, String cancelText)
+	{
+		// Validate parameters
+		if (credits <= 0) return false;
+
+		// TODO
+
+		// Return
+		return true;
+	}
+
+	/**
+	 * Get the current amount of credits of an <TT>user</TT> license account.
+	 * You get the amount of credits of the actual user.
+	 * <p>
+	 * Please notice:
+	 * <TT>This function is not implemented yet. You may invoke it to integrate it in your business functions, but it doesn't work yet.</TT>
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param licenseItem
+	 *            The license item to be considered.
+	 * 
+	 * @return Returns the sum of credits that are booked.
+	 */
+	public static int accountGetUserCredits(Context context, ResourceContainer licenseItem)
+	{
+		// TODO
+
+		// Return
+		return 0;
+	}
+
+	/**
+	 * Get the current amount of credits of a <TT>site</TT> license account. You
+	 * get the amount of credits of the actual site.
+	 * <p>
+	 * Please notice:
+	 * <TT>This function is not implemented yet. You may invoke it to integrate it in your business functions, but it doesn't work yet.</TT>
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param licenseItem
+	 *            The license item to be considered.
+	 * 
+	 * @return Returns the sum of credits that are booked.
+	 */
+	public static int accountGetSiteCredits(Context context, ResourceContainer licenseItem)
+	{
+		// TODO
+
+		// Return
+		return 0;
 	}
 
 	/**
