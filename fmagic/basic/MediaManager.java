@@ -1,16 +1,7 @@
 package fmagic.basic;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 /**
  * This class implements the management of media used by servers and clients.
@@ -110,6 +101,12 @@ public class MediaManager implements ResourceInterface
 			ResourceContainer mediaTypeAttributeResourceContainer = ResourceManager.attribute(context, "Media", "MediaType");
 			List<String> mediaTypeList = mediaTypeAttributeResourceContainer.getValueList(context, null);
 
+			ResourceContainer fileTypesAttributeResourceContainer = ResourceManager.attribute(context, "Media", "FileTypes");
+			List<String> mediaFileTypesList = fileTypesAttributeResourceContainer.getValueList(context, null);
+
+			ResourceContainer mediaOriginAttributeResourceContainer = ResourceManager.attribute(context, "Media", "Origin");
+			List<String> mediaOriginList = mediaOriginAttributeResourceContainer.getValueList(context, null);
+
 			// Go through all resource items
 			for (ResourceContainer resourceContainer : resourceManager.getResources().values())
 			{
@@ -120,7 +117,9 @@ public class MediaManager implements ResourceInterface
 				String name = resourceContainer.getName();
 				if (name == null || name.length() == 0) continue;
 
-				// Alias name must be set
+				/*
+				 * Alias name must be set
+				 */
 				if (resourceContainer.checkAliasName() == false)
 				{
 					String errorString = "--> Alias name for media item is not set.";
@@ -135,7 +134,9 @@ public class MediaManager implements ResourceInterface
 					isIntegrityError = true;
 				}
 
-				// The attribute 'MediaType' must be set
+				/*
+				 * The attribute 'MediaType' must be set
+				 */
 				String mediaTypeValue = resourceContainer.getAttribute(mediaTypeAttributeResourceContainer.getAliasName());
 
 				if (mediaTypeValue == null)
@@ -144,14 +145,16 @@ public class MediaManager implements ResourceInterface
 					String fileName = resourceManager.getReadResourceIdentifiersList().get(resourceContainer.getRecourceIdentifier());
 					if (fileName != null) errorString += "\n--> In file: '" + fileName + "'";
 					errorString += "\n--> Full resource identifier: '" + resourceContainer.getRecourceIdentifier() + "'";
-					errorString += "\n--> The Media Type is used to differentiate the types 'Image', 'Video', 'Audio' and 'Document'.";
+					errorString += "\n--> The attribute Media Type is used to differentiate the types 'Image', 'Video', 'Audio' and 'Document'.";
 					errorString += "\n--> Please set a Media Type corresponding to the allowed types.";
 
 					context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Resource", "IntegrityError"), errorString, null);
 
 					isIntegrityError = true;
 				}
-				// Check if the Media Type is one of the allowed media types
+				/*
+				 * Check if the Media Type is one of the allowed media types
+				 */
 				else
 				{
 					String flatListOfAllowedMediaTypes = "";
@@ -171,16 +174,128 @@ public class MediaManager implements ResourceInterface
 						String fileName = resourceManager.getReadResourceIdentifiersList().get(resourceContainer.getRecourceIdentifier());
 						if (fileName != null) errorString += "\n--> In file: '" + fileName + "'";
 						errorString += "\n--> Full resource identifier: '" + resourceContainer.getRecourceIdentifier() + "'";
-						errorString += "\n--> The Media Type is used to differentiate the types 'Image', 'Video', 'Audio' and 'Document'.";
+						errorString += "\n--> The attribute Media Type is used to differentiate the types 'Image', 'Video', 'Audio' and 'Document'.";
 						errorString += "\n--> Please set a Media Type corresponding to the allowed types.";
 
 						context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Resource", "IntegrityError"), errorString, null);
 
 						isIntegrityError = true;
 					}
+				}
 
+				/*
+				 * The attribute 'FileTypes' must be set
+				 */
+				String fileTypesValue = resourceContainer.getAttribute(fileTypesAttributeResourceContainer.getAliasName());
+
+				if (fileTypesValue == null || fileTypesValue.length() == 0)
+				{
+					String errorString = "--> File types for media item are not set.";
+					String fileName = resourceManager.getReadResourceIdentifiersList().get(resourceContainer.getRecourceIdentifier());
+					if (fileName != null) errorString += "\n--> In file: '" + fileName + "'";
+					errorString += "\n--> Full resource identifier: '" + resourceContainer.getRecourceIdentifier() + "'";
+					errorString += "\n--> The attribute 'FileTypes' is used to allow upload and usage of specific media files.";
+					errorString += "\n--> Please set the file types corresponding to the allowed types.";
+
+					context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Resource", "IntegrityError"), errorString, null);
+
+					isIntegrityError = true;
+				}
+				/*
+				 * Check if the File Types are allowed
+				 */
+				else
+				{
+					boolean isFileTypesAllowed = true;
+					String flatListOfAllowedFileTypes = "";
+					String flatListOfNotAllowedFileTypes = "";
+
+					for (String allowedFileType : mediaFileTypesList)
+					{
+						flatListOfAllowedFileTypes += "[" + allowedFileType + "]";
+					}
+
+					String fileTypesListOfMediaResourceItem[] = fileTypesValue.split(",");
+
+					if (fileTypesListOfMediaResourceItem != null)
+					{
+						for (int i = 0; i < fileTypesListOfMediaResourceItem.length; i++)
+						{
+							if (!mediaFileTypesList.contains(fileTypesListOfMediaResourceItem[i].trim()))
+							{
+								isFileTypesAllowed = false;
+								flatListOfNotAllowedFileTypes += "[" + fileTypesListOfMediaResourceItem[i].trim() + "]";
+							}
+						}
+					}
+
+					if (isFileTypesAllowed == false)
+					{
+						String errorString = "--> File Type " + flatListOfNotAllowedFileTypes + " is not allowed.";
+						errorString += "\n--> List of allowed File Types: " + flatListOfAllowedFileTypes;
+						errorString += "\n--> Please pay attention to lower and upper cases.";
+						String fileName = resourceManager.getReadResourceIdentifiersList().get(resourceContainer.getRecourceIdentifier());
+						if (fileName != null) errorString += "\n--> In file: '" + fileName + "'";
+						errorString += "\n--> Full resource identifier: '" + resourceContainer.getRecourceIdentifier() + "'";
+						errorString += "\n--> The atttribute 'FileTypes' is used to determine which media files can be uploaded for the given media item.";
+						errorString += "\n--> Please set file types corresponding to the allowed types.";
+
+						context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Resource", "IntegrityError"), errorString, null);
+
+						isIntegrityError = true;
+					}
+				}
+
+				/*
+				 * The attribute 'Origin' must be set
+				 */
+				String mediaOriginValue = resourceContainer.getAttribute(mediaOriginAttributeResourceContainer.getAliasName());
+
+				if (mediaOriginValue == null)
+				{
+					String errorString = "--> Origin for media item is not set.";
+					String fileName = resourceManager.getReadResourceIdentifiersList().get(resourceContainer.getRecourceIdentifier());
+					if (fileName != null) errorString += "\n--> In file: '" + fileName + "'";
+					errorString += "\n--> Full resource identifier: '" + resourceContainer.getRecourceIdentifier() + "'";
+					errorString += "\n--> The attribute 'Origin' determines the source of uploads: 'Server', 'Client' or 'All'.";
+					errorString += "\n--> Please set a Origin corresponding to the allowed types.";
+
+					context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Resource", "IntegrityError"), errorString, null);
+
+					isIntegrityError = true;
+				}
+				/*
+				 * Check if the Origin is one of the allowed values
+				 */
+				else
+				{
+					String flatListOfAllowedOrigins = "";
+					boolean isOriginAllowed = false;
+
+					for (String allowedOrigin : mediaOriginList)
+					{
+						flatListOfAllowedOrigins += "[" + allowedOrigin + "]";
+						if (allowedOrigin.equals(mediaOriginValue)) isOriginAllowed = true;
+					}
+
+					if (isOriginAllowed == false)
+					{
+						String errorString = "--> Origin '" + mediaOriginValue + "' is not allowed.";
+						errorString += "\n--> List of allowed origin values: " + flatListOfAllowedOrigins;
+						errorString += "\n--> Please pay attention to lower and upper cases.";
+						String fileName = resourceManager.getReadResourceIdentifiersList().get(resourceContainer.getRecourceIdentifier());
+						if (fileName != null) errorString += "\n--> In file: '" + fileName + "'";
+						errorString += "\n--> Full resource identifier: '" + resourceContainer.getRecourceIdentifier() + "'";
+						errorString += "\n--> The attribute 'Origin' determines the source of uploads: 'Server', 'Client' or 'All'.";
+						errorString += "\n--> Please set a Origin corresponding to the allowed types.";
+
+						context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Resource", "IntegrityError"), errorString, null);
+
+						isIntegrityError = true;
+					}
 				}
 			}
+
 		}
 		catch (Exception e)
 		{

@@ -74,7 +74,7 @@ public class ApplicationTest
 				Context context = server.getContext();
 
 				// Test 1
-				ResourceContainer attributeResourceContainer = ResourceManager.attribute(context, "Media", "MediaType");
+				ResourceContainer attributeResourceContainer = ResourceManager.attribute(context, "Media", "Origin");
 				String documentation = attributeResourceContainer.printManual(context);
 
 				System.out.println("");
@@ -99,6 +99,23 @@ public class ApplicationTest
 				System.out.println("Is AUDIO? " + mediaResourceContainer.isMediaTypeAudio(context));
 				System.out.println("Is DOCUMENT? " + mediaResourceContainer.isMediaTypeDocument(context));
 				System.out.println("333333333333333333333333333333");
+
+				// Test 4
+				System.out.println("");
+				System.out.println("444444444444444444444444444444");
+				System.out.println("JPG supported? " + mediaResourceContainer.isFileTypeSupported(context, "JPG"));
+				System.out.println("jpg supported? " + mediaResourceContainer.isFileTypeSupported(context, "jpg"));
+				System.out.println("mkv supported? " + mediaResourceContainer.isFileTypeSupported(context, "mkv"));
+				System.out.println("AAA supported? " + mediaResourceContainer.isFileTypeSupported(context, "aaa"));
+				System.out.println("444444444444444444444444444444");
+
+				// Test 5
+				System.out.println("");
+				System.out.println("555555555555555555555555555555");
+				System.out.println("Origin is SERVER? " + mediaResourceContainer.isOriginServer(context));
+				System.out.println("Origin is CLIENT? " + mediaResourceContainer.isOriginClient(context));
+				System.out.println("Origin is ALL? " + mediaResourceContainer.isOriginAll(context));
+				System.out.println("555555555555555555555555555555");
 			}
 		}
 		catch (Exception e)
