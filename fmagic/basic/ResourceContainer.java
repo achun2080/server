@@ -3,17 +3,17 @@ package fmagic.basic;
 import java.util.HashMap;
 
 /**
- * This class contains all attributes needed to describe the values of a
- * resource item. socket.
+ * This class contains all attributes and functions needed to describe the
+ * values of a resource item.
  * 
  * @author frank.wuensche (FW)
  * 
  * @changed FW 28.12.2012 - Created
  * 
  */
-public class ResourceContainer
+public class ResourceContainer implements Cloneable
 {
-	// Common attributes
+	// Identifier settings
 	private String type = null;
 	private String application = null;
 	private String origin = null;
@@ -21,11 +21,46 @@ public class ResourceContainer
 	private String group = null;
 	private String name = null;
 
-	// CommandManager attributes
 	private String resourceIdentifier = null;
 	private String resourceGroupIdentifier = null;
 	private String resourceAliasName = null;
+
+	// Attributes
 	final private HashMap<String, String> attributes = new HashMap<String, String>();
+
+	/**
+	 * Copy all values and attributes from the resource object handed over as
+	 * parameter to the current resource object.
+	 * 
+	 * @param resourceContainer
+	 *            The resource container to copy.
+	 */
+	protected void copy(ResourceContainer resourceContainer)
+	{
+		try
+		{
+			this.type = resourceContainer.type;
+			this.application = resourceContainer.application;
+			this.origin = resourceContainer.origin;
+			this.usage = resourceContainer.usage;
+			this.group = resourceContainer.group;
+			this.name = resourceContainer.name;
+
+			this.resourceIdentifier = resourceContainer.resourceIdentifier;
+			this.resourceGroupIdentifier = resourceContainer.resourceGroupIdentifier;
+			this.resourceAliasName = resourceContainer.resourceAliasName;
+
+			this.attributes.clear();
+			for (String attributeName : resourceContainer.attributes.keySet())
+			{
+				this.attributes.put(attributeName, resourceContainer.attributes.get(attributeName));
+			}
+		}
+		catch (Exception e)
+		{
+			// Be silent
+		}
+	}
 
 	// resource for type
 	public static enum TypeEnum
@@ -599,7 +634,7 @@ public class ResourceContainer
 				String value = this.getAttributeValue(context, number, null);
 
 				if (value == null) continue;
-				
+
 				if (valueHeadlinePrinted == false)
 				{
 					outputString += "\n\n:::::::::: " + "Value" + "\n";

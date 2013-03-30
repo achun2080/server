@@ -1519,8 +1519,8 @@ public class ResourceManager implements ResourceInterface
 	 * @param name
 	 *            The name of the resource as String.
 	 * 
-	 * @return Returns <TT>true</TT> if the resource container was found,
-	 *         otherwise <TT>false</TT>.
+	 * @return Returns the resource container, or <TT>null</TT> if an error
+	 *         occurred.
 	 */
 	public static ResourceContainer localdata(Context context, String group, String name)
 	{
@@ -1539,8 +1539,8 @@ public class ResourceManager implements ResourceInterface
 	 * @param name
 	 *            The name of the resource as String.
 	 * 
-	 * @return Returns <TT>true</TT> if the resource container was found,
-	 *         otherwise <TT>false</TT>.
+	 * @return Returns the resource container, or <TT>null</TT> if an error
+	 *         occurred.
 	 */
 	public static ResourceContainer notification(Context context, String group, String name)
 	{
@@ -1559,8 +1559,8 @@ public class ResourceManager implements ResourceInterface
 	 * @param name
 	 *            The name of the resource as String.
 	 * 
-	 * @return Returns <TT>true</TT> if the resource container was found,
-	 *         otherwise <TT>false</TT>.
+	 * @return Returns the resource container, or <TT>null</TT> if an error
+	 *         occurred.
 	 */
 	public static ResourceContainer configuration(Context context, String group, String name)
 	{
@@ -1579,8 +1579,8 @@ public class ResourceManager implements ResourceInterface
 	 * @param name
 	 *            The name of the resource as String.
 	 * 
-	 * @return Returns <TT>true</TT> if the resource container was found,
-	 *         otherwise <TT>false</TT>.
+	 * @return Returns the resource container, or <TT>null</TT> if an error
+	 *         occurred.
 	 */
 	public static ResourceContainer context(Context context, String group, String name)
 	{
@@ -1599,8 +1599,8 @@ public class ResourceManager implements ResourceInterface
 	 * @param name
 	 *            The name of the resource as String.
 	 * 
-	 * @return Returns <TT>true</TT> if the resource container was found,
-	 *         otherwise <TT>false</TT>.
+	 * @return Returns the resource container, or <TT>null</TT> if an error
+	 *         occurred.
 	 */
 	public static ResourceContainer command(Context context, String group, String name)
 	{
@@ -1619,8 +1619,8 @@ public class ResourceManager implements ResourceInterface
 	 * @param name
 	 *            The name of the resource as String.
 	 * 
-	 * @return Returns <TT>true</TT> if the resource container was found,
-	 *         otherwise <TT>false</TT>.
+	 * @return Returns the resource container, or <TT>null</TT> if an error
+	 *         occurred.
 	 */
 	public static ResourceContainer attribute(Context context, String group, String name)
 	{
@@ -1639,8 +1639,8 @@ public class ResourceManager implements ResourceInterface
 	 * @param name
 	 *            The name of the resource as String.
 	 * 
-	 * @return Returns <TT>true</TT> if the resource container was found,
-	 *         otherwise <TT>false</TT>.
+	 * @return Returns the resource container, or <TT>null</TT> if an error
+	 *         occurred.
 	 */
 	public static ResourceContainer label(Context context, String group, String name)
 	{
@@ -1659,8 +1659,8 @@ public class ResourceManager implements ResourceInterface
 	 * @param name
 	 *            The name of the resource as String.
 	 * 
-	 * @return Returns <TT>true</TT> if the resource container was found,
-	 *         otherwise <TT>false</TT>.
+	 * @return Returns the resource container, or <TT>null</TT> if an error
+	 *         occurred.
 	 */
 	public static ResourceContainer right(Context context, String group, String name)
 	{
@@ -1679,12 +1679,20 @@ public class ResourceManager implements ResourceInterface
 	 * @param name
 	 *            The name of the resource as String.
 	 * 
-	 * @return Returns <TT>true</TT> if the resource container was found,
-	 *         otherwise <TT>false</TT>.
+	 * @return Returns the resource container, or <TT>null</TT> if an error
+	 *         occurred.
 	 */
-	public static ResourceContainer license(Context context, String group, String name)
+	public static ResourceContainerLicense license(Context context, String group, String name)
 	{
-		return ResourceManager.getResourceContainerByTypeGroupName(context, ResourceContainer.TypeEnum.License.toString(), group, name);
+		// Get native resource container
+		ResourceContainer resourceContainer = ResourceManager.getResourceContainerByTypeGroupName(context, ResourceContainer.TypeEnum.License.toString(), group, name);
+		if (resourceContainer == null) return null;
+
+		// Get specific resource container
+		ResourceContainerLicense resourceContainerLicense = new ResourceContainerLicense(resourceContainer);
+
+		// Return
+		return resourceContainerLicense;
 	}
 
 	/**
