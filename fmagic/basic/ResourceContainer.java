@@ -1,6 +1,8 @@
 package fmagic.basic;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * This class contains all attributes and functions needed to describe the
@@ -74,7 +76,8 @@ public class ResourceContainer implements Cloneable
 		Resource,
 		Label,
 		Right,
-		License
+		License,
+		Media
 	}
 
 	// resource for origin
@@ -547,6 +550,8 @@ public class ResourceContainer implements Cloneable
 		String outputString = "";
 		String tempString = "";
 
+		HashMap<String, String> printedAttributes = new HashMap<String, String>();
+
 		try
 		{
 			// Common values
@@ -575,9 +580,25 @@ public class ResourceContainer implements Cloneable
 			String createdDate = this.getAttributeMainValueByGroupName(context, "Documentation", "CreatedDate");
 			String createdVersion = this.getAttributeMainValueByGroupName(context, "Documentation", "CreatedVersion");
 			tempString = "";
-			if (createdBy != null) tempString += " by " + createdBy;
-			if (createdDate != null) tempString += " at " + createdDate;
-			if (createdVersion != null) tempString += " (Version " + createdVersion + ")";
+
+			if (createdBy != null)
+			{
+				tempString += " by " + createdBy;
+				printedAttributes.put("CreatedBy", createdBy);
+			}
+
+			if (createdDate != null)
+			{
+				tempString += " at " + createdDate;
+				printedAttributes.put("CreatedDate", createdDate);
+			}
+
+			if (createdVersion != null)
+			{
+				tempString += " (Version " + createdVersion + ")";
+				printedAttributes.put("CreatedVersion", createdVersion);
+			}
+
 			if (tempString.length() > 0) outputString += "\n" + "Created:" + tempString;
 
 			// Modified
@@ -585,44 +606,76 @@ public class ResourceContainer implements Cloneable
 			String modifiedDate = this.getAttributeMainValueByGroupName(context, "Documentation", "ModifiedDate");
 			String modifiedVersion = this.getAttributeMainValueByGroupName(context, "Documentation", "ModifiedVersion");
 			tempString = "";
-			if (modifiedBy != null) tempString += " by " + modifiedBy;
-			if (modifiedDate != null) tempString += " at " + modifiedDate;
-			if (modifiedVersion != null) tempString += " (Version " + modifiedVersion + ")";
+
+			if (modifiedBy != null)
+			{
+				tempString += " by " + modifiedBy;
+				printedAttributes.put("ModifiedBy", modifiedBy);
+			}
+
+			if (modifiedDate != null)
+			{
+				tempString += " at " + modifiedDate;
+				printedAttributes.put("ModifiedDate", modifiedDate);
+			}
+
+			if (modifiedVersion != null)
+			{
+				tempString += " (Version " + modifiedVersion + ")";
+				printedAttributes.put("ModifiedVersion", modifiedVersion);
+			}
+
 			if (tempString.length() > 0) outputString += "\n" + "Modified:" + tempString;
 
 			// Manual description (regarding the resource itself)
+			String manualHeaderAttributeName = ResourceManager.attribute(context, "Documentation", "ManualHeader").getAliasName();
 			String manualHeader = this.getAttributeMainValueByGroupName(context, "Documentation", "ManualHeader");
 			String manualParagraphItem = ResourceManager.attribute(context, "Documentation", "ManualParagraph").getAliasName();
 			String manualItem = manualParagraphItem.replace("${paragraph}", "1");
 
 			if (manualHeader != null || manualItem != null)
 			{
-				if (manualHeader != null && manualHeader.length() > 0) outputString += "\n\n:::::::::: " + manualHeader;
+				if (manualHeader != null && manualHeader.length() > 0)
+				{
+					outputString += "\n\n:::::::::: " + manualHeader;
+					printedAttributes.put(manualHeaderAttributeName, manualHeader);
+				}
 
 				// List all manual items
 				for (int i = 1; i < 1000; i++)
 				{
-					manualItem = this.getAttribute(manualParagraphItem.replace("${paragraph}", String.valueOf(i)));
+					String manualParagraphAttribute = manualParagraphItem.replace("${paragraph}", String.valueOf(i));
+					manualItem = this.getAttribute(manualParagraphAttribute);
 					if (manualItem == null) break;
+
 					outputString += "\n" + cutLines(manualItem, 60, "");
+					printedAttributes.put(manualParagraphAttribute, manualItem);
 				}
 			}
 
 			// Usage description (regarding the resource itself)
+			String usageHeaderAttributeName = ResourceManager.attribute(context, "Documentation", "UsageHeader").getAliasName();
 			String usageHeader = this.getAttributeMainValueByGroupName(context, "Documentation", "UsageHeader");
 			String usageParagraphItem = ResourceManager.attribute(context, "Documentation", "UsageParagraph").getAliasName();
 			String usageItem = usageParagraphItem.replace("${paragraph}", "1");
 
 			if (usageHeader != null || usageItem != null)
 			{
-				if (usageHeader != null && usageHeader.length() > 0) outputString += "\n\n:::::::::: " + usageHeader;
+				if (usageHeader != null && usageHeader.length() > 0)
+				{
+					outputString += "\n\n:::::::::: " + usageHeader;
+					printedAttributes.put(usageHeaderAttributeName, usageHeader);
+				}
 
 				// List all usage items
 				for (int i = 1; i < 1000; i++)
 				{
-					usageItem = this.getAttribute(usageParagraphItem.replace("${paragraph}", String.valueOf(i)));
+					String usageParagraphAttribute = usageParagraphItem.replace("${paragraph}", String.valueOf(i));
+					usageItem = this.getAttribute(usageParagraphAttribute);
 					if (usageItem == null) break;
+
 					outputString += "\n" + cutLines(usageItem, 60, "");
+					printedAttributes.put(usageParagraphAttribute, usageItem);
 				}
 			}
 
@@ -632,6 +685,7 @@ public class ResourceContainer implements Cloneable
 			for (int number = 0; number < 100; number++)
 			{
 				String value = this.getAttributeValue(context, number, null);
+				String valueAttributeName = this.getAttributeResourceIdentifier(context, number, null);
 
 				if (value == null) continue;
 
@@ -649,6 +703,27 @@ public class ResourceContainer implements Cloneable
 				{
 					outputString += cutLines(String.valueOf(number) + ": " + value, 60, "");
 				}
+
+				printedAttributes.put(valueAttributeName, value);
+			}
+
+			// Print all attributes that were not printed yet
+			boolean otherAttributesPrinted = false;
+
+			for (String attributeName : this.attributes.keySet())
+			{
+				if (printedAttributes.containsKey(attributeName)) continue;
+
+				String value = this.getAttribute(attributeName);
+				if (value == null) continue;
+
+				if (otherAttributesPrinted == false)
+				{
+					outputString += "\n\n:::::::::: " + "Settings" + "\n";
+					otherAttributesPrinted = true;
+				}
+
+				outputString += cutLines(attributeName + ": " + value, 60, "");
 			}
 		}
 		catch (Exception e)
@@ -911,6 +986,33 @@ public class ResourceContainer implements Cloneable
 		if (attributeValue == null || attributeValue.length() == 0) return null;
 
 		return attributeValue;
+	}
+
+	/**
+	 * Get all values "Value 0...x" of a resource item.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param attributeContext
+	 *            The context string to search for or <TT>null</TT> if there is
+	 *            no context string to consider.
+	 * 
+	 * @return Returns a <TT>List</TT> of <TT>Strings</TT> that can be empty.
+	 */
+	public List<String> getValueList(Context context, String attributeContext)
+	{
+		List<String> values = new ArrayList<String>();
+
+		for (int i = 0; i < 100; i++)
+		{
+			String value = this.getAttributeValue(context, i, attributeContext);
+			if (value == null) continue;
+			if (value.length() == 0) continue;
+			values.add(value);
+		}
+
+		return values;
 	}
 
 	/**

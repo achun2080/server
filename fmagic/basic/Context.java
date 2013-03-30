@@ -68,6 +68,7 @@ public abstract class Context implements Cloneable, ResourceInterface
 	private final CommandManager commandManager;
 	private final RightManager rightManager;
 	private final LicenseManager licenseManager;
+	private final MediaManager mediaManager;
 
 	// Common data of context
 	private final String codeName;
@@ -125,6 +126,7 @@ public abstract class Context implements Cloneable, ResourceInterface
 		this.commandManager = new CommandManager();
 		this.rightManager = new RightManager();
 		this.licenseManager = new LicenseManager();
+		this.mediaManager = new MediaManager();
 
 		// Get a provisional resource container because the resource files are
 		// not read yet
@@ -671,6 +673,14 @@ public abstract class Context implements Cloneable, ResourceInterface
 	public LicenseManager getLicenseManager()
 	{
 		return this.licenseManager;
+	}
+
+	/**
+	 * Getter
+	 */
+	public MediaManager getMediaManager()
+	{
+		return this.mediaManager;
 	}
 
 	/**

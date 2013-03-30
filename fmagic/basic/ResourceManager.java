@@ -1696,6 +1696,34 @@ public class ResourceManager implements ResourceInterface
 	}
 
 	/**
+	 * Get resource object from Type "Media" by Group and Name.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param group
+	 *            The group of the resource as String.
+	 * 
+	 * @param name
+	 *            The name of the resource as String.
+	 * 
+	 * @return Returns the resource container, or <TT>null</TT> if an error
+	 *         occurred.
+	 */
+	public static ResourceContainerMedia media(Context context, String group, String name)
+	{
+		// Get native resource container
+		ResourceContainer resourceContainer = ResourceManager.getResourceContainerByTypeGroupName(context, ResourceContainer.TypeEnum.Media.toString(), group, name);
+		if (resourceContainer == null) return null;
+
+		// Get specific resource container
+		ResourceContainerMedia resourceContainerMedia = new ResourceContainerMedia(resourceContainer);
+
+		// Return
+		return resourceContainerMedia;
+	}
+
+	/**
 	 * Hide password and security information that are hold in a value of a
 	 * resource identifier.
 	 * <p>
@@ -2247,6 +2275,7 @@ public class ResourceManager implements ResourceInterface
 			if (context.getLocaldataManager().ckeckOnResourceIdentifierIntegrityError(context) == true) isIntegrityError = true;
 			if (context.getRightManager().ckeckOnResourceIdentifierIntegrityError(context) == true) isIntegrityError = true;
 			if (context.getLicenseManager().ckeckOnResourceIdentifierIntegrityError(context) == true) isIntegrityError = true;
+			if (context.getMediaManager().ckeckOnResourceIdentifierIntegrityError(context) == true) isIntegrityError = true;
 			if (application.ckeckOnResourceIdentifierIntegrityError(context) == true) isIntegrityError = true;
 		}
 		catch (Exception e)

@@ -13,6 +13,7 @@ import fmagic.basic.EncodingHandler;
 import fmagic.basic.LicenseManager;
 import fmagic.basic.ResourceContainer;
 import fmagic.basic.ResourceContainerLicense;
+import fmagic.basic.ResourceContainerMedia;
 import fmagic.basic.ResourceManager;
 import fmagic.basic.ResponseContainer;
 import fmagic.basic.RightManager;
@@ -72,43 +73,32 @@ public class ApplicationTest
 				// Test preparing
 				Context context = server.getContext();
 
-				ResourceContainer licenseItemProvisionRate = ResourceManager.license(context, "Service", "ProvisionRate");
-
-				ResourceContainer licenseModelStarter = ResourceManager.license(context, "SellerProfile", "Starter");
-
-				// Right test 1
-				String documentation = licenseItemProvisionRate.printManual(context);
+				// Test 1
+				ResourceContainer attributeResourceContainer = ResourceManager.attribute(context, "Media", "MediaType");
+				String documentation = attributeResourceContainer.printManual(context);
 
 				System.out.println("");
 				System.out.println("111111111111111111111111111111");
 				System.out.println(documentation);
 				System.out.println("111111111111111111111111111111");
 
-				// Right test 2
-				documentation = licenseModelStarter.printManual(context);
+				// Test 2
+				ResourceContainerMedia mediaResourceContainer = ResourceManager.media(context, "Apartment", "Room");
+				documentation = mediaResourceContainer.printManual(context);
 
 				System.out.println("");
 				System.out.println("222222222222222222222222222222");
 				System.out.println(documentation);
 				System.out.println("222222222222222222222222222222");
 
-				// Right test 3
-				documentation = context.getLicenseManager().printDistributionConfiguration(context.getLicenseManager().getAssignedLicenseItemToLicenseModel());
-
+				// Test 3
 				System.out.println("");
 				System.out.println("333333333333333333333333333333");
-				System.out.println(documentation);
+				System.out.println("Is IMAGE? " + mediaResourceContainer.isMediaTypeImage(context));
+				System.out.println("Is VIDEO? " + mediaResourceContainer.isMediaTypeVideo(context));
+				System.out.println("Is AUDIO? " + mediaResourceContainer.isMediaTypeAudio(context));
+				System.out.println("Is DOCUMENT? " + mediaResourceContainer.isMediaTypeDocument(context));
 				System.out.println("333333333333333333333333333333");
-
-				// Right test 4
-				String licenseValue1234 = licenseItemProvisionRate.getAttributeValue(context, 1, "1234");
-				String licenseValue5678 = licenseItemProvisionRate.getAttributeValue(context, 1, "5678");
-
-				System.out.println("");
-				System.out.println("444444444444444444444444444444");
-				System.out.println("License Value 1234 = '" + licenseValue1234);
-				System.out.println("License Value 5678 = '" + licenseValue5678);
-				System.out.println("444444444444444444444444444444");
 			}
 		}
 		catch (Exception e)
@@ -172,276 +162,6 @@ public class ApplicationTest
 			{
 				// Test preparing
 				Context context = server.getContext();
-
-				String licenseKey = "1234";
-				SessionContainer sessionContainer = server.sessionGetClientSession("1364210073453");
-				sessionContainer.setUserLicenseKey(licenseKey);
-				context.setServerSession(sessionContainer);
-
-				ResourceContainerLicense licenseItem = ResourceManager.license(context, "Service", "ProvisionRate");
-
-				// Check license: using checkLicense()
-				boolean isDefined = context.getLicenseManager().checkLicense(context, licenseKey, licenseItem);
-
-				System.out.println("");
-				System.out.println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-				System.out.println("Check license: '" + licenseItem.getName() + "'");
-				System.out.println("License Key: '" + licenseKey + "'");
-				System.out.println("Granted? '" + isDefined + "'");
-				System.out.println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-
-				// Check license: using hasLicense()
-				isDefined = licenseItem.hasLicense(context);
-
-				System.out.println("");
-				System.out.println("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
-				System.out.println("Has license: '" + licenseItem.getName() + "'");
-				System.out.println("License Key: '" + licenseKey + "'");
-				System.out.println("Granted? '" + isDefined + "'");
-				System.out.println("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
-
-				// Get license value: using getValue()
-				String value = licenseItem.getValue(context);
-
-				System.out.println("");
-				System.out.println("cccccccccccccccccccccccccccccc");
-				System.out.println("Get license value 0 as STRING: '" + licenseItem.getName() + "'");
-				System.out.println("License Key: '" + licenseKey + "'");
-				System.out.println("Value? '" + value + "'");
-				System.out.println("cccccccccccccccccccccccccccccc");
-
-				int valueNumber = 1;
-				value = licenseItem.getValue(context, valueNumber);
-
-				System.out.println("");
-				System.out.println("cccccccccccccccccccccccccccccc");
-				System.out.println("Get license value " + String.valueOf(valueNumber) + " as STRING: '" + licenseItem.getName() + "'");
-				System.out.println("License Key: '" + licenseKey + "'");
-				System.out.println("Value? '" + value + "'");
-				System.out.println("cccccccccccccccccccccccccccccc");
-
-				valueNumber = 2;
-				value = licenseItem.getValue(context, valueNumber);
-
-				System.out.println("");
-				System.out.println("cccccccccccccccccccccccccccccc");
-				System.out.println("Get license value " + String.valueOf(valueNumber) + " as STRING: '" + licenseItem.getName() + "'");
-				System.out.println("License Key: '" + licenseKey + "'");
-				System.out.println("Value? '" + value + "'");
-				System.out.println("cccccccccccccccccccccccccccccc");
-
-				// Get license value: using getValueAsInteger()
-				Integer integerValue = licenseItem.getValueAsInteger(context);
-
-				System.out.println("");
-				System.out.println("dddddddddddddddddddddddddddddd");
-				System.out.println("Get license value 0 as INTEGER: '" + licenseItem.getName() + "'");
-				System.out.println("License Key: '" + licenseKey + "'");
-				System.out.println("Value? '" + String.valueOf(integerValue) + "'");
-				System.out.println("dddddddddddddddddddddddddddddd");
-
-				valueNumber = 1;
-				integerValue = licenseItem.getValueAsInteger(context, valueNumber);
-
-				System.out.println("");
-				System.out.println("dddddddddddddddddddddddddddddd");
-				System.out.println("Get license value " + String.valueOf(valueNumber) + " as INTEGER: '" + licenseItem.getName() + "'");
-				System.out.println("License Key: '" + licenseKey + "'");
-				System.out.println("Value? '" + String.valueOf(integerValue) + "'");
-				System.out.println("dddddddddddddddddddddddddddddd");
-
-				valueNumber = 2;
-				integerValue = licenseItem.getValueAsInteger(context, valueNumber);
-
-				System.out.println("");
-				System.out.println("dddddddddddddddddddddddddddddd");
-				System.out.println("Get license value " + String.valueOf(valueNumber) + " as INTEGER: '" + licenseItem.getName() + "'");
-				System.out.println("License Key: '" + licenseKey + "'");
-				System.out.println("Value? '" + String.valueOf(integerValue) + "'");
-				System.out.println("dddddddddddddddddddddddddddddd");
-
-				// Get license value: using getValueAsBoolean()
-				Boolean booleanValue = licenseItem.getValueAsBoolean(context);
-
-				System.out.println("");
-				System.out.println("eeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
-				System.out.println("Get license value 0 as BOOLEAN: '" + licenseItem.getName() + "'");
-				System.out.println("License Key: '" + licenseKey + "'");
-				System.out.println("Value? '" + String.valueOf(booleanValue) + "'");
-				System.out.println("eeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
-
-				valueNumber = 1;
-				booleanValue = licenseItem.getValueAsBoolean(context, valueNumber);
-
-				System.out.println("");
-				System.out.println("eeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
-				System.out.println("Get license value " + String.valueOf(valueNumber) + " as BOOLEAN: '" + licenseItem.getName() + "'");
-				System.out.println("License Key: '" + licenseKey + "'");
-				System.out.println("Value? '" + String.valueOf(booleanValue) + "'");
-				System.out.println("eeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
-
-				valueNumber = 2;
-				booleanValue = licenseItem.getValueAsBoolean(context, valueNumber);
-
-				System.out.println("");
-				System.out.println("eeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
-				System.out.println("Get license value " + String.valueOf(valueNumber) + " as BOOLEAN: '" + licenseItem.getName() + "'");
-				System.out.println("License Key: '" + licenseKey + "'");
-				System.out.println("Value? '" + String.valueOf(booleanValue) + "'");
-				System.out.println("eeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
-
-				// Compare license value: using isGreaterThan()
-				int valueToCompareWith = 10;
-				booleanValue = licenseItem.isGreaterThan(context, valueToCompareWith);
-
-				System.out.println("");
-				System.out.println("ffffffffffffffffffffffffffffff");
-				System.out.println("Compare license value 0 to " + String.valueOf(valueToCompareWith) + ": '" + licenseItem.getName() + "'");
-				System.out.println("License Key: '" + licenseKey + "'");
-				System.out.println("Is greater then? '" + String.valueOf(booleanValue) + "'");
-				System.out.println("ffffffffffffffffffffffffffffff");
-
-				valueNumber = 1;
-				booleanValue = licenseItem.isGreaterThan(context, valueToCompareWith, valueNumber);
-
-				System.out.println("");
-				System.out.println("ffffffffffffffffffffffffffffff");
-				System.out.println("Compare license value " + String.valueOf(valueNumber) + " to " + String.valueOf(valueToCompareWith) + ": '" + licenseItem.getName() + "'");
-				System.out.println("License Key: '" + licenseKey + "'");
-				System.out.println("Is greater then? '" + String.valueOf(booleanValue) + "'");
-				System.out.println("ffffffffffffffffffffffffffffff");
-
-				valueNumber = 2;
-				booleanValue = licenseItem.isGreaterThan(context, valueToCompareWith, valueNumber);
-
-				System.out.println("");
-				System.out.println("ffffffffffffffffffffffffffffff");
-				System.out.println("Compare license value " + String.valueOf(valueNumber) + " to " + String.valueOf(valueToCompareWith) + ": '" + licenseItem.getName() + "'");
-				System.out.println("License Key: '" + licenseKey + "'");
-				System.out.println("Is greater then? '" + String.valueOf(booleanValue) + "'");
-				System.out.println("ffffffffffffffffffffffffffffff");
-
-				// Compare license value: using isLowerThan()
-				valueToCompareWith = 10;
-				booleanValue = licenseItem.isLowerThan(context, valueToCompareWith);
-
-				System.out.println("");
-				System.out.println("gggggggggggggggggggggggggggggg");
-				System.out.println("Compare license value 0 to " + String.valueOf(valueToCompareWith) + ": '" + licenseItem.getName() + "'");
-				System.out.println("License Key: '" + licenseKey + "'");
-				System.out.println("Is lower then? '" + String.valueOf(booleanValue) + "'");
-				System.out.println("gggggggggggggggggggggggggggggg");
-
-				valueNumber = 1;
-				booleanValue = licenseItem.isLowerThan(context, valueToCompareWith, valueNumber);
-
-				System.out.println("");
-				System.out.println("gggggggggggggggggggggggggggggg");
-				System.out.println("Compare license value " + String.valueOf(valueNumber) + " to " + String.valueOf(valueToCompareWith) + ": '" + licenseItem.getName() + "'");
-				System.out.println("License Key: '" + licenseKey + "'");
-				System.out.println("Is lower then? '" + String.valueOf(booleanValue) + "'");
-				System.out.println("gggggggggggggggggggggggggggggg");
-
-				valueNumber = 2;
-				booleanValue = licenseItem.isLowerThan(context, valueToCompareWith, valueNumber);
-
-				System.out.println("");
-				System.out.println("gggggggggggggggggggggggggggggg");
-				System.out.println("Compare license value " + String.valueOf(valueNumber) + " to " + String.valueOf(valueToCompareWith) + ": '" + licenseItem.getName() + "'");
-				System.out.println("License Key: '" + licenseKey + "'");
-				System.out.println("Is lower then? '" + String.valueOf(booleanValue) + "'");
-				System.out.println("gggggggggggggggggggggggggggggg");
-
-				// Compare license value: using isEqual()
-				valueToCompareWith = 10;
-				booleanValue = licenseItem.isEqual(context, valueToCompareWith);
-
-				System.out.println("");
-				System.out.println("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhh");
-				System.out.println("Compare license value 0 to " + String.valueOf(valueToCompareWith) + ": '" + licenseItem.getName() + "'");
-				System.out.println("License Key: '" + licenseKey + "'");
-				System.out.println("Is equal? '" + String.valueOf(booleanValue) + "'");
-				System.out.println("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhh");
-
-				valueNumber = 1;
-				booleanValue = licenseItem.isEqual(context, valueToCompareWith, valueNumber);
-
-				System.out.println("");
-				System.out.println("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhh");
-				System.out.println("Compare license value " + String.valueOf(valueNumber) + " to " + String.valueOf(valueToCompareWith) + ": '" + licenseItem.getName() + "'");
-				System.out.println("License Key: '" + licenseKey + "'");
-				System.out.println("Is equal? '" + String.valueOf(booleanValue) + "'");
-				System.out.println("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhh");
-
-				valueNumber = 2;
-				booleanValue = licenseItem.isEqual(context, valueToCompareWith, valueNumber);
-
-				System.out.println("");
-				System.out.println("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhh");
-				System.out.println("Compare license value " + String.valueOf(valueNumber) + " to " + String.valueOf(valueToCompareWith) + ": '" + licenseItem.getName() + "'");
-				System.out.println("License Key: '" + licenseKey + "'");
-				System.out.println("Is equal? '" + String.valueOf(booleanValue) + "'");
-				System.out.println("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhh");
-
-				// Compare license value: using isTrue()
-				booleanValue = licenseItem.isTrue(context);
-
-				System.out.println("");
-				System.out.println("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhh");
-				System.out.println("Compare license value 0 to TRUE: '" + licenseItem.getName() + "'");
-				System.out.println("License Key: '" + licenseKey + "'");
-				System.out.println("Is TRUE? '" + String.valueOf(booleanValue) + "'");
-				System.out.println("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhh");
-
-				valueNumber = 1;
-				booleanValue = licenseItem.isTrue(context, valueNumber);
-
-				System.out.println("");
-				System.out.println("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhh");
-				System.out.println("Compare license value " + String.valueOf(valueNumber) + " to TRUE: '" + licenseItem.getName() + "'");
-				System.out.println("License Key: '" + licenseKey + "'");
-				System.out.println("Is TRUE? '" + String.valueOf(booleanValue) + "'");
-				System.out.println("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhh");
-
-				valueNumber = 2;
-				booleanValue = licenseItem.isTrue(context, valueNumber);
-
-				System.out.println("");
-				System.out.println("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhh");
-				System.out.println("Compare license value " + String.valueOf(valueNumber) + " to TRUE: '" + licenseItem.getName() + "'");
-				System.out.println("License Key: '" + licenseKey + "'");
-				System.out.println("Is TRUE? '" + String.valueOf(booleanValue) + "'");
-				System.out.println("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhh");
-
-				// Compare license value: using isFalse()
-				booleanValue = licenseItem.isFalse(context);
-
-				System.out.println("");
-				System.out.println("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhh");
-				System.out.println("Compare license value 0 to FALSE: '" + licenseItem.getName() + "'");
-				System.out.println("License Key: '" + licenseKey + "'");
-				System.out.println("Is FALSE? '" + String.valueOf(booleanValue) + "'");
-				System.out.println("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhh");
-
-				valueNumber = 1;
-				booleanValue = licenseItem.isFalse(context, valueNumber);
-
-				System.out.println("");
-				System.out.println("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhh");
-				System.out.println("Compare license value " + String.valueOf(valueNumber) + " to FALSE: '" + licenseItem.getName() + "'");
-				System.out.println("License Key: '" + licenseKey + "'");
-				System.out.println("Is FALSE? '" + String.valueOf(booleanValue) + "'");
-				System.out.println("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhh");
-
-				valueNumber = 2;
-				booleanValue = licenseItem.isFalse(context, valueNumber);
-
-				System.out.println("");
-				System.out.println("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhh");
-				System.out.println("Compare license value " + String.valueOf(valueNumber) + " to FALSE: '" + licenseItem.getName() + "'");
-				System.out.println("License Key: '" + licenseKey + "'");
-				System.out.println("Is FALSE? '" + String.valueOf(booleanValue) + "'");
-				System.out.println("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhh");
 			}
 		}
 		catch (Exception e)
