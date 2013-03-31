@@ -1,7 +1,9 @@
 package fmagic.basic;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -710,8 +712,16 @@ public class ResourceContainer implements Cloneable
 			// Print all attributes that were not printed yet
 			boolean otherAttributesPrinted = false;
 
-			for (String attributeName : this.attributes.keySet())
+			List<String> sortedListManual = new ArrayList<String>();
+			sortedListManual.addAll(this.attributes.keySet());
+			Collections.sort(sortedListManual);
+
+			// List all items
+			Iterator<String> iterManual = sortedListManual.iterator();
+
+			while (iterManual.hasNext())
 			{
+				String attributeName = iterManual.next();
 				if (printedAttributes.containsKey(attributeName)) continue;
 
 				String value = this.getAttribute(attributeName);

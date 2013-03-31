@@ -2040,7 +2040,7 @@ public class ResourceManager implements ResourceInterface
 				lineNumber++;
 
 				// Check for EMPTY line
-				if (line.length() == 0) continue;
+				if (line.trim().length() == 0) continue;
 
 				// Check for comment in line
 				if (line.startsWith("#")) continue;

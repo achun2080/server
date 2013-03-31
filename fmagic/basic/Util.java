@@ -66,7 +66,7 @@ public class Util
 	 * Checks a string if it contains special characters and transforms them to
 	 * underline characters.
 	 * 
-	 * @param String
+	 * @param inputString
 	 *            The string to be transformed.
 	 * 
 	 * @return Returns the normalized string.

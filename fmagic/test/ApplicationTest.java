@@ -74,7 +74,7 @@ public class ApplicationTest
 				Context context = server.getContext();
 
 				// Test 1
-				ResourceContainer attributeResourceContainer = ResourceManager.attribute(context, "Media", "Origin");
+				ResourceContainer attributeResourceContainer = ResourceManager.attribute(context, "Media", "ClientEncoding");
 				String documentation = attributeResourceContainer.printManual(context);
 
 				System.out.println("");
@@ -116,6 +116,32 @@ public class ApplicationTest
 				System.out.println("Origin is CLIENT? " + mediaResourceContainer.isOriginClient(context));
 				System.out.println("Origin is ALL? " + mediaResourceContainer.isOriginAll(context));
 				System.out.println("555555555555555555555555555555");
+
+				// Test 6
+				System.out.println("");
+				System.out.println("666666666666666666666666666666");
+				System.out.println("StorageLocation is SERVER? " + mediaResourceContainer.isStorageLocationServer(context));
+				System.out.println("StorageLocation is CLIENT? " + mediaResourceContainer.isStorageLocationClient(context));
+				System.out.println("StorageLocation is SYNCHRONIZED? " + mediaResourceContainer.isStorageLocationSynchronize(context));
+				System.out.println("666666666666666666666666666666");
+
+				// Test 7
+				System.out.println("");
+				System.out.println("777777777777777777777777777777");
+				System.out.println("LogicalPath? " + mediaResourceContainer.getLogicalPath(context));
+				System.out.println("777777777777777777777777777777");
+
+				// Test 8
+				System.out.println("");
+				System.out.println("888888888888888888888888888888");
+				System.out.println("ServerEncoding? " + mediaResourceContainer.isServerEncoding(context));
+				System.out.println("888888888888888888888888888888");
+
+				// Test 9
+				System.out.println("");
+				System.out.println("999999999999999999999999999999");
+				System.out.println("ClientEncoding? " + mediaResourceContainer.isClientEncoding(context));
+				System.out.println("999999999999999999999999999999");
 			}
 		}
 		catch (Exception e)

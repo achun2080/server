@@ -147,7 +147,7 @@ public class ResourceContainerMedia extends ResourceContainer
 			for (String attributeMediaFileType : mediaFileTypesList)
 			{
 				if (attributeMediaFileType == null || attributeMediaFileType.length() == 0) continue;
-				
+
 				String normalizedAttributeMediaFileType = attributeMediaFileType.toLowerCase().trim();
 				if (normalizedParameterFileType.equals(normalizedAttributeMediaFileType)) isFileTypeFound = true;
 			}
@@ -185,8 +185,7 @@ public class ResourceContainerMedia extends ResourceContainer
 	}
 
 	/**
-	 * Check if the Origin of the media resource item is set to specific
-	 * value.
+	 * Check if the Origin of the media resource item is set to specific value.
 	 * 
 	 * @param context
 	 *            Application context.
@@ -262,7 +261,201 @@ public class ResourceContainerMedia extends ResourceContainer
 	 */
 	public boolean isOriginAll(Context context)
 	{
-		return this.isOrigin(context,3);
+		return this.isOrigin(context, 3);
 	}
-	
+
+	/**
+	 * Check if the storage location of the media resource item is set to
+	 * specific value.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param storageLocationNumber
+	 *            The value number the specific storage location is assigned to.
+	 * 
+	 * @return Returns <TT>true</TT> if the storage location is defined,
+	 *         otherwise <TT>false</TT>.
+	 */
+	private boolean isStorageLocation(Context context, int storageLocationNumber)
+	{
+		if (storageLocationNumber < 1) return false;
+
+		try
+		{
+			ResourceContainer attributeResourceContainer = ResourceManager.attribute(context, "Media", "StorageLocation");
+			String attributeName = attributeResourceContainer.getAliasName();
+			String attributeStorageLocationValue = attributeResourceContainer.getAttributeValue(context, storageLocationNumber, null);
+			if (attributeStorageLocationValue == null) return false;
+			if (attributeStorageLocationValue.length() == 0) return false;
+
+			String attributeValue = this.getAttribute(attributeName);
+			if (attributeValue == null) return false;
+			if (attributeValue.length() == 0) return false;
+
+			if (attributeValue.equals(attributeStorageLocationValue)) return true;
+		}
+		catch (Exception e)
+		{
+			// Be silent
+		}
+
+		return false;
+	}
+
+	/**
+	 * Check if the storage location of the media resource item is set to
+	 * "Server".
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @return Returns <TT>true</TT> if the storage location is defined as
+	 *         "Server", otherwise <TT>false</TT>.
+	 */
+	public boolean isStorageLocationServer(Context context)
+	{
+		return this.isStorageLocation(context, 1);
+	}
+
+	/**
+	 * Check if the storage location of the media resource item is set to
+	 * "Client".
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @return Returns <TT>true</TT> if the storage location is defined as
+	 *         "Client", otherwise <TT>false</TT>.
+	 */
+	public boolean isStorageLocationClient(Context context)
+	{
+		return this.isStorageLocation(context, 2);
+	}
+
+	/**
+	 * Check if the storage location of the media resource item is set to
+	 * "Synchronize".
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @return Returns <TT>true</TT> if the storage location is defined as
+	 *         "Synchronize", otherwise <TT>false</TT>.
+	 */
+	public boolean isStorageLocationSynchronize(Context context)
+	{
+		return this.isStorageLocation(context, 3);
+	}
+
+	/**
+	 * Get the logical path of the media resource item.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @return Returns the logical path, or <TT>null</TT> if no path isn't
+	 *         available, or if an error occurred.
+	 */
+	public String getLogicalPath(Context context)
+	{
+		try
+		{
+			ResourceContainer attributeResourceContainer = ResourceManager.attribute(context, "Media", "LogicalPath");
+			String attributeName = attributeResourceContainer.getAliasName();
+
+			String attributeValue = this.getAttribute(attributeName);
+			if (attributeValue == null) return null;
+			if (attributeValue.length() == 0) return null;
+
+			String normalizedPath = "";
+			String partsOfLogicalPath[] = attributeValue.trim().toLowerCase().split("/");
+
+			if (partsOfLogicalPath == null) return null;
+
+			for (int i = 0; i < partsOfLogicalPath.length; i++)
+			{
+				if (partsOfLogicalPath[i] == null || partsOfLogicalPath[i].length() == 0) continue;
+
+				if (normalizedPath.length() > 0) normalizedPath += "/";
+				normalizedPath += Util.fitToFileNameCompatibility(partsOfLogicalPath[i]);
+			}
+
+			return normalizedPath;
+		}
+		catch (Exception e)
+		{
+			// Be silent
+		}
+
+		return null;
+	}
+
+	/**
+	 * Check if the server encoding attribute of the media resource item is set
+	 * to <TT>true</TT>.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @return Returns <TT>true</TT> if the server encoding is set to
+	 *         <TT>true</TT>, otherwise <TT>false</TT>.
+	 */
+	public boolean isServerEncoding(Context context)
+	{
+		try
+		{
+			ResourceContainer attributeResourceContainer = ResourceManager.attribute(context, "Media", "ServerEncoding");
+			String attributeName = attributeResourceContainer.getAliasName();
+			String attributeOriginValue = attributeResourceContainer.getAttributeValue(context, 1, null);
+			if (attributeOriginValue == null) return false;
+			if (attributeOriginValue.length() == 0) return false;
+
+			String attributeValue = this.getAttribute(attributeName);
+			if (attributeValue == null) return false;
+			if (attributeValue.length() == 0) return false;
+
+			if (attributeValue.equals(attributeOriginValue)) return true;
+		}
+		catch (Exception e)
+		{
+			// Be silent
+		}
+
+		return false;
+	}
+
+	/**
+	 * Check if the client encoding attribute of the media resource item is set
+	 * to <TT>true</TT>.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @return Returns <TT>true</TT> if the client encoding is set to
+	 *         <TT>true</TT>, otherwise <TT>false</TT>.
+	 */
+	public boolean isClientEncoding(Context context)
+	{
+		try
+		{
+			ResourceContainer attributeResourceContainer = ResourceManager.attribute(context, "Media", "ClientEncoding");
+			String attributeName = attributeResourceContainer.getAliasName();
+			String attributeOriginValue = attributeResourceContainer.getAttributeValue(context, 1, null);
+			if (attributeOriginValue == null) return false;
+			if (attributeOriginValue.length() == 0) return false;
+
+			String attributeValue = this.getAttribute(attributeName);
+			if (attributeValue == null) return false;
+			if (attributeValue.length() == 0) return false;
+
+			if (attributeValue.equals(attributeOriginValue)) return true;
+		}
+		catch (Exception e)
+		{
+			// Be silent
+		}
+
+		return false;
+	}
 }
