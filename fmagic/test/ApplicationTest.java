@@ -1,8 +1,6 @@
 package fmagic.test;
 
 import java.security.KeyPair;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.commons.codec.binary.Base64;
 
@@ -10,14 +8,10 @@ import fmagic.application.seniorcitizen.client.ClientSeniorCitizen;
 import fmagic.application.seniorcitizen.server.ServerSeniorCitizen;
 import fmagic.basic.Context;
 import fmagic.basic.EncodingHandler;
-import fmagic.basic.LicenseManager;
 import fmagic.basic.ResourceContainer;
-import fmagic.basic.ResourceContainerLicense;
 import fmagic.basic.ResourceContainerMedia;
 import fmagic.basic.ResourceManager;
 import fmagic.basic.ResponseContainer;
-import fmagic.basic.RightManager;
-import fmagic.basic.SessionContainer;
 import fmagic.basic.Util;
 import fmagic.client.ClientCommand;
 import fmagic.client.ClientCommandCreateSession;
@@ -109,14 +103,6 @@ public class ApplicationTest
 				System.out.println("AAA supported? " + mediaResourceContainer.isFileTypeSupported(context, "aaa"));
 				System.out.println("444444444444444444444444444444");
 
-				// Test 5
-				System.out.println("");
-				System.out.println("555555555555555555555555555555");
-				System.out.println("Origin is SERVER? " + mediaResourceContainer.isOriginServer(context));
-				System.out.println("Origin is CLIENT? " + mediaResourceContainer.isOriginClient(context));
-				System.out.println("Origin is ALL? " + mediaResourceContainer.isOriginAll(context));
-				System.out.println("555555555555555555555555555555");
-
 				// Test 6
 				System.out.println("");
 				System.out.println("666666666666666666666666666666");
@@ -142,6 +128,28 @@ public class ApplicationTest
 				System.out.println("999999999999999999999999999999");
 				System.out.println("ClientEncoding? " + mediaResourceContainer.isClientEncoding(context));
 				System.out.println("999999999999999999999999999999");
+
+				// Test a
+				System.out.println("");
+				System.out.println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+				System.out.println("Local media file path? " + mediaResourceContainer.getMediaFilePath(context));
+				System.out.println("Media file name mask? " + mediaResourceContainer.getMediaFileNameMask(context, "1234"));
+				System.out.println("Temp file name? " + mediaResourceContainer.getTempFileName(context, "png"));
+				System.out.println("Pending file path? " + mediaResourceContainer.getPendingFilePath(context));
+				System.out.println("Deleted file path? " + mediaResourceContainer.getDeletedFilePath(context));
+				System.out.println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+
+				// Test b
+				String uploadFileName = "E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Cover/WebPictures/G021_Cover.jpg";
+//				String uploadFileName = "E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Cover/WebPictures/G021_Cover_Gesamt_Teil_1.jpg";
+				String dataIdentifier = "1234";
+				
+				System.out.println("");
+				System.out.println("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+				System.out.println("Upload file 1? " + uploadFileName);
+				System.out.println("Data identifier? " + dataIdentifier);
+				System.out.println("Upload result? " + context.getMediaManager().uploadFile( context, mediaResourceContainer, uploadFileName, dataIdentifier));
+				System.out.println("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
 			}
 		}
 		catch (Exception e)

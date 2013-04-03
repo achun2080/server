@@ -528,9 +528,9 @@ public class LocaldataManager implements ResourceInterface
 	 * @return Returns the directory were the data files are stored.
 	 * 
 	 */
-	private String getLocaldataFilePath(Context context)
+	private String getLocalDataFilePath(Context context)
 	{
-		return FileLocationManager.getRootPath() + FileLocationManager.getLocaldataSubPath() + "\\";
+		return FileLocationManager.getRootPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getLocaldataSubPath();
 	}
 
 	/**
@@ -558,7 +558,7 @@ public class LocaldataManager implements ResourceInterface
 	private void readPropertiesFile(Context context)
 	{
 		// Composes file name
-		String fileName = getLocaldataFilePath(context) + getLocaldataFileName(context);
+		String fileName = getLocalDataFilePath(context) + FileLocationManager.getPathElementDelimiterString() + getLocaldataFileName(context);
 
 		try
 		{
@@ -580,9 +580,9 @@ public class LocaldataManager implements ResourceInterface
 	private void writePropertiesFile(Context context)
 	{
 		// Composes file name
-		String path = getLocaldataFilePath(context);
+		String path = getLocalDataFilePath(context);
 		String fileName = getLocaldataFileName(context);
-		String fullFileName = path + fileName;
+		String fullFileName = path + FileLocationManager.getPathElementDelimiterString() + fileName;
 
 		// Creates directory
 		File directory = new File(path);

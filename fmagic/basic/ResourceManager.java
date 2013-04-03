@@ -230,7 +230,7 @@ public class ResourceManager implements ResourceInterface
 	 */
 	private String getResourceFilePath(Context context)
 	{
-		return FileLocationManager.getRootPath() + FileLocationManager.getResourceSubPath() + "\\";
+		return FileLocationManager.getRootPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getResourceSubPath();
 	}
 
 	/**
@@ -1791,7 +1791,7 @@ public class ResourceManager implements ResourceInterface
 		HashMap<String, String> organizationalProperties = new HashMap<String, String>();
 
 		// Set File name
-		String fileName = this.getResourceFilePath(context) + "\\" + getResourceFileName(context, applicationIdentifier);
+		String fileName = this.getResourceFilePath(context) + FileLocationManager.getPathElementDelimiterString() + getResourceFileName(context, applicationIdentifier);
 
 		// Invoke general function to read resource files
 		boolean isSuccessful = loadResourceFile(context, applicationIdentifier, applicationVersion, fileName, null, false, organizationalProperties);

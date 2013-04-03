@@ -1,12 +1,13 @@
 package fmagic.basic;
 
-import java.io.Serializable;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FilenameFilter;
+import java.nio.channels.FileChannel;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * This class contains UTIL functions needed in the FMAGIC system.
@@ -47,7 +48,7 @@ public class Util
 	public static String convertRegularWildcardsToRegexWildcards(String regularPattern)
 	{
 		if (regularPattern == null) return null;
-		
+
 		String regexPattern = null;
 
 		try
@@ -74,7 +75,7 @@ public class Util
 	public static String fitToFileNameCompatibility(String inputString)
 	{
 		String outputString;
-		outputString = inputString.replaceAll("[^a-zA-Z0-9-.\\[\\]]+", "_");
+		outputString = inputString.toLowerCase().replaceAll("[^a-zA-Z0-9-.\\[\\]]+", "_");
 		return outputString;
 	}
 
@@ -145,234 +146,261 @@ public class Util
 	}
 
 	/**
-	 * Get all information about a class by using Java reflection.
+	 * Check if a file exists physically.
 	 * 
-	 * @param classToRefer
-	 *            The class to reflect.
+	 * @param filePath
+	 *            The full file path of the file.
 	 * 
-	 * @return Returns a text string containing all information.
+	 * @return Returns <TT>true</TT> if the file exists and is accessible,
+	 *         otherwise <TT>false</TT>.
 	 */
-	public static String getClassInfo(Class<?> classToRefer)
+	public static boolean fileExists(String filePath)
 	{
-		String returnString = "";
+		if (filePath == null) return false;
+		if (filePath.length() == 0) return false;
 
-		// ------------------------------------
-		// Return if there is a NULL reference
-		if (classToRefer == null)
+		boolean isAccessable = true;
+
+		try
 		{
-			returnString += "\n" + "NULL reference";
-			return returnString;
+			File file = new File(filePath);
+
+			if (file.exists() == false) isAccessable = false;
+			if (file.canRead() == false) isAccessable = false;
+			if (file.isFile() == false) isAccessable = false;
+		}
+		catch (Exception e)
+		{
+			isAccessable = false;
 		}
 
-		// ------------------------------------
-		// Type of Class is CLASS
-		boolean isClass = !(classToRefer.isInterface() || classToRefer.isPrimitive() || classToRefer.isArray());
+		return isAccessable;
+	}
 
-		// ------------------------------------
-		// Name of Class
-		returnString += "\n" + "----------";
+	/**
+	 * Copy a file.
+	 * 
+	 * @param sourceFilePath
+	 *            The path of the file to be copied.
+	 * 
+	 * @param destinationFilePath
+	 *            The path of the destination file.
+	 * 
+	 * @return Returns <TT>true</TT> if the file could be copied, otherwise
+	 *         <TT>false</TT>.
+	 */
+	public static boolean copyFile(String sourceFilePath, String destinationFilePath)
+	{
+		// Check parameters
+		if (sourceFilePath == null || sourceFilePath.length() == 0) return false;
+		if (destinationFilePath == null || destinationFilePath.length() == 0) return false;
+		if (Util.fileExists(sourceFilePath) == false) return false;
 
-		returnString += "\n" + "Default name: " + classToRefer.toString();
-		returnString += "\n" + "Simple name: " + classToRefer.getSimpleName();
-		returnString += "\n" + "Name: " + classToRefer.getName();
+		// Initialize variables
+		boolean isSuccessfull = true;
 
-		// ------------------------------------
-		// List of Superclass of Class
-		returnString += "\n" + "----------";
+		// Create FILE objects
+		File sourceFile = new File(sourceFilePath);
+		File destinationFile = new File(destinationFilePath);
 
-		if (isClass)
+		// Copy file
+		FileChannel source = null;
+		FileChannel destination = null;
+
+		try
 		{
-			returnString += "\n" + "Superclasses";
-
-			Class<?> subclass = classToRefer;
-			Class<?> superclass = subclass.getSuperclass();
-
-			while (superclass != null)
+			// Check if destination file already exists
+			if (!destinationFile.exists())
 			{
-				String className = superclass.getSimpleName();
-				returnString += "\n" + "--> " + className;
-				subclass = superclass;
-				superclass = subclass.getSuperclass();
+				destinationFile.createNewFile();
 			}
+
+			// Copy file
+			source = new FileInputStream(sourceFile).getChannel();
+			destination = new FileOutputStream(destinationFile).getChannel();
+			destination.transferFrom(source, 0, source.size());
 		}
-		else
+		catch (Exception e)
 		{
-			returnString += "\n" + "Superclass: NONE";
+			isSuccessfull = false;
 		}
 
-		// ------------------------------------
-		// Type of Class
-		returnString += "\n" + "----------";
-
-		returnString += "\n" + "Is Interface: " + classToRefer.isInterface();
-		returnString += "\n" + "Is Primitive: " + classToRefer.isPrimitive();
-		returnString += "\n" + "Is Array: " + classToRefer.isArray();
-		returnString += "\n" + "Is Class: " + isClass;
-
-		if (classToRefer.isArray()) returnString += "\n" + "Komponententyp: " + classToRefer.getComponentType();
-		else returnString += "\n" + "Komponententyp: NONE";
-
-		// ------------------------------------
-		// Get Instance and Assignable classes
-		returnString += "\n" + "----------";
-
-		if (Serializable.class.isAssignableFrom(classToRefer)) returnString += "\n" + "Is Assignable From Object: true";
-		else returnString += "\n" + "Is Assignable From Object: false";
-
-		// ------------------------------------
-		// Get all interfaces
-		if ((classToRefer.getInterfaces()).length != 0)
+		// Close channels
+		try
 		{
-			returnString += "\n" + "----------";
-			returnString += "\n" + "Interfaces";
-
-			for (Class<?> Interface : classToRefer.getInterfaces())
-				returnString += "\n" + "--> " + Interface.getSimpleName();
+			source.close();
+			destination.close();
 		}
-
-		// ------------------------------------
-		// Get modifiers (public, private, protected)
-		int modifiers = classToRefer.getModifiers();
-
-		if (modifiers != 0)
+		catch (Exception e)
 		{
-			returnString += "\n" + "----------";
-			returnString += "\n" + "Modifiers: " + Modifier.toString(modifiers);
-			if (Modifier.isPublic(modifiers)) returnString += "\n" + "PUBLIC";
-			if (Modifier.isPrivate(modifiers)) returnString += "\n" + "PRIVATE";
-			if (Modifier.isProtected(modifiers)) returnString += "\n" + "PROTECTED";
+			isSuccessfull = false;
 		}
 
-		// ------------------------------------
-		// Get public data fields of the class
-		if ((classToRefer.getFields()).length > 0)
-		{
-			returnString += "\n" + "----------";
-			returnString += "\n" + "Public data fields";
-
-			for (Field publicField : classToRefer.getFields())
-			{
-				String fieldName = publicField.getName();
-				String fieldType = publicField.getType().getSimpleName();
-				String declaringClass = publicField.getDeclaringClass().getSimpleName();
-
-				returnString += "\n" + String.format("--> %s %s [%s]%n", fieldType, fieldName, declaringClass);
-			}
-		}
-
-		// ------------------------------------
-		// Get public methods of class
-		if ((classToRefer.getMethods()).length > 0)
-		{
-			returnString += "\n" + "----------";
-			returnString += "\n" + "Methods";
-
-			for (Method method : classToRefer.getMethods())
-			{
-				// Name and Type
-				String methodName = method.getName();
-				String methodType = method.getReturnType().getSimpleName();
-				String declaringClass = method.getDeclaringClass().getSimpleName();
-
-				// Parameters
-				Class<?>[] parameterTypes = method.getParameterTypes();
-
-				String parameterString = "";
-
-				for (int k = 0; k < parameterTypes.length; k++)
-				{
-					if (k > 0) parameterString = parameterString + ", ";
-					parameterString = parameterString + parameterTypes[k].getSimpleName();
-				}
-
-				// Exceptions
-				Class<?>[] exceptions = method.getExceptionTypes();
-
-				String exceptionString = "";
-
-				if (exceptions.length > 0)
-				{
-					exceptionString = exceptionString + " throws ";
-
-					for (int k = 0; k < exceptions.length; k++)
-					{
-						if (k > 0) exceptionString = exceptionString + ", ";
-						exceptionString = exceptionString + exceptions[k].getName();
-					}
-				}
-
-				// Print out for all native methods
-				if (!declaringClass.equals("Object"))
-				{
-					returnString += "\n" + String.format("--> %s %s(%s) %s [%s]%n", methodType, methodName, parameterString, exceptionString, declaringClass);
-				}
-			}
-		}
-
-		// ------------------------------------
-		// Get constructor methods of class
-		if ((classToRefer.getConstructors()).length > 0)
-		{
-			returnString += "\n" + "----------";
-			returnString += "\n" + "Constructors";
-
-			for (Constructor<?> constructor : classToRefer.getConstructors())
-			{
-				// Name and Type
-				String methodName = classToRefer.getSimpleName();
-				String methodType = classToRefer.getSimpleName();
-
-				// Parameters
-				Class<?>[] parameterTypes = constructor.getParameterTypes();
-
-				String parameterString = "";
-
-				for (int k = 0; k < parameterTypes.length; k++)
-				{
-					if (k > 0) parameterString = parameterString + ", ";
-					parameterString = parameterString + parameterTypes[k].getSimpleName();
-				}
-
-				// Exceptions
-				Class<?>[] exceptions = constructor.getExceptionTypes();
-
-				String exceptionString = "";
-
-				if (exceptions.length > 0)
-				{
-					exceptionString = exceptionString + " throws ";
-
-					for (int k = 0; k < exceptions.length; k++)
-					{
-						if (k > 0) exceptionString = exceptionString + ", ";
-						exceptionString = exceptionString + exceptions[k].getName();
-					}
-				}
-
-				// Print out for all constructor methods
-				returnString += "\n" + String.format("--> %s %s(%s) %s%n", methodType, methodName, parameterString, exceptionString);
-			}
-		}
-
-		// ------------------------------------
-		// Get annotations of class
-		if ((classToRefer.getAnnotations()).length > 0)
-		{
-			returnString += "\n" + "----------";
-			returnString += "\n" + "Annotations";
-
-			for (Annotation annotation : classToRefer.getAnnotations())
-			{
-				// Name and Type
-				String annotationName = annotation.toString();
-
-				// Print out for all annotations
-				returnString += "\n" + String.format("--> %s%n", annotationName);
-			}
-		}
-
-		// ------------------------------------
 		// Return
-		return returnString;
+		return isSuccessfull;
+	}
+
+	/**
+	 * Get hash value (MD5) of a file.
+	 * 
+	 * @param filePath
+	 *            The path of the file to be hashed.
+	 * 
+	 * @return Returns the hash code (MD5) as hexadecimal string or
+	 *         <TT>null</TT>, if an error occurred.
+	 */
+	public static String hashFile(String filePath)
+	{
+		// Check parameters
+		if (filePath == null || filePath.length() == 0) return null;
+		if (Util.fileExists(filePath) == false) return null;
+
+		// Compute hash value
+		String md5 = null;
+
+		try
+		{
+			FileInputStream fis = new FileInputStream(new File(filePath));
+			md5 = org.apache.commons.codec.digest.DigestUtils.md5Hex(fis);
+		}
+		catch (Exception e)
+		{
+			return null;
+		}
+
+		// Return
+		return md5;
+	}
+
+	/**
+	 * Search for file name.
+	 * 
+	 * @param filePath
+	 *            The path of the files to be searched for.
+	 * 
+	 * @param fileNameMask
+	 *            The file name mask to be searched for, including wildcards (*,
+	 *            ?).
+	 * 
+	 * @return Returns a list of files that were found, or <TT>null</TT>, if an
+	 *         error occurred.
+	 */
+	public static List<String> searchFileName(String filePath, String fileNameMask)
+	{
+		class UtilFileFilter implements FilenameFilter
+		{
+			File directory;
+			String fileNameMask;
+
+			public UtilFileFilter(File directory, String fileNameMask)
+			{
+				this.directory = directory;
+				this.fileNameMask = Util.convertRegularWildcardsToRegexWildcards(fileNameMask);
+			}
+
+			public boolean accept(File currentDirectory, String currentFileName)
+			{
+				if (directory == null) return false;
+				if (fileNameMask == null) return false;
+				if (!currentDirectory.equals(this.directory)) return false;
+				if (!currentFileName.matches(fileNameMask)) return false;
+
+				return true;
+			}
+		}
+
+		// Check parameters
+		if (filePath == null || filePath.length() == 0) return null;
+		if (fileNameMask == null || fileNameMask.length() == 0) return null;
+
+		// Initialize variables
+		List<String> fileList = new ArrayList<String>();
+
+		// Search for files that matches
+		try
+		{
+			File directory = new File(filePath);
+			if (directory.isDirectory() == false) return null;
+
+			File[] files = directory.listFiles(new UtilFileFilter(directory, fileNameMask));
+
+			for (File file : files)
+			{
+				fileList.add(file.getAbsolutePath());
+			}
+		}
+		catch (Exception e)
+		{
+			return null;
+		}
+
+		// Return
+		return fileList;
+	}
+
+	/**
+	 * Move a file.
+	 * 
+	 * @param sourceFilePath
+	 *            The path of the file to be copied.
+	 * 
+	 * @param destinationFilePath
+	 *            The path of the destination file.
+	 * 
+	 * @return Returns <TT>true</TT> if the file could be moved, otherwise
+	 *         <TT>false</TT>.
+	 */
+	public static boolean moveFile(String sourceFilePath, String destinationFilePath)
+	{
+		// Check parameters
+		if (sourceFilePath == null || sourceFilePath.length() == 0) return false;
+		if (destinationFilePath == null || destinationFilePath.length() == 0) return false;
+		if (Util.fileExists(sourceFilePath) == false) return false;
+		if (Util.fileExists(destinationFilePath) == true) return false;
+
+		// Create FILE objects
+		File sourceFile = new File(sourceFilePath);
+		File destinationFile = new File(destinationFilePath);
+
+		// Rename file
+		try
+		{
+			boolean isSuccessful = sourceFile.renameTo(destinationFile);
+			return isSuccessful;
+		}
+		catch (Exception e)
+		{
+			return false;
+		}
+	}
+
+	/**
+	 * Delete a file.
+	 * 
+	 * @param filePath
+	 *            The path of the file to be deleted.
+	 * 
+	 * @return Returns <TT>true</TT> if the file could be deleted, otherwise
+	 *         <TT>false</TT>.
+	 */
+	public static boolean deleteFile(String filePath)
+	{
+		// Check parameters
+		if (filePath == null || filePath.length() == 0) return false;
+		if (Util.fileExists(filePath) == false) return false;
+
+		// Create FILE objects
+		File file = new File(filePath);
+
+		// Delete file
+		try
+		{
+			boolean isSuccessful = file.delete();
+			return isSuccessful;
+		}
+		catch (Exception e)
+		{
+			return false;
+		}
 	}
 }

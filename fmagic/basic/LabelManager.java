@@ -98,7 +98,7 @@ public class LabelManager implements ResourceInterface
 	 */
 	private String getResourceLabelFilePath(Context context)
 	{
-		return FileLocationManager.getRootPath() + FileLocationManager.getResourceLabelSubPath() + "\\";
+		return FileLocationManager.getRootPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getResourceLabelSubPath();
 	}
 
 	/**
@@ -113,7 +113,7 @@ public class LabelManager implements ResourceInterface
 	 */
 	private String getTranslatedLabelFilePath(Context context)
 	{
-		return FileLocationManager.getRootPath() + FileLocationManager.getResourceLabelTranslatedSubPath() + "\\";
+		return FileLocationManager.getRootPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getResourceLabelTranslatedSubPath();
 	}
 
 	/**
@@ -179,7 +179,7 @@ public class LabelManager implements ResourceInterface
 		HashMap<String, String> organizationalProperties = new HashMap<String, String>();
 
 		// Set File name
-		String fileName = this.getResourceLabelFilePath(context) + "\\" + this.getResourceLabelFileName(context, applicationIdentifier);
+		String fileName = this.getResourceLabelFilePath(context) + FileLocationManager.getPathElementDelimiterString() + this.getResourceLabelFileName(context, applicationIdentifier);
 
 		// Invoke general function to read resource files
 		boolean isSuccessful = context.getResourceManager().loadResourceFile(context, applicationIdentifier, applicationVersion, fileName, null, false, organizationalProperties);
@@ -221,7 +221,7 @@ public class LabelManager implements ResourceInterface
 		HashMap<String, String> organizationalProperties = new HashMap<String, String>();
 
 		// Set File name
-		String fileName = this.getTranslatedLabelFilePath(context) + "\\" + this.getTranslatedLabelFileName(context, applicationIdentifier, language);
+		String fileName = this.getTranslatedLabelFilePath(context) + FileLocationManager.getPathElementDelimiterString() + this.getTranslatedLabelFileName(context, applicationIdentifier, language);
 
 		// Invoke general function to read resource files
 		boolean isSuccessful = context.getResourceManager().loadResourceFile(context, applicationIdentifier, applicationVersion, fileName, language, true, organizationalProperties);
@@ -482,7 +482,7 @@ public class LabelManager implements ResourceInterface
 	 */
 	private String getLabelTemplateFilePath(Context context)
 	{
-		return FileLocationManager.getRootPath() + FileLocationManager.getResourceLabelTemplateSubPath() + "\\";
+		return FileLocationManager.getRootPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getResourceLabelTemplateSubPath();
 	}
 
 	/**
@@ -618,7 +618,7 @@ public class LabelManager implements ResourceInterface
 		try
 		{
 			// Get a list of all relevant resource identifier items
-			fileName = this.getLabelTemplateFilePath(context) + "\\" + this.getLabelTemplateFileName(context, application, destinationLanguage);
+			fileName = this.getLabelTemplateFilePath(context) + FileLocationManager.getPathElementDelimiterString() + this.getLabelTemplateFileName(context, application, destinationLanguage);
 
 			String typeCriteria[] = { "Label" };
 			String applicationCriteria[] = { application };

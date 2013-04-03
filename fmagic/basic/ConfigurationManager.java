@@ -51,8 +51,7 @@ import fmagic.basic.ResourceContainer.UsageEnum;
  * @changed FW 24.11.2012 - Created
  * 
  */
-public class ConfigurationManager implements
-		ResourceInterface
+public class ConfigurationManager implements ResourceInterface
 {
 	// List of properties
 	private Properties applicationProperties = new Properties();
@@ -386,7 +385,7 @@ public class ConfigurationManager implements
 				if (value != null && value.startsWith("${") && value.endsWith("}"))
 				{
 					// Set file name
-					String fileName = FileLocationManager.getRootPath() + FileLocationManager.getConfigurationSubPath() + "\\" + value.substring(2, value.length() - 1);
+					String fileName = FileLocationManager.getRootPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getConfigurationSubPath() + FileLocationManager.getPathElementDelimiterString() + value.substring(2, value.length() - 1);
 
 					// Logging
 					context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "Tries to read addtional configuration file '" + value + "' of property key '" + identifier + "'");
@@ -710,7 +709,7 @@ public class ConfigurationManager implements
 	 */
 	private String getConfigurationFilePath(Context context)
 	{
-		return FileLocationManager.getRootPath() + FileLocationManager.getConfigurationSubPath() + "\\";
+		return FileLocationManager.getRootPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getConfigurationSubPath();
 	}
 
 	/**
@@ -748,7 +747,7 @@ public class ConfigurationManager implements
 	 */
 	private String getConfigurationTemplateFilePath(Context context)
 	{
-		return FileLocationManager.getRootPath() + FileLocationManager.getConfigurationTemplateSubPath() + "\\";
+		return FileLocationManager.getRootPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getConfigurationTemplateSubPath() + FileLocationManager.getPathElementDelimiterString();
 	}
 
 	/**
@@ -799,7 +798,7 @@ public class ConfigurationManager implements
 	public boolean loadPropertiesFile(Context context)
 	{
 		// Read application properties
-		String fileName = this.getConfigurationFilePath(context) + "\\" + this.getConfigurationFileName(context);
+		String fileName = this.getConfigurationFilePath(context) + FileLocationManager.getPathElementDelimiterString() + this.getConfigurationFileName(context);
 
 		try
 		{
@@ -818,7 +817,7 @@ public class ConfigurationManager implements
 		}
 
 		// Read default properties
-		fileName = FileLocationManager.getRootPath() + FileLocationManager.getConfigurationDefaultSubPath() + "\\" + FileLocationManager.getConfigurationDefaultFileName();
+		fileName = FileLocationManager.getRootPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getConfigurationDefaultSubPath() + FileLocationManager.getPathElementDelimiterString() +  FileLocationManager.getConfigurationDefaultFileName();
 
 		try
 		{
@@ -878,7 +877,7 @@ public class ConfigurationManager implements
 		try
 		{
 			pathName = this.getConfigurationTemplateFilePath(context);
-					
+
 			File directory = new File(pathName);
 			directory.mkdirs();
 		}
@@ -892,7 +891,7 @@ public class ConfigurationManager implements
 		try
 		{
 			// Create template text
-			fileName = this.getConfigurationTemplateFilePath(context) + "\\" + this.getConfigurationTemplateFileName(context, application, origin);
+			fileName = this.getConfigurationTemplateFilePath(context) + FileLocationManager.getPathElementDelimiterString() + this.getConfigurationTemplateFileName(context, application, origin);
 
 			String typeCriteria[] = { "Configuration" };
 			String applicationCriteria[] = { "Basic", "Common", application };

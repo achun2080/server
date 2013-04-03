@@ -739,7 +739,7 @@ public class NotificationManager implements ResourceInterface
 		{
 			// Gets file path of the ticket files
 			String pathDirectoryMessageDump = this.getLogfilePath(context, NotificationManager.LogfileTypeEnum.TICKET_LOG);
-			String pathFileNameMessageDump = this.getLogfilePath(context, NotificationManager.LogfileTypeEnum.TICKET_LOG) + fileNameMessageDump;
+			String pathFileNameMessageDump = this.getLogfilePath(context, NotificationManager.LogfileTypeEnum.TICKET_LOG) + FileLocationManager.getPathElementDelimiterString() + fileNameMessageDump;
 
 			// Create directory
 			File directory = new File(pathDirectoryMessageDump);
@@ -884,23 +884,23 @@ public class NotificationManager implements ResourceInterface
 
 		if (logfileType == NotificationManager.LogfileTypeEnum.DATE_CONTEXT)
 		{
-			fileName += rootPath + "\\" + FileLocationManager.getLogContextSubPath() + "\\" + FileLocationManager.getLogContextSubSubPath() + "\\";
+			fileName += rootPath + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getLogContextSubPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getLogContextSubSubPath();
 		}
 		else if (logfileType == NotificationManager.LogfileTypeEnum.APPLICATION_DATE)
 		{
-			fileName += rootPath + "\\" + FileLocationManager.getLogApplicationSubPath() + "\\" + FileLocationManager.getLogApplicationSubSubPath() + "\\";
+			fileName += rootPath + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getLogApplicationSubPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getLogApplicationSubSubPath();
 		}
 		else if (logfileType == NotificationManager.LogfileTypeEnum.TICKET_LOG)
 		{
-			fileName += rootPath + "\\" + FileLocationManager.getLogTicketSubPath() + "\\" + FileLocationManager.getLogTicketSubSubPath() + "\\";
+			fileName += rootPath + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getLogTicketSubPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getLogTicketSubSubPath();
 		}
 		else if (logfileType == NotificationManager.LogfileTypeEnum.TICKET_DOC)
 		{
-			fileName += rootPath + "\\" + FileLocationManager.getLogTicketSubPath() + "\\" + FileLocationManager.getLogTicketSubSubPath() + "\\";
+			fileName += rootPath + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getLogTicketSubPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getLogTicketSubSubPath();
 		}
 		else
 		{
-			fileName += rootPath + "\\" + FileLocationManager.getLogFlatSubPath() + "\\";
+			fileName += rootPath + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getLogFlatSubPath();
 		}
 
 		// Replace place holder
@@ -1052,7 +1052,7 @@ public class NotificationManager implements ResourceInterface
 				directory.mkdirs();
 
 				// Write to log file
-				output = new PrintWriter(new FileOutputStream(new File(pathName + fileName), true));
+				output = new PrintWriter(new FileOutputStream(new File(pathName + FileLocationManager.getPathElementDelimiterString() + fileName), true));
 				this.appendStringToLogFile(output, normalizedText);
 				output.close();
 
@@ -1069,7 +1069,7 @@ public class NotificationManager implements ResourceInterface
 				directory.mkdirs();
 
 				// Write to log file
-				output = new PrintWriter(new FileOutputStream(new File(pathName + fileName), true));
+				output = new PrintWriter(new FileOutputStream(new File(pathName + FileLocationManager.getPathElementDelimiterString() + fileName), true));
 				this.appendStringToLogFile(output, normalizedText);
 				output.close();
 
@@ -1086,7 +1086,7 @@ public class NotificationManager implements ResourceInterface
 				directory.mkdirs();
 
 				// Write to log file
-				output = new PrintWriter(new FileOutputStream(new File(pathName + fileName), true));
+				output = new PrintWriter(new FileOutputStream(new File(pathName + FileLocationManager.getPathElementDelimiterString() + fileName), true));
 				this.appendStringToLogFile(output, normalizedText);
 				output.close();
 

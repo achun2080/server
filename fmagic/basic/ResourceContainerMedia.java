@@ -185,86 +185,6 @@ public class ResourceContainerMedia extends ResourceContainer
 	}
 
 	/**
-	 * Check if the Origin of the media resource item is set to specific value.
-	 * 
-	 * @param context
-	 *            Application context.
-	 * 
-	 * @param originNumber
-	 *            The value number the specific origin is assigned to.
-	 * 
-	 * @return Returns <TT>true</TT> if the origin is defined, otherwise
-	 *         <TT>false</TT>.
-	 */
-	private boolean isOrigin(Context context, int originNumber)
-	{
-		if (originNumber < 1) return false;
-
-		try
-		{
-			ResourceContainer attributeResourceContainer = ResourceManager.attribute(context, "Media", "Origin");
-			String attributeName = attributeResourceContainer.getAliasName();
-			String attributeOriginValue = attributeResourceContainer.getAttributeValue(context, originNumber, null);
-			if (attributeOriginValue == null) return false;
-			if (attributeOriginValue.length() == 0) return false;
-
-			String attributeValue = this.getAttribute(attributeName);
-			if (attributeValue == null) return false;
-			if (attributeValue.length() == 0) return false;
-
-			if (attributeValue.equals(attributeOriginValue)) return true;
-		}
-		catch (Exception e)
-		{
-			// Be silent
-		}
-
-		return false;
-	}
-
-	/**
-	 * Check if the Origin of the media resource item is set to "Server".
-	 * 
-	 * @param context
-	 *            Application context.
-	 * 
-	 * @return Returns <TT>true</TT> if the Origin is defined as "Server",
-	 *         otherwise <TT>false</TT>.
-	 */
-	public boolean isOriginServer(Context context)
-	{
-		return this.isOrigin(context, 1);
-	}
-
-	/**
-	 * Check if the Origin of the media resource item is set to "Client".
-	 * 
-	 * @param context
-	 *            Application context.
-	 * 
-	 * @return Returns <TT>true</TT> if the Origin is defined as "Client",
-	 *         otherwise <TT>false</TT>.
-	 */
-	public boolean isOriginClient(Context context)
-	{
-		return this.isOrigin(context, 2);
-	}
-
-	/**
-	 * Check if the Origin of the media resource item is set to "All".
-	 * 
-	 * @param context
-	 *            Application context.
-	 * 
-	 * @return Returns <TT>true</TT> if the Origin is defined as "All",
-	 *         otherwise <TT>false</TT>.
-	 */
-	public boolean isOriginAll(Context context)
-	{
-		return this.isOrigin(context, 3);
-	}
-
-	/**
 	 * Check if the storage location of the media resource item is set to
 	 * specific value.
 	 * 
@@ -458,4 +378,227 @@ public class ResourceContainerMedia extends ResourceContainer
 
 		return false;
 	}
+
+	/**
+	 * Get the file path of a local media file.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @return Returns the file path of a media file stored locally.
+	 * 
+	 */
+	public String getMediaFilePath(Context context)
+	{
+		String mediaFilePath = context.getMediaManager().getMediaRootFilePath(context) + FileLocationManager.getPathElementDelimiterString() + Util.fitToFileNameCompatibility(context.getApplicationName()) + FileLocationManager.getPathElementDelimiterString() + this.getLogicalPath(context);
+		return mediaFilePath;
+	}
+
+	/**
+	 * Fit a identifier string to be file name compatible for media files.
+	 * 
+	 * @param identifier
+	 *            The identifier to consider.
+	 * 
+	 * @return Returns the fitted identifier, or <TT>00000000000000</TT> if it
+	 *         couldn't be fitted.
+	 * 
+	 */
+	private String fitIdentifierToFileName(String identifier)
+	{
+		if (identifier == null) return "00000000000000";
+		if (identifier.length() == 0) return "00000000000000";
+
+		String normalizedIdentifier = identifier.trim();
+
+		for (int i = normalizedIdentifier.length(); i < 14; i++)
+		{
+			normalizedIdentifier = "0".concat(normalizedIdentifier);
+		}
+
+		normalizedIdentifier = Util.fitToFileNameCompatibility(normalizedIdentifier);
+
+		return normalizedIdentifier;
+	}
+
+	/**
+	 * Get the file name mask of a local media file, based an the
+	 * <TT>Application Name</TT>, the <TT>Alias Name</TT> and the
+	 * <TT>Identifier</TT> of the media item.
+	 * <p>
+	 * Example: <TT>seniorcitizen-room-00001234-*-*-*.*</TT>
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param dataIdentifier
+	 *            The data identifier to consider.
+	 * 
+	 * @return Returns the file name mask of a media file, including wildcards
+	 *         for the parts <TT>Server Encoding</TT>, <TT>Client Encoding</TT>
+	 *         , <TT>Hash Value</TT> and <TT>File Type</TT>.
+	 * 
+	 */
+	public String getMediaFileNameMask(Context context, String dataIdentifier)
+	{
+		String mediaFileNameMask = FileLocationManager.getMediaFileName();
+
+		mediaFileNameMask = FileLocationManager.replacePlacholder(context, mediaFileNameMask);
+
+		if (this.getAliasName() != null) mediaFileNameMask = mediaFileNameMask.replace("${alias}", Util.fitToFileNameCompatibility(this.getAliasName()));
+		mediaFileNameMask = mediaFileNameMask.replace("${identifier}", this.fitIdentifierToFileName(dataIdentifier));
+		mediaFileNameMask = mediaFileNameMask.replace("${serverencodingkey}", "*");
+		mediaFileNameMask = mediaFileNameMask.replace("${clientencodingkey}", "*");
+		mediaFileNameMask = mediaFileNameMask.replace("${hashvalue}", "*");
+		mediaFileNameMask = mediaFileNameMask.replace("${filetype}", "*");
+
+		return mediaFileNameMask;
+	}
+
+	/**
+	 * Create a name for a temporary file to be used to save pending files, and
+	 * returns the name.
+	 * <p>
+	 * Example: <TT>20130403-155909-625-seniorcitizen-ap1-[0001].png</TT>
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param fileType
+	 *            The file type to set.
+	 * 
+	 * @return Returns the file name created.
+	 * 
+	 */
+	public String getTempFileName(Context context, String fileType)
+	{
+		String mediaTempFileName = FileLocationManager.getMediaTempFileName();
+
+		mediaTempFileName = FileLocationManager.replacePlacholder(context, mediaTempFileName);
+
+		if (fileType != null) mediaTempFileName = mediaTempFileName.replace("${filetype}", fileType);
+
+		return mediaTempFileName;
+	}
+
+	/**
+	 * Get the path of temporary media files (pending files), depending on the
+	 * concrete media resource item.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @return Returns the file path to be used for temporary pending media
+	 *         files of the given media resource type.
+	 * 
+	 */
+	public String getPendingFilePath(Context context)
+	{
+		return this.getMediaFilePath(context) + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getMediaPendingSubPath();
+	}
+
+	/**
+	 * Get the path of deleted media files, depending on the concrete media
+	 * resource item.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @return Returns the file path to be used for deleted media files of the
+	 *         given media resource type.
+	 * 
+	 */
+	public String getDeletedFilePath(Context context)
+	{
+		return this.getMediaFilePath(context) + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getMediaDeletedSubPath();
+	}
+
+	/**
+	 * Get the names of an existing file of the local media repository,
+	 * regarding a specific media resource item and a specific data identifier.
+	 * <p>
+	 * Example: <TT>seniorcitizen-room-00001234-*-*-*.*</TT>
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param dataIdentifier
+	 *            The data identifier to consider.
+	 * 
+	 * @return Returns a list of files that were found, or <TT>null</TT> if an
+	 *         error occurred.
+	 * 
+	 */
+	public List<String> getRealMediaFileName(Context context, String dataIdentifier)
+	{
+		String mediaFileNameMask = this.getMediaFileNameMask(context, dataIdentifier);
+		String mediaFilePath = this.getMediaFilePath(context);
+		return Util.searchFileName(mediaFilePath, mediaFileNameMask);
+	}
+
+	/**
+	 * Get the current server encoding key to be used for encoding on server
+	 * side.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @return Returns the server encoding key as string.
+	 * 
+	 */
+	public String getServerEncodingKeyAsString(Context context)
+	{
+		return "00";
+	}
+
+	/**
+	 * Get the current client encoding key to be used for encoding on client
+	 * side.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @return Returns the client encoding key as string.
+	 * 
+	 */
+	public String getClientEncodingKeyAsString(Context context)
+	{
+		return "00";
+	}
+
+	/**
+	 * Set the file name of a local media file, based on
+	 * <TT>Application Name</TT>, <TT>Alias Name</TT>, <TT>Data Identifier</TT>,
+	 * <TT>Server Encoding</TT>, <TT>Client Encoding</TT> , <TT>Hash Value</TT>
+	 * and <TT>File Type</TT>.
+	 * <p>
+	 * Example: <TT>seniorcitizen-room-00001234-01-00-a6gt8e.jpg</TT>
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param dataIdentifier
+	 *            The data identifier to consider.
+	 * 
+	 * @return Returns the file name mask of a media file, including wildcards
+	 *         for the parts <TT>Server Encoding</TT>, <TT>Client Encoding</TT>
+	 *         , <TT>Hash Value</TT> and <TT>File Type</TT>.
+	 * 
+	 */
+	public String getMediaFileName(Context context, String dataIdentifier, String hashValue, String fileType)
+	{
+		String mediaFileName = FileLocationManager.getMediaFileName();
+
+		mediaFileName = FileLocationManager.replacePlacholder(context, mediaFileName);
+
+		if (this.getAliasName() != null) mediaFileName = mediaFileName.replace("${alias}", Util.fitToFileNameCompatibility(this.getAliasName()));
+		mediaFileName = mediaFileName.replace("${identifier}", this.fitIdentifierToFileName(dataIdentifier));
+		mediaFileName = mediaFileName.replace("${serverencodingkey}", this.getServerEncodingKeyAsString(context));
+		mediaFileName = mediaFileName.replace("${clientencodingkey}", this.getClientEncodingKeyAsString(context));
+		if (hashValue != null) mediaFileName = mediaFileName.replace("${hashvalue}", hashValue.trim());
+		if (fileType != null) mediaFileName = mediaFileName.replace("${filetype}", fileType);
+
+		return this.getMediaFilePath(context) + FileLocationManager.getPathElementDelimiterString() + mediaFileName;
+	}
+
 }

@@ -7,7 +7,7 @@ import java.util.Locale;
 public class FileLocationManager
 {
 	// Root path set for testing purposes only.
-	private static String rootPath = "E:\\Gewerbe\\Fmagic\\Workspaces\\fmagic\\AppsServer\\src\\configuration\\";
+	private static String rootPath = "E:/Gewerbe/Fmagic/Workspaces/fmagic/AppsServer/src/configuration";
 
 	private static final String resourceSubPath = "fmagic.resource";
 	private static final String resourceFileName = "fmagic.resource.${application}.properties";
@@ -18,7 +18,7 @@ public class FileLocationManager
 	private static final String resourceLabelTranslatedSubPath = "fmagic.label";
 	private static final String resourceLabelTranslatedFileName = "fmagic.label.${application}.${language}.properties";
 
-	private static final String resourceLabelTemplateSubPath = "fmagic.label\\templates";
+	private static final String resourceLabelTemplateSubPath = "fmagic.label/templates";
 	private static final String resourceLabelTemplateFileName = "fmagic.template.label.${application}.${language}.properties";
 
 	private static final String configurationSubPath = "fmagic.configuration";
@@ -27,24 +27,24 @@ public class FileLocationManager
 	private static final String configurationDefaultSubPath = "fmagic.configuration";
 	private static final String configurationDefaultFileName = "fmagic.default.configuration.properties";
 
-	private static final String configurationTemplateSubPath = "fmagic.configuration\\templates";
+	private static final String configurationTemplateSubPath = "fmagic.configuration/templates";
 	private static final String configurationTemplateFileName = "fmagic.template.configuration.${application}.${origin}.properties";
 
 	private static final String localdataSubPath = "fmagic.localdata";
 	private static final String localdataFileName = "fmagic.${codename}.localdata.properties";
 
-	private static final String logContextSubPath = "fmagic.logging\\fmagic.logging.context";
+	private static final String logContextSubPath = "fmagic.logging/fmagic.logging.context";
 	private static final String logContextSubSubPath = "${sdate}";
 	private static final String logContextFileName = "fmagic-${origin}-${codename}-${ndate}-${context}.log";
 
-	private static final String logApplicationSubPath = "fmagic.logging\\fmagic.logging.application";
-	private static final String logApplicationSubSubPath = "${codename}\\${sdate}";
+	private static final String logApplicationSubPath = "fmagic.logging/fmagic.logging.application";
+	private static final String logApplicationSubSubPath = "${codename}/${sdate}";
 	private static final String logApplicationFileName = "fmagic-${codename}-${ndate}.log";
 
-	private static final String logFlatSubPath = "fmagic.logging\\fmagic.logging.flat";
+	private static final String logFlatSubPath = "fmagic.logging/fmagic.logging.flat";
 	private static final String logFlatFileName = "fmagic-flat-${ndate}.log";
 
-	private static final String logTicketSubPath = "fmagic.logging\\fmagic.logging.tickets";
+	private static final String logTicketSubPath = "fmagic.logging/fmagic.logging.tickets";
 	private static final String logTicketSubSubPath = "${sdate}";
 	private static final String logTicketComposer = "fmagic-${codename}-${context}-${timestamp}-[${thread}]";
 	private static final String logTicketFileType = ".log";
@@ -53,8 +53,24 @@ public class FileLocationManager
 	private static final String licenseFileName = "fmagic.license.${application}.${licensekey}.license";
 	private static final String licenseFileNameType = "license";
 
-	private static final String licenseTemplateSubPath = "fmagic.license\\templates";
+	private static final String licenseTemplateSubPath = "fmagic.license/templates";
 	private static final String licenseTemplateFileName = "fmagic.template.license.${application}.${licensemodel}.properties";
+
+	private static final String mediaSubPath = "fmagic.media";
+	private static final String mediaFileName = "${application}-${alias}-${identifier}-${serverencodingkey}-${clientencodingkey}-${hashvalue}.${filetype}";
+	private static final String mediaTempFileName = "${timestamp}-${application}-${codename}-[${thread}].${filetype}";
+	private static final String mediaDeletedSubPath = "deleted";
+	private static final String mediaPendingSubPath = "pending";
+
+	/**
+	 * Get the delimiter character that divides parts of path elements.
+	 * 
+	 * @return Returns always with <TT>|</TT>.
+	 */
+	public static String getPathElementDelimiterString()
+	{
+		return "/";
+	}
 
 	/**
 	 * Replace place holder.
@@ -419,5 +435,45 @@ public class FileLocationManager
 	public static String getLicenseTemplateFileName()
 	{
 		return licenseTemplateFileName;
+	}
+
+	/**
+	 * Getter
+	 */
+	public static String getMediaSubPath()
+	{
+		return mediaSubPath;
+	}
+
+	/**
+	 * Getter
+	 */
+	public static String getMediaFileName()
+	{
+		return mediaFileName;
+	}
+
+	/**
+	 * Getter
+	 */
+	public static String getMediaDeletedSubPath()
+	{
+		return mediaDeletedSubPath;
+	}
+
+	/**
+	 * Getter
+	 */
+	public static String getMediaTempFileName()
+	{
+		return mediaTempFileName;
+	}
+
+	/**
+	 * Getter
+	 */
+	public static String getMediaPendingSubPath()
+	{
+		return mediaPendingSubPath;
 	}
 }

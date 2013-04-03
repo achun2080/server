@@ -153,7 +153,7 @@ public class LicenseManager implements ResourceInterface
 	 */
 	private String getLicenseFilePath(Context context)
 	{
-		return FileLocationManager.getRootPath() + FileLocationManager.getLicenseSubPath() + "\\";
+		return FileLocationManager.getRootPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getLicenseSubPath();
 	}
 
 	/**
@@ -978,7 +978,7 @@ public class LicenseManager implements ResourceInterface
 	 */
 	private String getLicenseTemplateFilePath(Context context)
 	{
-		return FileLocationManager.getRootPath() + FileLocationManager.getLicenseTemplateSubPath() + "\\";
+		return FileLocationManager.getRootPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getLicenseTemplateSubPath();
 	}
 
 	/**
@@ -1116,7 +1116,7 @@ public class LicenseManager implements ResourceInterface
 			if (licenseModelName == null || licenseModelName.length() == 0) return false;
 
 			// Compose file name
-			fileName = this.getLicenseTemplateFilePath(context) + "\\" + this.getLicenseTemplateFileName(context, application, licenseModelName);
+			fileName = this.getLicenseTemplateFilePath(context) + FileLocationManager.getPathElementDelimiterString() + this.getLicenseTemplateFileName(context, application, licenseModelName);
 
 			// Open file
 			output = new PrintWriter(new FileOutputStream(new File(fileName), false));

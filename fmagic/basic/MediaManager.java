@@ -1,5 +1,6 @@
 package fmagic.basic;
 
+import java.io.File;
 import java.util.Date;
 import java.util.List;
 
@@ -115,9 +116,6 @@ public class MediaManager implements ResourceInterface
 
 				// The attribute 'FileTypes' must be set
 				if (ckeckOnAttributeFileTypes(context, resourceContainer) == true) isIntegrityError = true;
-
-				// The attribute 'Origin' must be set
-				if (ckeckOnAttributeOrigin(context, resourceContainer) == true) isIntegrityError = true;
 
 				// The attribute 'StorageLocation' must be set
 				if (ckeckOnAttributeStorageLocation(context, resourceContainer) == true) isIntegrityError = true;
@@ -328,79 +326,6 @@ public class MediaManager implements ResourceInterface
 				errorString += "\n--> Full resource identifier: '" + resourceContainer.getRecourceIdentifier() + "'";
 				errorString += "\n--> The atttribute 'FileTypes' is used to determine which media files can be uploaded for the given media item.";
 				errorString += "\n--> Please set file types corresponding to the allowed types.";
-
-				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Resource", "IntegrityError"), errorString, null);
-
-				isIntegrityError = true;
-			}
-		}
-
-		// Return
-		return isIntegrityError;
-	}
-
-	/**
-	 * Check if the attribute "Origin" is set.
-	 * 
-	 * @param context
-	 *            Application context.
-	 * 
-	 * @param resourceContainer
-	 *            The resource container to be checked.
-	 * 
-	 * @return Returns <TT>true</TT> if an error was found, otherwise
-	 *         <TT>false</TT>.
-	 */
-	private boolean ckeckOnAttributeOrigin(Context context, ResourceContainer resourceContainer)
-	{
-		// Validate variables
-		if (resourceContainer == null) return true;
-
-		// Variables
-		boolean isIntegrityError = false;
-
-		// Check on error
-		ResourceContainer mediaOriginAttributeResourceContainer = ResourceManager.attribute(context, "Media", "Origin");
-		List<String> mediaOriginList = mediaOriginAttributeResourceContainer.getValueList(context, null);
-		String mediaOriginValue = resourceContainer.getAttribute(mediaOriginAttributeResourceContainer.getAliasName());
-
-		if (mediaOriginValue == null)
-		{
-			String errorString = "--> Origin for media item is not set.";
-			String fileName = context.getResourceManager().getReadResourceIdentifiersList().get(resourceContainer.getRecourceIdentifier());
-			if (fileName != null) errorString += "\n--> In file: '" + fileName + "'";
-			errorString += "\n--> Full resource identifier: '" + resourceContainer.getRecourceIdentifier() + "'";
-			errorString += "\n--> The attribute 'Origin' determines the source of uploads: 'Server', 'Client' or 'All'.";
-			errorString += "\n--> Please set a Origin corresponding to the allowed types.";
-
-			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Resource", "IntegrityError"), errorString, null);
-
-			isIntegrityError = true;
-		}
-		/*
-		 * Check if the Origin is one of the allowed values
-		 */
-		else
-		{
-			String flatListOfAllowedOrigins = "";
-			boolean isOriginAllowed = false;
-
-			for (String allowedOrigin : mediaOriginList)
-			{
-				flatListOfAllowedOrigins += "[" + allowedOrigin + "]";
-				if (allowedOrigin.equals(mediaOriginValue)) isOriginAllowed = true;
-			}
-
-			if (isOriginAllowed == false)
-			{
-				String errorString = "--> Origin '" + mediaOriginValue + "' is not allowed.";
-				errorString += "\n--> List of allowed origin values: " + flatListOfAllowedOrigins;
-				errorString += "\n--> Please pay attention to lower and upper cases.";
-				String fileName = context.getResourceManager().getReadResourceIdentifiersList().get(resourceContainer.getRecourceIdentifier());
-				if (fileName != null) errorString += "\n--> In file: '" + fileName + "'";
-				errorString += "\n--> Full resource identifier: '" + resourceContainer.getRecourceIdentifier() + "'";
-				errorString += "\n--> The attribute 'Origin' determines the source of uploads: 'Server', 'Client' or 'All'.";
-				errorString += "\n--> Please set a Origin corresponding to the allowed types.";
 
 				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Resource", "IntegrityError"), errorString, null);
 
@@ -746,5 +671,327 @@ public class MediaManager implements ResourceInterface
 		{
 			// Be silent
 		}
+	}
+
+	/**
+	 * Get the root file path of local media files.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @return Returns the root file path of media stored locally.
+	 * 
+	 */
+	public String getMediaRootFilePath(Context context)
+	{
+		// Default setting
+		String mediaRootFilePath = FileLocationManager.getRootPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getMediaSubPath();
+
+		// Read configuration parameter
+		String configurationMediaRootFilePath = context.getConfigurationManager().getProperty(context, ResourceManager.configuration(context, "Media", "LocalMediaFilePathRoot"), null, false);
+
+		// Return
+		if (configurationMediaRootFilePath != null && configurationMediaRootFilePath.length() > 0)
+		{
+			return configurationMediaRootFilePath;
+		}
+		else
+		{
+			return mediaRootFilePath;
+		}
+	}
+
+	/**
+	 * Encode a media file on server side.
+	 * <p>
+	 * Please notice: This function is currently not implemented yet and
+	 * contains dummy code.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param mediaResourceContainer
+	 *            The media resource container to consider.
+	 * 
+	 * @param sourceFileName
+	 *            The full path of the file to be decoded.
+	 * 
+	 * @return Returns the full path of the encoded pending file that was
+	 *         created, or <TT>null</TT> if an error occurred.
+	 */
+	private String encodeFile(Context context, ResourceContainerMedia mediaResourceContainer, String sourceFileName)
+	{
+		return sourceFileName;
+	}
+
+	/**
+	 * Upload a media file to the system.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param mediaResourceContainer
+	 *            The media resource container to consider.
+	 * 
+	 * @param uploadFileNamePath
+	 *            The full path of the file to be uploaded.
+	 * 
+	 * @param dataIdentifier
+	 *            The identifier of the concrete media item to use for the
+	 *            destination file.
+	 * 
+	 * @return Returns <TT>true</TT> if the file could be stored, otherwise
+	 *         <TT>false</TT>.
+	 */
+	public boolean uploadFile(Context context, ResourceContainerMedia mediaResourceContainer, String uploadFileNamePath, String dataIdentifier)
+	{
+		/*
+		 * Check variables and conditions
+		 */
+
+		// Check media resource container
+		if (mediaResourceContainer == null)
+		{
+			String errorString = "--> Media resource container not set (NULL value).";
+			if (uploadFileNamePath != null) errorString += "\n--> File name of file to be uploaded: '" + uploadFileNamePath + "'";
+			if (dataIdentifier != null) errorString += "\n--> Data identifier of media: '" + dataIdentifier + "'";
+
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
+			return false;
+		}
+
+		// Check file path
+		if (uploadFileNamePath == null || uploadFileNamePath.length() == 0)
+		{
+			String errorString = "--> Missing file name of the file to be uploaded (NULL value or EMPTY).";
+			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+			if (dataIdentifier != null) errorString += "\n--> Data identifier of media: '" + dataIdentifier + "'";
+
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
+			return false;
+		}
+
+		// Check data identifier
+		if (dataIdentifier == null || dataIdentifier.length() == 0)
+		{
+			String errorString = "--> Missing data identifier of media (NULL value or EMPTY).";
+			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+			if (uploadFileNamePath != null) errorString += "\n--> File name of file to be uploaded: '" + uploadFileNamePath + "'";
+
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
+			return false;
+		}
+
+		// Check if file exists
+		if (Util.fileExists(uploadFileNamePath) == false)
+		{
+			String errorString = "--> File to be uploaded doesn't exist or is not accessable.";
+			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+			errorString += "\n--> File name of file to be uploaded: '" + uploadFileNamePath + "'";
+			errorString += "\n--> Data identifier of media: '" + dataIdentifier + "'";
+
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
+			return false;
+		}
+
+		// Checks if file type is set
+		String fileType = null;
+
+		int position = uploadFileNamePath.lastIndexOf('.');
+
+		if (position > 0)
+		{
+			fileType = uploadFileNamePath.substring(position + 1);
+		}
+
+		if (fileType == null || fileType.length() == 0)
+		{
+			String errorString = "--> Missing file type.";
+			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+			errorString += "\n--> File name of file to be uploaded: '" + uploadFileNamePath + "'";
+			errorString += "\n--> Data identifier of media: '" + dataIdentifier + "'";
+
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
+			return false;
+		}
+
+		// Checks if file type allowed for the given media resource item
+		if (mediaResourceContainer.isFileTypeSupported(context, fileType) == false)
+		{
+			String errorString = "--> File type '" + fileType + "' is not supported by the current media resource item.";
+			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+			errorString += "\n--> File name of file to be uploaded: '" + uploadFileNamePath + "'";
+			errorString += "\n--> Data identifier of media: '" + dataIdentifier + "'";
+
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
+			return false;
+		}
+
+		/*
+		 * Create file directory for pending files
+		 */
+		String pendingFilePath = mediaResourceContainer.getPendingFilePath(context);
+
+		try
+		{
+			File directory = new File(pendingFilePath);
+			directory.mkdirs();
+		}
+		catch (Exception e)
+		{
+			String errorString = "--> Error on creating directory for pending media files.";
+			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+			errorString += "\n--> Directory to be created: '" + pendingFilePath + "'";
+
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, e);
+			return false;
+		}
+
+		/*
+		 * Create file directory for deleted files
+		 */
+		String deletedFilePath = mediaResourceContainer.getDeletedFilePath(context);
+
+		try
+		{
+			File directory = new File(deletedFilePath);
+			directory.mkdirs();
+		}
+		catch (Exception e)
+		{
+			String errorString = "--> Error on creating directory for deleted media files.";
+			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+			errorString += "\n--> Directory to be created: '" + deletedFilePath + "'";
+
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, e);
+			return false;
+		}
+
+		/*
+		 * Copy file as pending file
+		 */
+		String pendingFileName = mediaResourceContainer.getPendingFilePath(context) + FileLocationManager.getPathElementDelimiterString() + mediaResourceContainer.getTempFileName(context, fileType);
+
+		if (Util.copyFile(uploadFileNamePath, pendingFileName) == false)
+		{
+			String errorString = "--> Error on copying media file (to pending directory).";
+			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+			errorString += "\n--> Source file: '" + uploadFileNamePath + "'";
+			errorString += "\n--> Destination file: '" + pendingFileName + "'";
+
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
+			return false;
+		}
+
+		/*
+		 * Encode file on server site
+		 */
+		if (mediaResourceContainer.isServerEncoding(context))
+		{
+			String encodedPendingFileName = this.encodeFile(context, mediaResourceContainer, pendingFileName);
+
+			if (encodedPendingFileName == null)
+			{
+				String errorString = "--> Error on encoding media file (on server side).";
+				errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+				errorString += "\n--> File to be encoded: '" + pendingFileName + "'";
+
+				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
+				return false;
+			}
+
+			pendingFileName = encodedPendingFileName;
+		}
+
+		/*
+		 * Get hash value of the file
+		 */
+		String hashValue = Util.hashFile(pendingFileName);
+
+		if (hashValue == null)
+		{
+			String errorString = "--> Error on computing hash code of the media file.";
+			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+			errorString += "\n--> File to be hashed: '" + pendingFileName + "'";
+
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
+			return false;
+		}
+
+		/*
+		 * Get file names of older version of the media file, in order to delete
+		 * them later
+		 */
+		List<String> oldFileVersions = mediaResourceContainer.getRealMediaFileName(context, dataIdentifier);
+
+		if (oldFileVersions == null)
+		{
+			String errorString = "--> Error on searching for media files.";
+			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
+			return false;
+		}
+
+		/*
+		 * Move the temporary file in pending directory to the productive
+		 * directory
+		 */
+		String sourceFileName = pendingFileName;
+		String destinationFileName = mediaResourceContainer.getMediaFileName(context, dataIdentifier, hashValue, fileType);
+
+		// If the destination file already exists, delete the source file only,
+		// because source file and destination file are exactly the same files.
+		if (Util.fileExists(destinationFileName) == true)
+		{
+			if (Util.deleteFile(sourceFileName) == false)
+			{
+				String errorString = "--> Error on deleting media file from pending directory.";
+				errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+				errorString += "\n--> File to be deleted: '" + sourceFileName + "'";
+
+				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
+			}
+		}
+		// If the destination file doesn't exist, move the source file it to the
+		// regular media file directory.
+		else
+		{
+			if (Util.moveFile(sourceFileName, destinationFileName) == false)
+			{
+				String errorString = "--> Error on moving media file from pending directory to its regular directory.";
+				errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+				errorString += "\n--> Source file name: '" + sourceFileName + "'";
+				errorString += "\n--> Destination file name: '" + destinationFileName + "'";
+
+				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
+			}
+		}
+
+		/*
+		 * Delete old media file versions logically
+		 */
+		if (oldFileVersions != null)
+		{
+			for (String oldFileName : oldFileVersions)
+			{
+				String deletedFileName = oldFileName + ".deleted";
+						
+				if (Util.moveFile(oldFileName, deletedFileName) == false)
+				{
+					String errorString = "--> Error on moving media file from pending directory to its regular directory.";
+					errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+					errorString += "\n--> Source file name: '" + oldFileName + "'";
+					errorString += "\n--> Destination file name: '" + deletedFileName + "'";
+
+					context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
+				}
+			}
+		}
+
+		/*
+		 * Return
+		 */
+		return true;
 	}
 }
