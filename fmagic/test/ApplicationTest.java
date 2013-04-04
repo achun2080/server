@@ -1,6 +1,8 @@
 package fmagic.test;
 
 import java.security.KeyPair;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.codec.binary.Base64;
 
@@ -59,98 +61,7 @@ public class ApplicationTest
 		try
 		{
 			server = ServerSeniorCitizen.getInstance("ap1", 8090, 1000000);
-
 			if (server != null) server.startApplication();
-
-			if (server != null)
-			{
-				// Test preparing
-				Context context = server.getContext();
-
-				// Test 1
-				ResourceContainer attributeResourceContainer = ResourceManager.attribute(context, "Media", "ClientEncoding");
-				String documentation = attributeResourceContainer.printManual(context);
-
-				System.out.println("");
-				System.out.println("111111111111111111111111111111");
-				System.out.println(documentation);
-				System.out.println("111111111111111111111111111111");
-
-				// Test 2
-				ResourceContainerMedia mediaResourceContainer = ResourceManager.media(context, "Apartment", "Room");
-				documentation = mediaResourceContainer.printManual(context);
-
-				System.out.println("");
-				System.out.println("222222222222222222222222222222");
-				System.out.println(documentation);
-				System.out.println("222222222222222222222222222222");
-
-				// Test 3
-				System.out.println("");
-				System.out.println("333333333333333333333333333333");
-				System.out.println("Is IMAGE? " + mediaResourceContainer.isMediaTypeImage(context));
-				System.out.println("Is VIDEO? " + mediaResourceContainer.isMediaTypeVideo(context));
-				System.out.println("Is AUDIO? " + mediaResourceContainer.isMediaTypeAudio(context));
-				System.out.println("Is DOCUMENT? " + mediaResourceContainer.isMediaTypeDocument(context));
-				System.out.println("333333333333333333333333333333");
-
-				// Test 4
-				System.out.println("");
-				System.out.println("444444444444444444444444444444");
-				System.out.println("JPG supported? " + mediaResourceContainer.isFileTypeSupported(context, "JPG"));
-				System.out.println("jpg supported? " + mediaResourceContainer.isFileTypeSupported(context, "jpg"));
-				System.out.println("mkv supported? " + mediaResourceContainer.isFileTypeSupported(context, "mkv"));
-				System.out.println("AAA supported? " + mediaResourceContainer.isFileTypeSupported(context, "aaa"));
-				System.out.println("444444444444444444444444444444");
-
-				// Test 6
-				System.out.println("");
-				System.out.println("666666666666666666666666666666");
-				System.out.println("StorageLocation is SERVER? " + mediaResourceContainer.isStorageLocationServer(context));
-				System.out.println("StorageLocation is CLIENT? " + mediaResourceContainer.isStorageLocationClient(context));
-				System.out.println("StorageLocation is SYNCHRONIZED? " + mediaResourceContainer.isStorageLocationSynchronize(context));
-				System.out.println("666666666666666666666666666666");
-
-				// Test 7
-				System.out.println("");
-				System.out.println("777777777777777777777777777777");
-				System.out.println("LogicalPath? " + mediaResourceContainer.getLogicalPath(context));
-				System.out.println("777777777777777777777777777777");
-
-				// Test 8
-				System.out.println("");
-				System.out.println("888888888888888888888888888888");
-				System.out.println("ServerEncoding? " + mediaResourceContainer.isServerEncoding(context));
-				System.out.println("888888888888888888888888888888");
-
-				// Test 9
-				System.out.println("");
-				System.out.println("999999999999999999999999999999");
-				System.out.println("ClientEncoding? " + mediaResourceContainer.isClientEncoding(context));
-				System.out.println("999999999999999999999999999999");
-
-				// Test a
-				System.out.println("");
-				System.out.println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-				System.out.println("Local media file path? " + mediaResourceContainer.getMediaFilePath(context));
-				System.out.println("Media file name mask? " + mediaResourceContainer.getMediaFileNameMask(context, "1234"));
-				System.out.println("Temp file name? " + mediaResourceContainer.getTempFileName(context, "png"));
-				System.out.println("Pending file path? " + mediaResourceContainer.getPendingFilePath(context));
-				System.out.println("Deleted file path? " + mediaResourceContainer.getDeletedFilePath(context));
-				System.out.println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-
-				// Test b
-				String uploadFileName = "E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Cover/WebPictures/G021_Cover.jpg";
-//				String uploadFileName = "E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Cover/WebPictures/G021_Cover_Gesamt_Teil_1.jpg";
-				String dataIdentifier = "1234";
-				
-				System.out.println("");
-				System.out.println("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
-				System.out.println("Upload file 1? " + uploadFileName);
-				System.out.println("Data identifier? " + dataIdentifier);
-				System.out.println("Upload result? " + context.getMediaManager().uploadFile( context, mediaResourceContainer, uploadFileName, dataIdentifier));
-				System.out.println("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
-			}
 		}
 		catch (Exception e)
 		{
@@ -209,11 +120,8 @@ public class ApplicationTest
 		// Shutdown Application server
 		try
 		{
-			if (server != null)
-			{
-				// Test preparing
-				Context context = server.getContext();
-			}
+			// Testing
+			ApplicationTest.test(server);
 		}
 		catch (Exception e)
 		{
@@ -221,7 +129,6 @@ public class ApplicationTest
 		}
 		finally
 		{
-
 			// Stop server
 			Util.sleepSeconds(1);
 			if (server != null) server.stopApplication();
@@ -229,5 +136,151 @@ public class ApplicationTest
 
 		// Stage Test
 		// and number 2
+	}
+
+	/**
+	 * Testing
+	 */
+	private static void test(ServerManager server)
+	{
+		if (server == null) return;
+
+		try
+		{
+			// Test preparing
+			Context context = server.getContext();
+
+			// Test 1
+			ResourceContainer attributeResourceContainer = ResourceManager.attribute(context, "Media", "ClientEncoding");
+			String documentation = attributeResourceContainer.printManual(context);
+
+			System.out.println("");
+			System.out.println("111111111111111111111111111111");
+			System.out.println(documentation);
+			System.out.println("111111111111111111111111111111");
+
+			// Test 2
+			ResourceContainerMedia mediaResourceContainer = ResourceManager.media(context, "Apartment", "Room");
+			documentation = mediaResourceContainer.printManual(context);
+
+			System.out.println("");
+			System.out.println("222222222222222222222222222222");
+			System.out.println(documentation);
+			System.out.println("222222222222222222222222222222");
+
+			// Test 3
+			System.out.println("");
+			System.out.println("333333333333333333333333333333");
+			System.out.println("Is IMAGE? " + mediaResourceContainer.isMediaTypeImage(context));
+			System.out.println("Is VIDEO? " + mediaResourceContainer.isMediaTypeVideo(context));
+			System.out.println("Is AUDIO? " + mediaResourceContainer.isMediaTypeAudio(context));
+			System.out.println("Is DOCUMENT? " + mediaResourceContainer.isMediaTypeDocument(context));
+			System.out.println("333333333333333333333333333333");
+
+			// Test 4
+			System.out.println("");
+			System.out.println("444444444444444444444444444444");
+			System.out.println("JPG supported? " + mediaResourceContainer.isFileTypeSupported(context, "JPG"));
+			System.out.println("jpg supported? " + mediaResourceContainer.isFileTypeSupported(context, "jpg"));
+			System.out.println("mkv supported? " + mediaResourceContainer.isFileTypeSupported(context, "mkv"));
+			System.out.println("AAA supported? " + mediaResourceContainer.isFileTypeSupported(context, "aaa"));
+			System.out.println("444444444444444444444444444444");
+
+			// Test 6
+			System.out.println("");
+			System.out.println("666666666666666666666666666666");
+			System.out.println("StorageLocation is SERVER? " + mediaResourceContainer.isStorageLocationServer(context));
+			System.out.println("StorageLocation is CLIENT? " + mediaResourceContainer.isStorageLocationClient(context));
+			System.out.println("StorageLocation is SYNCHRONIZED? " + mediaResourceContainer.isStorageLocationSynchronize(context));
+			System.out.println("666666666666666666666666666666");
+
+			// Test 7
+			System.out.println("");
+			System.out.println("777777777777777777777777777777");
+			System.out.println("LogicalPath? " + mediaResourceContainer.getLogicalPath(context));
+			System.out.println("777777777777777777777777777777");
+
+			// Test 8
+			System.out.println("");
+			System.out.println("888888888888888888888888888888");
+			System.out.println("ServerEncoding? " + mediaResourceContainer.isServerEncoding(context));
+			System.out.println("888888888888888888888888888888");
+
+			// Test 9
+			System.out.println("");
+			System.out.println("999999999999999999999999999999");
+			System.out.println("ClientEncoding? " + mediaResourceContainer.isClientEncoding(context));
+			System.out.println("999999999999999999999999999999");
+
+			// Test a
+			System.out.println("");
+			System.out.println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+			System.out.println("Local media file path? " + mediaResourceContainer.getMediaRegularFilePath(context));
+			System.out.println("Media file name mask? " + mediaResourceContainer.getMediaFileNameMask(context, "1234"));
+			System.out.println("Temp file name? " + mediaResourceContainer.getMediaPendingFileName(context, "png"));
+			System.out.println("Pending file path? " + mediaResourceContainer.getMediaPendingFilePath(context));
+			System.out.println("Deleted file path? " + mediaResourceContainer.getMediaDeletedFilePath(context));
+			System.out.println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+
+			// Test b
+			// String uploadFileName =
+			// "E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/DoktorBarnickel/Apotheker_Reinsdorf.jpg";
+			// String dataIdentifierString = "1234";
+			//
+			// System.out.println("");
+			// System.out.println("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+			// System.out.println("Upload file 1? " + uploadFileName);
+			// System.out.println("Data identifier? " + dataIdentifierString);
+			// System.out.println("Upload result? " +
+			// context.getMediaManager().uploadFile(context,
+			// mediaResourceContainer, uploadFileName, dataIdentifierString));
+			// System.out.println("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+
+			// Test c
+			System.out.println("cccccccccccccccccccccccccccccc");
+
+			List<String> directoryList = new ArrayList<String>();
+//			directoryList.add("E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/Stalingrad15-a");
+//			directoryList.add("E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/Stalingrad15-b");
+//			directoryList.add("E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/Stalingrad15-c");
+//			directoryList.add("E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/WilhelmGrosse");
+//			directoryList.add("E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/Zusatzbilder");
+//			directoryList.add("E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/DoktorBarnickel");
+			directoryList.add("E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/DoktorKluger");
+//			directoryList.add("E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/JosefLeitner");
+//			directoryList.add("E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/RudolfBöker");
+
+			int dataIdentifierInteger = 0;
+
+			for (String filePath : directoryList)
+			{
+				List<String> fileList = Util.fileSearchDirectory(filePath, "*.jpg");
+
+				if (fileList != null)
+				{
+					for (String fileName : fileList)
+					{
+						dataIdentifierInteger++;
+
+						System.out.println("");
+						System.out.println("File? " + fileName);
+						System.out.println("Data identifier? " + String.valueOf(dataIdentifierInteger));
+						System.out.println("Upload result? " + context.getMediaManager().uploadFile(context, mediaResourceContainer, fileName, String.valueOf(dataIdentifierInteger)));
+					}
+				}
+			}
+
+			System.out.println("");
+			System.out.println("");
+			System.out.println("Nu of files uploaded? " + String.valueOf(dataIdentifierInteger));
+			
+			System.out.println("cccccccccccccccccccccccccccccc");
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+
+		return;
 	}
 }

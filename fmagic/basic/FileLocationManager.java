@@ -58,9 +58,10 @@ public class FileLocationManager
 
 	private static final String mediaSubPath = "fmagic.media";
 	private static final String mediaFileName = "${application}-${alias}-${identifier}-${serverencodingkey}-${clientencodingkey}-${hashvalue}.${filetype}";
-	private static final String mediaTempFileName = "${timestamp}-${application}-${codename}-[${thread}].${filetype}";
-	private static final String mediaDeletedSubPath = "deleted";
+	private static final String mediaPendingFileName = "${timestamp}-${application}-${codename}-[${thread}].${filetype}";
 	private static final String mediaPendingSubPath = "pending";
+	private static final String mediaDeletedFileName = "${originalname}-${timestamp}-[${thread}].${filetype}";
+	private static final String mediaDeletedSubPath = "deleted";
 
 	/**
 	 * Get the delimiter character that divides parts of path elements.
@@ -464,9 +465,17 @@ public class FileLocationManager
 	/**
 	 * Getter
 	 */
-	public static String getMediaTempFileName()
+	public static String getMediaPendingFileName()
 	{
-		return mediaTempFileName;
+		return mediaPendingFileName;
+	}
+
+	/**
+	 * Getter
+	 */
+	public static String getMediaDeletedFileName()
+	{
+		return mediaDeletedFileName;
 	}
 
 	/**

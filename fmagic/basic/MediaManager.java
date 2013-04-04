@@ -795,14 +795,7 @@ public class MediaManager implements ResourceInterface
 		}
 
 		// Checks if file type is set
-		String fileType = null;
-
-		int position = uploadFileNamePath.lastIndexOf('.');
-
-		if (position > 0)
-		{
-			fileType = uploadFileNamePath.substring(position + 1);
-		}
+		String fileType = Util.fileGetFileTypePart(uploadFileNamePath);
 
 		if (fileType == null || fileType.length() == 0)
 		{
@@ -830,18 +823,20 @@ public class MediaManager implements ResourceInterface
 		/*
 		 * Create file directory for pending files
 		 */
-		String pendingFilePath = mediaResourceContainer.getPendingFilePath(context);
+		String pendingFilePathDirectory = mediaResourceContainer.getMediaPendingFilePath(context);
 
 		try
 		{
-			File directory = new File(pendingFilePath);
+			File directory = new File(pendingFilePathDirectory);
 			directory.mkdirs();
+
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "Media file directory 'pending' created: '" + pendingFilePathDirectory + "'");
 		}
 		catch (Exception e)
 		{
 			String errorString = "--> Error on creating directory for pending media files.";
 			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
-			errorString += "\n--> Directory to be created: '" + pendingFilePath + "'";
+			errorString += "\n--> Directory to be created: '" + pendingFilePathDirectory + "'";
 
 			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, e);
 			return false;
@@ -850,18 +845,20 @@ public class MediaManager implements ResourceInterface
 		/*
 		 * Create file directory for deleted files
 		 */
-		String deletedFilePath = mediaResourceContainer.getDeletedFilePath(context);
+		String deletedFilePathDirectory = mediaResourceContainer.getMediaDeletedFilePath(context);
 
 		try
 		{
-			File directory = new File(deletedFilePath);
+			File directory = new File(deletedFilePathDirectory);
 			directory.mkdirs();
+			
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "Media file directory 'deleted' created: '" + deletedFilePathDirectory + "'");
 		}
 		catch (Exception e)
 		{
 			String errorString = "--> Error on creating directory for deleted media files.";
 			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
-			errorString += "\n--> Directory to be created: '" + deletedFilePath + "'";
+			errorString += "\n--> Directory to be created: '" + deletedFilePathDirectory + "'";
 
 			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, e);
 			return false;
@@ -870,9 +867,9 @@ public class MediaManager implements ResourceInterface
 		/*
 		 * Copy file as pending file
 		 */
-		String pendingFileName = mediaResourceContainer.getPendingFilePath(context) + FileLocationManager.getPathElementDelimiterString() + mediaResourceContainer.getTempFileName(context, fileType);
+		String pendingFileName = mediaResourceContainer.getMediaPendingFilePath(context) + FileLocationManager.getPathElementDelimiterString() + mediaResourceContainer.getMediaPendingFileName(context, fileType);
 
-		if (Util.copyFile(uploadFileNamePath, pendingFileName) == false)
+		if (Util.fileCopy(uploadFileNamePath, pendingFileName) == false)
 		{
 			String errorString = "--> Error on copying media file (to pending directory).";
 			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
@@ -882,6 +879,8 @@ public class MediaManager implements ResourceInterface
 			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
 			return false;
 		}
+
+		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "Media file copied: '" + uploadFileNamePath + "' --> '" + pendingFileName + "'");
 
 		/*
 		 * Encode file on server site
@@ -895,10 +894,13 @@ public class MediaManager implements ResourceInterface
 				String errorString = "--> Error on encoding media file (on server side).";
 				errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
 				errorString += "\n--> File to be encoded: '" + pendingFileName + "'";
+				errorString += "\n--> Original file to be uploaded: '" + uploadFileNamePath + "'";
 
 				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
 				return false;
 			}
+
+			if (!encodedPendingFileName.equals(pendingFileName)) context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "Media file encoded on server side: '" + encodedPendingFileName + "'");
 
 			pendingFileName = encodedPendingFileName;
 		}
@@ -906,23 +908,26 @@ public class MediaManager implements ResourceInterface
 		/*
 		 * Get hash value of the file
 		 */
-		String hashValue = Util.hashFile(pendingFileName);
+		String hashValue = Util.fileGetHashValue(pendingFileName);
 
 		if (hashValue == null)
 		{
 			String errorString = "--> Error on computing hash code of the media file.";
 			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
 			errorString += "\n--> File to be hashed: '" + pendingFileName + "'";
+			errorString += "\n--> Original file to be uploaded: '" + uploadFileNamePath + "'";
 
 			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
 			return false;
 		}
 
+		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "Media file hash value [" + hashValue + "] computed for: '" + pendingFileName + "'");
+
 		/*
 		 * Get file names of older version of the media file, in order to delete
 		 * them later
 		 */
-		List<String> oldFileVersions = mediaResourceContainer.getRealMediaFileName(context, dataIdentifier);
+		List<String> oldFileVersions = mediaResourceContainer.getMediaRealFileName(context, dataIdentifier);
 
 		if (oldFileVersions == null)
 		{
@@ -932,60 +937,95 @@ public class MediaManager implements ResourceInterface
 			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
 			return false;
 		}
+		
+		if (oldFileVersions != null && oldFileVersions.size() > 0)
+		{
+			for (String oldFilePath : oldFileVersions)
+			{
+				context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "Media file old version detected: '" + oldFilePath + "'");
+			}
+		}
 
 		/*
 		 * Move the temporary file in pending directory to the productive
 		 * directory
 		 */
 		String sourceFileName = pendingFileName;
-		String destinationFileName = mediaResourceContainer.getMediaFileName(context, dataIdentifier, hashValue, fileType);
+		String destinationFileName = mediaResourceContainer.getMediaRealFileName(context, dataIdentifier, hashValue, fileType);
 
 		// If the destination file already exists, delete the source file only,
 		// because source file and destination file are exactly the same files.
 		if (Util.fileExists(destinationFileName) == true)
 		{
-			if (Util.deleteFile(sourceFileName) == false)
+			if (Util.fileDelete(sourceFileName) == false)
 			{
-				String errorString = "--> Error on deleting media file from pending directory.";
+				String errorString = "--> Error on deleting media file from 'pending' directory.";
 				errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
 				errorString += "\n--> File to be deleted: '" + sourceFileName + "'";
+				errorString += "\n--> Original file to be uploaded: '" + uploadFileNamePath + "'";
 
 				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
+				return false;
 			}
+			
+			// Logging
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "Media file 'pending' deleted: '" + sourceFileName + "'");
+
+			// Stop processing, to avoid deleting of older files of variable "oldFileVersions"
+			return true;
 		}
-		// If the destination file doesn't exist, move the source file it to the
+		// If the destination file doesn't exist, move the source file to the
 		// regular media file directory.
 		else
 		{
-			if (Util.moveFile(sourceFileName, destinationFileName) == false)
+			if (Util.fileMove(sourceFileName, destinationFileName) == false)
 			{
-				String errorString = "--> Error on moving media file from pending directory to its regular directory.";
+				String errorString = "--> Error on moving media file from 'pending' directory to its 'regular' directory.";
 				errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
 				errorString += "\n--> Source file name: '" + sourceFileName + "'";
 				errorString += "\n--> Destination file name: '" + destinationFileName + "'";
+				errorString += "\n--> Original file to be uploaded: '" + uploadFileNamePath + "'";
 
 				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
+				return false;
 			}
+
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "Media file moved from 'pending' directory to its 'regular' directory: '" + sourceFileName + "' --> '" + destinationFileName + "'");
 		}
 
 		/*
 		 * Delete old media file versions logically
 		 */
-		if (oldFileVersions != null)
+		if (oldFileVersions != null && oldFileVersions.size() > 0)
 		{
-			for (String oldFileName : oldFileVersions)
+			for (String oldFilePath : oldFileVersions)
 			{
-				String deletedFileName = oldFileName + ".deleted";
+				if (oldFilePath == null || oldFilePath.length() == 0) continue;
+				
+				String deletedFileNamePart = Util.fileGetFileNamePart(oldFilePath);
+				if (deletedFileNamePart == null || deletedFileNamePart.length() == 0) continue;
+
+				String deletedFileTypePart = Util.fileGetFileTypePart(oldFilePath);
+				if (deletedFileTypePart == null || deletedFileTypePart.length() == 0) continue;
+				
+				String deletedFilePath = mediaResourceContainer.getMediaDeletedFilePath(context) + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getMediaDeletedFileName();
+				deletedFilePath = FileLocationManager.replacePlacholder(context, deletedFilePath);
+				deletedFilePath = deletedFilePath.replace("${originalname}", deletedFileNamePart);
+				deletedFilePath = deletedFilePath.replace("${filetype}", deletedFileTypePart);
 						
-				if (Util.moveFile(oldFileName, deletedFileName) == false)
+				if (Util.fileMove(oldFilePath, deletedFilePath) == false)
 				{
-					String errorString = "--> Error on moving media file from pending directory to its regular directory.";
+					String errorString = "--> Error on moving media file from 'regular' directory to the 'deleted' directory.";
 					errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
-					errorString += "\n--> Source file name: '" + oldFileName + "'";
-					errorString += "\n--> Destination file name: '" + deletedFileName + "'";
+					errorString += "\n--> Source file name: '" + oldFilePath + "'";
+					errorString += "\n--> Destination file name: '" + deletedFilePath + "'";
+					errorString += "\n--> Original file to be uploaded: '" + uploadFileNamePath + "'";
 
 					context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
+					return false;
 				}
+				
+				context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "Media file moved from 'regular' directory to its 'deleted' directory: '" + oldFilePath + "' --> '" + deletedFilePath + "'");
 			}
 		}
 

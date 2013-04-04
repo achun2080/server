@@ -8,6 +8,7 @@ import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import org.apache.commons.io.FileUtils;
 
 /**
  * This class contains UTIL functions needed in the FMAGIC system.
@@ -178,69 +179,6 @@ public class Util
 	}
 
 	/**
-	 * Copy a file.
-	 * 
-	 * @param sourceFilePath
-	 *            The path of the file to be copied.
-	 * 
-	 * @param destinationFilePath
-	 *            The path of the destination file.
-	 * 
-	 * @return Returns <TT>true</TT> if the file could be copied, otherwise
-	 *         <TT>false</TT>.
-	 */
-	public static boolean copyFile(String sourceFilePath, String destinationFilePath)
-	{
-		// Check parameters
-		if (sourceFilePath == null || sourceFilePath.length() == 0) return false;
-		if (destinationFilePath == null || destinationFilePath.length() == 0) return false;
-		if (Util.fileExists(sourceFilePath) == false) return false;
-
-		// Initialize variables
-		boolean isSuccessfull = true;
-
-		// Create FILE objects
-		File sourceFile = new File(sourceFilePath);
-		File destinationFile = new File(destinationFilePath);
-
-		// Copy file
-		FileChannel source = null;
-		FileChannel destination = null;
-
-		try
-		{
-			// Check if destination file already exists
-			if (!destinationFile.exists())
-			{
-				destinationFile.createNewFile();
-			}
-
-			// Copy file
-			source = new FileInputStream(sourceFile).getChannel();
-			destination = new FileOutputStream(destinationFile).getChannel();
-			destination.transferFrom(source, 0, source.size());
-		}
-		catch (Exception e)
-		{
-			isSuccessfull = false;
-		}
-
-		// Close channels
-		try
-		{
-			source.close();
-			destination.close();
-		}
-		catch (Exception e)
-		{
-			isSuccessfull = false;
-		}
-
-		// Return
-		return isSuccessfull;
-	}
-
-	/**
 	 * Get hash value (MD5) of a file.
 	 * 
 	 * @param filePath
@@ -249,7 +187,7 @@ public class Util
 	 * @return Returns the hash code (MD5) as hexadecimal string or
 	 *         <TT>null</TT>, if an error occurred.
 	 */
-	public static String hashFile(String filePath)
+	public static String fileGetHashValue(String filePath)
 	{
 		// Check parameters
 		if (filePath == null || filePath.length() == 0) return null;
@@ -260,8 +198,9 @@ public class Util
 
 		try
 		{
-			FileInputStream fis = new FileInputStream(new File(filePath));
-			md5 = org.apache.commons.codec.digest.DigestUtils.md5Hex(fis);
+			FileInputStream fileInputStream = new FileInputStream(new File(filePath));
+			md5 = org.apache.commons.codec.digest.DigestUtils.md5Hex(fileInputStream);
+			fileInputStream.close();
 		}
 		catch (Exception e)
 		{
@@ -285,7 +224,7 @@ public class Util
 	 * @return Returns a list of files that were found, or <TT>null</TT>, if an
 	 *         error occurred.
 	 */
-	public static List<String> searchFileName(String filePath, String fileNameMask)
+	public static List<String> fileSearchDirectory(String filePath, String fileNameMask)
 	{
 		class UtilFileFilter implements FilenameFilter
 		{
@@ -339,6 +278,41 @@ public class Util
 	}
 
 	/**
+	 * Copy a file.
+	 * 
+	 * @param sourceFilePath
+	 *            The path of the file to be copied.
+	 * 
+	 * @param destinationFilePath
+	 *            The path of the destination file.
+	 * 
+	 * @return Returns <TT>true</TT> if the file could be copied, otherwise
+	 *         <TT>false</TT>.
+	 */
+	public static boolean fileCopy(String sourceFilePath, String destinationFilePath)
+	{
+		// Check parameters
+		if (sourceFilePath == null || sourceFilePath.length() == 0) return false;
+		if (destinationFilePath == null || destinationFilePath.length() == 0) return false;
+		if (Util.fileExists(sourceFilePath) == false) return false;
+
+		// Create FILE objects
+		File sourceFile = new File(sourceFilePath);
+		File destinationFile = new File(destinationFilePath);
+
+		// Copy file
+		try
+		{
+			FileUtils.copyFile(sourceFile, destinationFile);
+			return true;
+		}
+		catch (Exception e)
+		{
+			return false;
+		}
+	}
+
+	/**
 	 * Move a file.
 	 * 
 	 * @param sourceFilePath
@@ -350,7 +324,7 @@ public class Util
 	 * @return Returns <TT>true</TT> if the file could be moved, otherwise
 	 *         <TT>false</TT>.
 	 */
-	public static boolean moveFile(String sourceFilePath, String destinationFilePath)
+	public static boolean fileMove(String sourceFilePath, String destinationFilePath)
 	{
 		// Check parameters
 		if (sourceFilePath == null || sourceFilePath.length() == 0) return false;
@@ -365,8 +339,8 @@ public class Util
 		// Rename file
 		try
 		{
-			boolean isSuccessful = sourceFile.renameTo(destinationFile);
-			return isSuccessful;
+			FileUtils.moveFile(sourceFile, destinationFile);
+			return true;
 		}
 		catch (Exception e)
 		{
@@ -383,7 +357,7 @@ public class Util
 	 * @return Returns <TT>true</TT> if the file could be deleted, otherwise
 	 *         <TT>false</TT>.
 	 */
-	public static boolean deleteFile(String filePath)
+	public static boolean fileDelete(String filePath)
 	{
 		// Check parameters
 		if (filePath == null || filePath.length() == 0) return false;
@@ -401,6 +375,87 @@ public class Util
 		catch (Exception e)
 		{
 			return false;
+		}
+	}
+
+	/**
+	 * Get file name of a file path, without file type.
+	 * 
+	 * @param filePath
+	 *            The path of the file to be analyzed.
+	 * 
+	 * @return Returns the file name, or <TT>null</TT> if file path couldn't be
+	 *         separated.
+	 */
+	public static String fileGetFileNamePart(String filePath)
+	{
+		// Check parameters
+		if (filePath == null || filePath.length() == 0) return null;
+
+		// Create FILE objects
+		File file = new File(filePath);
+		if (file.isFile() == false) return null;
+
+		// Get file name
+		try
+		{
+			String fileName = file.getName();
+			if (fileName == null || fileName.length() == 0) return null;
+
+			int position = fileName.lastIndexOf('.');
+
+			if (position > 0)
+			{
+				fileName = fileName.substring(0, position);
+			}
+
+			return fileName;
+		}
+		catch (Exception e)
+		{
+			return null;
+		}
+	}
+
+	/**
+	 * Get file type of a file path.
+	 * 
+	 * @param filePath
+	 *            The path of the file to be analyzed.
+	 * 
+	 * @return Returns the file name, or <TT>null</TT> if file path couldn't be
+	 *         separated.
+	 */
+	public static String fileGetFileTypePart(String filePath)
+	{
+		// Check parameters
+		if (filePath == null || filePath.length() == 0) return null;
+
+		// Create FILE objects
+		File file = new File(filePath);
+		if (file.isFile() == false) return null;
+
+		// Get file name
+		try
+		{
+			String fileName = file.getName();
+			if (fileName == null || fileName.length() == 0) return null;
+
+			String fileType = null;
+			int position = fileName.lastIndexOf('.');
+
+			if (position > 0)
+			{
+				fileType = fileName.substring(position + 1);
+			}
+
+			if (fileType == null || fileType.length() == 0) return null;
+
+			return fileType;
+		}
+		catch (Exception e)
+		{
+			return null;
 		}
 	}
 }

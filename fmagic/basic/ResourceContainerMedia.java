@@ -388,7 +388,7 @@ public class ResourceContainerMedia extends ResourceContainer
 	 * @return Returns the file path of a media file stored locally.
 	 * 
 	 */
-	public String getMediaFilePath(Context context)
+	public String getMediaRegularFilePath(Context context)
 	{
 		String mediaFilePath = context.getMediaManager().getMediaRootFilePath(context) + FileLocationManager.getPathElementDelimiterString() + Util.fitToFileNameCompatibility(context.getApplicationName()) + FileLocationManager.getPathElementDelimiterString() + this.getLogicalPath(context);
 		return mediaFilePath;
@@ -470,9 +470,9 @@ public class ResourceContainerMedia extends ResourceContainer
 	 * @return Returns the file name created.
 	 * 
 	 */
-	public String getTempFileName(Context context, String fileType)
+	public String getMediaPendingFileName(Context context, String fileType)
 	{
-		String mediaTempFileName = FileLocationManager.getMediaTempFileName();
+		String mediaTempFileName = FileLocationManager.getMediaPendingFileName();
 
 		mediaTempFileName = FileLocationManager.replacePlacholder(context, mediaTempFileName);
 
@@ -492,9 +492,9 @@ public class ResourceContainerMedia extends ResourceContainer
 	 *         files of the given media resource type.
 	 * 
 	 */
-	public String getPendingFilePath(Context context)
+	public String getMediaPendingFilePath(Context context)
 	{
-		return this.getMediaFilePath(context) + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getMediaPendingSubPath();
+		return this.getMediaRegularFilePath(context) + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getMediaPendingSubPath();
 	}
 
 	/**
@@ -508,9 +508,9 @@ public class ResourceContainerMedia extends ResourceContainer
 	 *         given media resource type.
 	 * 
 	 */
-	public String getDeletedFilePath(Context context)
+	public String getMediaDeletedFilePath(Context context)
 	{
-		return this.getMediaFilePath(context) + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getMediaDeletedSubPath();
+		return this.getMediaRegularFilePath(context) + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getMediaDeletedSubPath();
 	}
 
 	/**
@@ -529,11 +529,11 @@ public class ResourceContainerMedia extends ResourceContainer
 	 *         error occurred.
 	 * 
 	 */
-	public List<String> getRealMediaFileName(Context context, String dataIdentifier)
+	public List<String> getMediaRealFileName(Context context, String dataIdentifier)
 	{
 		String mediaFileNameMask = this.getMediaFileNameMask(context, dataIdentifier);
-		String mediaFilePath = this.getMediaFilePath(context);
-		return Util.searchFileName(mediaFilePath, mediaFileNameMask);
+		String mediaFilePath = this.getMediaRegularFilePath(context);
+		return Util.fileSearchDirectory(mediaFilePath, mediaFileNameMask);
 	}
 
 	/**
@@ -567,7 +567,7 @@ public class ResourceContainerMedia extends ResourceContainer
 	}
 
 	/**
-	 * Set the file name of a local media file, based on
+	 * Get the file name of a local media file, based on
 	 * <TT>Application Name</TT>, <TT>Alias Name</TT>, <TT>Data Identifier</TT>,
 	 * <TT>Server Encoding</TT>, <TT>Client Encoding</TT> , <TT>Hash Value</TT>
 	 * and <TT>File Type</TT>.
@@ -585,7 +585,7 @@ public class ResourceContainerMedia extends ResourceContainer
 	 *         , <TT>Hash Value</TT> and <TT>File Type</TT>.
 	 * 
 	 */
-	public String getMediaFileName(Context context, String dataIdentifier, String hashValue, String fileType)
+	public String getMediaRealFileName(Context context, String dataIdentifier, String hashValue, String fileType)
 	{
 		String mediaFileName = FileLocationManager.getMediaFileName();
 
@@ -598,7 +598,7 @@ public class ResourceContainerMedia extends ResourceContainer
 		if (hashValue != null) mediaFileName = mediaFileName.replace("${hashvalue}", hashValue.trim());
 		if (fileType != null) mediaFileName = mediaFileName.replace("${filetype}", fileType);
 
-		return this.getMediaFilePath(context) + FileLocationManager.getPathElementDelimiterString() + mediaFileName;
+		return this.getMediaRegularFilePath(context) + FileLocationManager.getPathElementDelimiterString() + mediaFileName;
 	}
 
 }
