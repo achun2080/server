@@ -2,6 +2,7 @@ package fmagic.basic;
 
 import java.io.File;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -31,8 +32,16 @@ import java.util.List;
  * @changed FW 30.03.2013 - Created
  * 
  */
-public class MediaManager implements ResourceInterface
+public class MediaManager implements ManagerInterface
 {
+	// Settings for Server Encoding
+	private final HashMap<Integer, String> serverMediaKeyList = new HashMap<Integer, String>();
+	private int serverMediaKeyNumber = 0;
+	private boolean serverEncodingEnabled = false;
+
+	// Media root file path
+	String mediaRootFilePath = null;
+
 	/**
 	 * Constructor
 	 */
@@ -138,6 +147,216 @@ public class MediaManager implements ResourceInterface
 
 		// Return
 		return isIntegrityError;
+	}
+
+	@Override
+	public boolean readConfiguration(Context context)
+	{
+		boolean isError = false;
+
+		if (readLocalMediaFilePathRoot(context) == true) isError = true;
+		if (readServerEncodingKeyList(context) == true) isError = true;
+		if (readServerEncodingKeyNumber(context) == true) isError = true;
+		if (readServerEncodingEnabled(context) == true) isError = true;
+
+		/*
+		 * Return
+		 */
+		return isError;
+	}
+
+	/**
+	 * Read configuration parameter 'LocalMediaFilePathRoot'.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @return Returns <TT>true</TT> if an error was found, otherwise
+	 *         <TT>false</TT>.
+	 */
+	private boolean readLocalMediaFilePathRoot(Context context)
+	{
+		this.mediaRootFilePath = FileLocationManager.getRootPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getMediaSubPath();
+
+		String configurationMediaRootFilePath = context.getConfigurationManager().getProperty(context, ResourceManager.configuration(context, "Media", "LocalMediaFilePathRoot"), null, false);
+
+		if (configurationMediaRootFilePath != null && configurationMediaRootFilePath.length() > 0)
+		{
+			this.mediaRootFilePath = configurationMediaRootFilePath;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Read configuration parameter 'ServerEncodingKeyList'.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @return Returns <TT>true</TT> if an error was found, otherwise
+	 *         <TT>false</TT>.
+	 */
+	private boolean readServerEncodingKeyList(Context context)
+	{
+		// Initialize variables
+		boolean isError = false;
+
+		// Read configuration item
+		ResourceContainer resourceContainer = ResourceManager.configuration(context, "Media", "ServerEncodingKeyList");
+		String serverMediaKeyListString = context.getConfigurationManager().getProperty(context, resourceContainer, null, false);
+
+		// Get key list
+		if (serverMediaKeyListString != null && serverMediaKeyListString.length() > 0)
+		{
+			try
+			{
+				String keyListParts[] = serverMediaKeyListString.split(",");
+
+				if (keyListParts.length > 0)
+				{
+					for (int i = 0; i < keyListParts.length; i++)
+					{
+						String listItemParts[] = keyListParts[i].split(":");
+
+						if (listItemParts.length != 2)
+						{
+							isError = true;
+						}
+						else
+						{
+							int number = Integer.parseInt(listItemParts[0].trim());
+							if (number < 1) isError = true;
+
+							String key = listItemParts[1];
+							if (key == null || key.trim().length() == 0) isError = true;
+
+							if (isError == false) this.serverMediaKeyList.put(number, key.trim());
+						}
+
+						if (isError == true) break;
+					}
+				}
+			}
+			catch (Exception e)
+			{
+				isError = true;
+			}
+		}
+
+		// Process error message
+		if (isError == true)
+		{
+			String errorString = "--> Error on parsing server encoding key list.";
+			errorString += "\n--> Configuration property: '" + resourceContainer.getRecourceIdentifier() + "'";
+			errorString += "\n--> Value parsed: '" + serverMediaKeyListString + "'";
+
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Configuration", "ErrorOnParsingConfigurationList"), errorString, null);
+		}
+
+		// Check size of key, there must be at least 8 characters
+		if (isError == false)
+		{
+			for (int keyNumber : this.serverMediaKeyList.keySet())
+			{
+				String keyValue = this.serverMediaKeyList.get(keyNumber);
+
+				if (keyValue == null || keyValue.length() < 8)
+				{
+					String errorString = "--> Error on server encoding key list, on key number '" + String.valueOf(keyNumber) + "'.";
+					errorString += "\n--> Key value must be at least 8 characters long.";
+					errorString += "\n--> Configuration property: '" + resourceContainer.getRecourceIdentifier() + "'";
+					errorString += "\n--> Key value: '" + keyValue + "'";
+
+					context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Configuration", "IntegrityError"), errorString, null);
+					isError = true;
+				}
+			}
+		}
+
+		// Return
+		return isError;
+	}
+
+	/**
+	 * Read configuration parameter 'ServerEncodingKeyNumber'.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @return Returns <TT>true</TT> if an error was found, otherwise
+	 *         <TT>false</TT>.
+	 */
+	private boolean readServerEncodingKeyNumber(Context context)
+	{
+		// Read parameter value
+		ResourceContainer resourceContainer = ResourceManager.configuration(context, "Media", "ServerEncodingKeyNumber");
+		String configurationServerEncodingKeyNumberString = context.getConfigurationManager().getProperty(context, resourceContainer, null, false);
+
+		// Key number is not set
+		if (configurationServerEncodingKeyNumberString == null) return false;
+
+		// Convert key number to integer
+		int configurationServerEncodingKeyNumberInteger = 0;
+
+		try
+		{
+			configurationServerEncodingKeyNumberInteger = Integer.parseInt(configurationServerEncodingKeyNumberString);
+		}
+		catch (Exception e)
+		{
+			String errorString = "--> Server encoding key number is not an integer value.";
+			errorString += "\n--> Configuration property: '" + resourceContainer.getRecourceIdentifier() + "'";
+			errorString += "\n--> Server encoding key number: '" + String.valueOf(configurationServerEncodingKeyNumberString) + "'";
+			errorString += "\n--> Available key numbers of server encoding keys: '" + this.serverMediaKeyList.keySet().toString() + "'";
+
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Configuration", "IntegrityError"), errorString, null);
+			return true;
+		}
+
+		// Check parameter value
+		if (this.serverMediaKeyList.get(configurationServerEncodingKeyNumberInteger) == null)
+		{
+			String errorString = "--> Server encoding key number is not part of the key list.";
+			errorString += "\n--> Configuration property: '" + resourceContainer.getRecourceIdentifier() + "'";
+			errorString += "\n--> Server encoding key number: '" + String.valueOf(configurationServerEncodingKeyNumberString) + "'";
+			errorString += "\n--> Available key numbers of server encoding keys: '" + this.serverMediaKeyList.keySet().toString() + "'";
+
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Configuration", "IntegrityError"), errorString, null);
+			return true;
+		}
+
+		this.serverMediaKeyNumber = configurationServerEncodingKeyNumberInteger;
+
+		return false;
+	}
+
+	/**
+	 * Read configuration parameter 'ServerEncodingEnabled'.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @return Returns <TT>true</TT> if an error was found, otherwise
+	 *         <TT>false</TT>.
+	 */
+	private boolean readServerEncodingEnabled(Context context)
+	{
+		ResourceContainer resourceContainer = ResourceManager.configuration(context, "Media", "ServerEncodingEnabled");
+		this.serverEncodingEnabled = context.getConfigurationManager().getPropertyAsBooleanValue(context, resourceContainer, false, false);
+
+		// Check parameter value
+		if (this.serverEncodingEnabled == true && this.serverMediaKeyNumber == 0)
+		{
+			String errorString = "--> Server encoding is enabled but no encoding key is set.";
+			errorString += "\n--> Configuration property: '" + resourceContainer.getRecourceIdentifier() + "'";
+			errorString += "\n--> Please set encoding key, or disable server encoding.";
+
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Configuration", "IntegrityError"), errorString, null);
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -684,21 +903,31 @@ public class MediaManager implements ResourceInterface
 	 */
 	public String getMediaRootFilePath(Context context)
 	{
-		// Default setting
-		String mediaRootFilePath = FileLocationManager.getRootPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getMediaSubPath();
+		return this.mediaRootFilePath;
+	}
 
-		// Read configuration parameter
-		String configurationMediaRootFilePath = context.getConfigurationManager().getProperty(context, ResourceManager.configuration(context, "Media", "LocalMediaFilePathRoot"), null, false);
+	/**
+	 * Check if server encoding is enabled and if all configuration parameter
+	 * are available.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param mediaResourceContainer
+	 *            The media resource container to consider.
+	 * 
+	 * @return Returns <TT>true</TT> if server encoding is set.
+	 * 
+	 */
+	public boolean checkServerEncoding(Context context, ResourceContainerMedia mediaResourceContainer)
+	{
+		boolean serverEncodingAvailable = true;
 
-		// Return
-		if (configurationMediaRootFilePath != null && configurationMediaRootFilePath.length() > 0)
-		{
-			return configurationMediaRootFilePath;
-		}
-		else
-		{
-			return mediaRootFilePath;
-		}
+		if (mediaResourceContainer.isServerEncoding(context) == false) serverEncodingAvailable = false;
+		if (context.getMediaManager().isServerEncodingEnabled() == false) serverEncodingAvailable = false;
+		if (context.getMediaManager().getServerEncodingValue(context) == null) serverEncodingAvailable = false;
+
+		return serverEncodingAvailable;
 	}
 
 	/**
@@ -713,15 +942,30 @@ public class MediaManager implements ResourceInterface
 	 * @param mediaResourceContainer
 	 *            The media resource container to consider.
 	 * 
-	 * @param sourceFileName
-	 *            The full path of the file to be decoded.
+	 * @param sourceFilePath
+	 *            The full path of the file to be encrypted.
+	 * 
+	 * @param destinationfilePath
+	 *            The full path of the file the encryted code is to store.
 	 * 
 	 * @return Returns the full path of the encoded pending file that was
 	 *         created, or <TT>null</TT> if an error occurred.
 	 */
-	private String encodeFile(Context context, ResourceContainerMedia mediaResourceContainer, String sourceFileName)
+	private String encodeFile(Context context, ResourceContainerMedia mediaResourceContainer, String sourceFilePath, String destinationfilePath)
 	{
-		return sourceFileName;
+		// Check if server encoding is enabled
+		if (this.checkServerEncoding(context, mediaResourceContainer) == false) return sourceFilePath;
+
+		// Get key value (password)
+		String keyValue = this.getServerEncodingValue(context);
+		if (keyValue == null) return sourceFilePath;
+
+		// Encode media file
+		CipherHandler cipherHandler = new CipherHandler(context);
+		if (cipherHandler.encrypt(keyValue, sourceFilePath, destinationfilePath) == false) return null;
+
+		// Return
+		return destinationfilePath;
 	}
 
 	/**
@@ -851,7 +1095,7 @@ public class MediaManager implements ResourceInterface
 		{
 			File directory = new File(deletedFilePathDirectory);
 			directory.mkdirs();
-			
+
 			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "Media file directory 'deleted' created: '" + deletedFilePathDirectory + "'");
 		}
 		catch (Exception e)
@@ -883,26 +1127,36 @@ public class MediaManager implements ResourceInterface
 		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "Media file copied: '" + uploadFileNamePath + "' --> '" + pendingFileName + "'");
 
 		/*
-		 * Encode file on server site
+		 * Encrypt file on server side
 		 */
-		if (mediaResourceContainer.isServerEncoding(context))
+		if (this.checkServerEncoding(context, mediaResourceContainer))
 		{
-			String encodedPendingFileName = this.encodeFile(context, mediaResourceContainer, pendingFileName);
+			String encryptedPendingFileName = mediaResourceContainer.getMediaPendingFilePath(context) + FileLocationManager.getPathElementDelimiterString() + mediaResourceContainer.getMediaPendingFileName(context, fileType);
 
-			if (encodedPendingFileName == null)
+			encryptedPendingFileName = this.encodeFile(context, mediaResourceContainer, pendingFileName, encryptedPendingFileName);
+
+			if (encryptedPendingFileName == null)
 			{
-				String errorString = "--> Error on encoding media file (on server side).";
+				String errorString = "--> Error on encrypting media file (on server side).";
 				errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
-				errorString += "\n--> File to be encoded: '" + pendingFileName + "'";
+				errorString += "\n--> File to be encrypted: '" + pendingFileName + "'";
 				errorString += "\n--> Original file to be uploaded: '" + uploadFileNamePath + "'";
 
 				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
 				return false;
 			}
 
-			if (!encodedPendingFileName.equals(pendingFileName)) context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "Media file encoded on server side: '" + encodedPendingFileName + "'");
+			// Delete old pending file
+			if (!encryptedPendingFileName.equals(pendingFileName))
+			{
+				// Delete file
+				Util.fileDelete(pendingFileName);
 
-			pendingFileName = encodedPendingFileName;
+				// Logging
+				context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "Media file encrypted on server side: '" + encryptedPendingFileName + "'");
+			}
+
+			pendingFileName = encryptedPendingFileName;
 		}
 
 		/*
@@ -937,7 +1191,7 @@ public class MediaManager implements ResourceInterface
 			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
 			return false;
 		}
-		
+
 		if (oldFileVersions != null && oldFileVersions.size() > 0)
 		{
 			for (String oldFilePath : oldFileVersions)
@@ -967,11 +1221,12 @@ public class MediaManager implements ResourceInterface
 				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
 				return false;
 			}
-			
+
 			// Logging
 			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "Media file 'pending' deleted: '" + sourceFileName + "'");
 
-			// Stop processing, to avoid deleting of older files of variable "oldFileVersions"
+			// Stop processing, to avoid deleting of older files of variable
+			// "oldFileVersions"
 			return true;
 		}
 		// If the destination file doesn't exist, move the source file to the
@@ -1001,18 +1256,18 @@ public class MediaManager implements ResourceInterface
 			for (String oldFilePath : oldFileVersions)
 			{
 				if (oldFilePath == null || oldFilePath.length() == 0) continue;
-				
+
 				String deletedFileNamePart = Util.fileGetFileNamePart(oldFilePath);
 				if (deletedFileNamePart == null || deletedFileNamePart.length() == 0) continue;
 
 				String deletedFileTypePart = Util.fileGetFileTypePart(oldFilePath);
 				if (deletedFileTypePart == null || deletedFileTypePart.length() == 0) continue;
-				
+
 				String deletedFilePath = mediaResourceContainer.getMediaDeletedFilePath(context) + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getMediaDeletedFileName();
 				deletedFilePath = FileLocationManager.replacePlacholder(context, deletedFilePath);
 				deletedFilePath = deletedFilePath.replace("${originalname}", deletedFileNamePart);
 				deletedFilePath = deletedFilePath.replace("${filetype}", deletedFileTypePart);
-						
+
 				if (Util.fileMove(oldFilePath, deletedFilePath) == false)
 				{
 					String errorString = "--> Error on moving media file from 'regular' directory to the 'deleted' directory.";
@@ -1024,7 +1279,7 @@ public class MediaManager implements ResourceInterface
 					context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
 					return false;
 				}
-				
+
 				context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "Media file moved from 'regular' directory to its 'deleted' directory: '" + oldFilePath + "' --> '" + deletedFilePath + "'");
 			}
 		}
@@ -1033,5 +1288,46 @@ public class MediaManager implements ResourceInterface
 		 * Return
 		 */
 		return true;
+	}
+
+	/**
+	 * Get the current server encoding value to be used for real encoding on
+	 * server side.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @return Returns the server encoding value, or <TT>null</TT> if no value
+	 *         is defined or available.
+	 * 
+	 */
+	private String getServerEncodingValue(Context context)
+	{
+		try
+		{
+			String serverEncodingValue = this.serverMediaKeyList.get(this.serverMediaKeyNumber);
+			if (serverEncodingValue == null || serverEncodingValue.length() == 0) return null;
+			return serverEncodingValue;
+		}
+		catch (Exception e)
+		{
+			return null;
+		}
+	}
+
+	/**
+	 * Getter
+	 */
+	public boolean isServerEncodingEnabled()
+	{
+		return this.serverEncodingEnabled;
+	}
+
+	/**
+	 * Getter
+	 */
+	public int getServerMediaKeyNumber()
+	{
+		return this.serverMediaKeyNumber;
 	}
 }

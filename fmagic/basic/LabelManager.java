@@ -19,7 +19,7 @@ import java.util.List;
  * @changed FW 24.11.2012 - Created
  * 
  */
-public class LabelManager implements ResourceInterface
+public class LabelManager implements ManagerInterface
 {
 	final private HashMap<String, String> mainLanguageValueNotFoundProperties = new HashMap<String, String>();
 	final private HashMap<String, String> secondaryLanguageValueNotFound = new HashMap<String, String>();
@@ -83,6 +83,12 @@ public class LabelManager implements ResourceInterface
 
 	@Override
 	public boolean ckeckOnResourceIdentifierIntegrityError(Context context)
+	{
+		return false;
+	}
+	
+	@Override
+	public boolean readConfiguration(Context context)
 	{
 		return false;
 	}

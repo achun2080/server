@@ -148,7 +148,7 @@ public class ApplicationTest
 		try
 		{
 			// Test preparing
-			Context context = server.getContext();
+			Context context = server.getContext().createSilentDumpContext(ResourceManager.context(server.getContext(), "Media", "Processing"));
 
 			// Test 1
 			ResourceContainer attributeResourceContainer = ResourceManager.attribute(context, "Media", "ClientEncoding");
@@ -223,18 +223,15 @@ public class ApplicationTest
 			System.out.println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
 
 			// Test b
-			// String uploadFileName =
-			// "E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/DoktorBarnickel/Apotheker_Reinsdorf.jpg";
-			// String dataIdentifierString = "1234";
-			//
-			// System.out.println("");
-			// System.out.println("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
-			// System.out.println("Upload file 1? " + uploadFileName);
-			// System.out.println("Data identifier? " + dataIdentifierString);
-			// System.out.println("Upload result? " +
-			// context.getMediaManager().uploadFile(context,
-			// mediaResourceContainer, uploadFileName, dataIdentifierString));
-			// System.out.println("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+			String uploadFileName = "E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/DoktorBarnickel/Apotheker_Reinsdorf.jpg";
+			String dataIdentifierString = "1234";
+
+			System.out.println("");
+			System.out.println("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+			System.out.println("Upload file 1? " + uploadFileName);
+			System.out.println("Data identifier? " + dataIdentifierString);
+			System.out.println("Upload result? " + context.getMediaManager().uploadFile(context, mediaResourceContainer, uploadFileName, dataIdentifierString));
+			System.out.println("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
 
 			// Test c
 			System.out.println("cccccccccccccccccccccccccccccc");
@@ -275,6 +272,16 @@ public class ApplicationTest
 			System.out.println("Nu of files uploaded? " + String.valueOf(dataIdentifierInteger));
 			
 			System.out.println("cccccccccccccccccccccccccccccc");
+			
+			// Test d
+//			System.out.println("");
+//			System.out.println("dddddddddddddddddddddddddddddd");
+//			System.out.println(documentation);
+//			System.out.println("dddddddddddddddddddddddddddddd");
+			
+			// Dump errors
+			if (context.isErrorInDumpList()) context.flushDump();
+			
 		}
 		catch (Exception e)
 		{

@@ -31,7 +31,7 @@ import fmagic.basic.ResourceContainer.UsageEnum;
  * @changed FW 28.12.2012 - Created
  * 
  */
-public class ResourceManager implements ResourceInterface
+public class ResourceManager implements ManagerInterface
 {
 	// List of resources
 	final private HashMap<String, ResourceContainer> resources = new HashMap<String, ResourceContainer>();
@@ -147,6 +147,12 @@ public class ResourceManager implements ResourceInterface
 
 		// Return
 		return isIntegrityError;
+	}
+	
+	@Override
+	public boolean readConfiguration(Context context)
+	{
+		return false;
 	}
 
 	/**
@@ -2258,7 +2264,7 @@ public class ResourceManager implements ResourceInterface
 	 * @return Returns <TT>true</TT> if an error was found, otherwise
 	 *         <TT>false</TT>.
 	 */
-	public boolean ckeckOnSystemResourceIdentifierIntegrityError(Context context, ResourceInterface application)
+	public boolean ckeckOnSystemResourceIdentifierIntegrityError(Context context, ManagerInterface application)
 	{
 		// Variables
 		boolean isIntegrityError = false;
@@ -2285,6 +2291,44 @@ public class ResourceManager implements ResourceInterface
 
 		// Return
 		return isIntegrityError;
+	}
+
+	/**
+	 * Read configuration items of all interfaces.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @return Returns <TT>true</TT> if an error was found, otherwise
+	 *         <TT>false</TT>.
+	 */
+	public boolean readConfiguration(Context context, ManagerInterface application)
+	{
+		// Variables
+		boolean isError = false;
+
+		// Read configuration items of all interfaces
+		try
+		{
+			if (this.ckeckOnResourceIdentifierIntegrityError(context) == true) isError = true;
+			if (context.readConfiguration(context) == true) isError = true;
+			if (context.getCommandManager().readConfiguration(context) == true) isError = true;
+			if (context.getNotificationManager().readConfiguration(context) == true) isError = true;
+			if (context.getConfigurationManager().readConfiguration(context) == true) isError = true;
+			if (context.getLabelManager().readConfiguration(context) == true) isError = true;
+			if (context.getLocaldataManager().readConfiguration(context) == true) isError = true;
+			if (context.getRightManager().readConfiguration(context) == true) isError = true;
+			if (context.getLicenseManager().readConfiguration(context) == true) isError = true;
+			if (context.getMediaManager().readConfiguration(context) == true) isError = true;
+			if (application.readConfiguration(context) == true) isError = true;
+		}
+		catch (Exception e)
+		{
+			// Be silent
+		}
+
+		// Return
+		return isError;
 	}
 
 	/**

@@ -51,7 +51,7 @@ import fmagic.basic.ResourceContainer.UsageEnum;
  * @changed FW 24.11.2012 - Created
  * 
  */
-public class ConfigurationManager implements ResourceInterface
+public class ConfigurationManager implements ManagerInterface
 {
 	// List of properties
 	private Properties applicationProperties = new Properties();
@@ -119,6 +119,12 @@ public class ConfigurationManager implements ResourceInterface
 
 	@Override
 	public boolean ckeckOnResourceIdentifierIntegrityError(Context context)
+	{
+		return false;
+	}
+	
+	@Override
+	public boolean readConfiguration(Context context)
 	{
 		return false;
 	}

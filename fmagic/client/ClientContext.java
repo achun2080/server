@@ -29,4 +29,10 @@ public class ClientContext extends Context
 		boolean isError = super.ckeckOnResourceIdentifierIntegrityError(context);
 		return isError;
 	}
+	
+	@Override
+	public boolean readConfiguration(Context context)
+	{
+		return false;
+	}
 }

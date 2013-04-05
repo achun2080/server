@@ -26,7 +26,7 @@ import java.util.Set;
  * @changed FW 10.03.2013 - Created
  * 
  */
-public class RightManager implements ResourceInterface
+public class RightManager implements ManagerInterface
 {
 	final private HashMap<String, Set<String>> assignedRightItemToRightGroup = new HashMap<String, Set<String>>();
 
@@ -87,6 +87,12 @@ public class RightManager implements ResourceInterface
 
 	@Override
 	public boolean ckeckOnResourceIdentifierIntegrityError(Context context)
+	{
+		return false;
+	}
+	
+	@Override
+	public boolean readConfiguration(Context context)
 	{
 		return false;
 	}

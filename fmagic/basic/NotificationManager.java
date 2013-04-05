@@ -60,7 +60,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @changed FW 24.11.2012 - Created
  * 
  */
-public class NotificationManager implements ResourceInterface
+public class NotificationManager implements ManagerInterface
 {
 	// Log file type
 	public static enum LogfileTypeEnum
@@ -128,6 +128,12 @@ public class NotificationManager implements ResourceInterface
 
 	@Override
 	public boolean ckeckOnResourceIdentifierIntegrityError(Context context)
+	{
+		return false;
+	}
+	
+	@Override
+	public boolean readConfiguration(Context context)
 	{
 		return false;
 	}
@@ -764,7 +770,7 @@ public class NotificationManager implements ResourceInterface
 		{
 			// Gets file path of the ticket files
 			String pathDirectoryDocumentationDump = this.getLogfilePath(context, NotificationManager.LogfileTypeEnum.TICKET_DOC);
-			String pathFileNameDocumentationDump = this.getLogfilePath(context, NotificationManager.LogfileTypeEnum.TICKET_DOC) + fileNameDocumentationDump;
+			String pathFileNameDocumentationDump = this.getLogfilePath(context, NotificationManager.LogfileTypeEnum.TICKET_DOC) + FileLocationManager.getPathElementDelimiterString() + fileNameDocumentationDump;
 
 			// Create directory
 			File directory = new File(pathDirectoryDocumentationDump);
@@ -878,9 +884,6 @@ public class NotificationManager implements ResourceInterface
 		String fileName = "";
 
 		String rootPath = FileLocationManager.getRootPath();
-
-		// For testing only
-		rootPath = FileLocationManager.getRootPath();
 
 		if (logfileType == NotificationManager.LogfileTypeEnum.DATE_CONTEXT)
 		{

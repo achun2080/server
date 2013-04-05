@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-
 /**
  * This class contains context data needed by all classes and functions of a
  * server or client. All managers are bind with one instance to a given context,
@@ -55,7 +54,7 @@ import java.util.List;
  * @changed FW 24.11.2012 - Created
  * 
  */
-public abstract class Context implements Cloneable, ResourceInterface
+public abstract class Context implements Cloneable, ManagerInterface
 {
 	// Bind final managers
 	private final ApplicationManager applicationManager;
@@ -75,7 +74,7 @@ public abstract class Context implements Cloneable, ResourceInterface
 	private final String applicationName;
 	private final String originName;
 	private final int applicationVersion;
-	
+
 	// Session data, containing relevant user data
 	private SessionContainer sessionContainer = null;
 
@@ -110,7 +109,8 @@ public abstract class Context implements Cloneable, ResourceInterface
 	 * Constructor
 	 */
 	public Context(String codeName, String applicationName,
-			int applicationVersion, String originName, ApplicationManager applicationManager)
+			int applicationVersion, String originName,
+			ApplicationManager applicationManager)
 	{
 		this.codeName = Util.fitToFileNameCompatibility(codeName);
 		this.applicationName = Util.fitToFileNameCompatibility(applicationName);
@@ -210,7 +210,7 @@ public abstract class Context implements Cloneable, ResourceInterface
 
 					isIntegrityError = true;
 				}
-		}
+			}
 		}
 		catch (Exception e)
 		{
@@ -729,5 +729,23 @@ public abstract class Context implements Cloneable, ResourceInterface
 	public void setServerSession(SessionContainer sessionContainer)
 	{
 		this.sessionContainer = sessionContainer;
+	}
+
+	/**
+	 * Check if there is an error message in the dump list.
+	 * 
+	 * @return Returns <TT>true</TT> if there is at least one error messages
+	 *         dumped, otherwise <TT>false</TT>.
+	 */
+	public boolean isErrorInDumpList()
+	{
+		if (this.getDumpFirstErrorIdentifier() == null)
+		{
+			return false;
+		}
+		else
+		{
+			return true;
+		}
 	}
 }

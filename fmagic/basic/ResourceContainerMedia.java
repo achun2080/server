@@ -447,8 +447,7 @@ public class ResourceContainerMedia extends ResourceContainer
 
 		if (this.getAliasName() != null) mediaFileNameMask = mediaFileNameMask.replace("${alias}", Util.fitToFileNameCompatibility(this.getAliasName()));
 		mediaFileNameMask = mediaFileNameMask.replace("${identifier}", this.fitIdentifierToFileName(dataIdentifier));
-		mediaFileNameMask = mediaFileNameMask.replace("${serverencodingkey}", "*");
-		mediaFileNameMask = mediaFileNameMask.replace("${clientencodingkey}", "*");
+		mediaFileNameMask = mediaFileNameMask.replace("${encodingkey}", "*");
 		mediaFileNameMask = mediaFileNameMask.replace("${hashvalue}", "*");
 		mediaFileNameMask = mediaFileNameMask.replace("${filetype}", "*");
 
@@ -546,9 +545,28 @@ public class ResourceContainerMedia extends ResourceContainer
 	 * @return Returns the server encoding key as string.
 	 * 
 	 */
-	public String getServerEncodingKeyAsString(Context context)
+	private String getServerEncodingKeyAsString(Context context)
 	{
-		return "00";
+		// Get key number
+		int serverMediaKeyNumber = 0;
+
+		if (context.getMediaManager().checkServerEncoding(context, this))
+		{
+			serverMediaKeyNumber = context.getMediaManager().getServerMediaKeyNumber();
+		}
+
+		// Compose string
+
+		String resultString = String.valueOf(serverMediaKeyNumber);
+
+		for (int i = resultString.length(); i < 2; i++)
+		{
+			resultString = "0".concat(resultString);
+		}
+
+		resultString = "s".concat(resultString);
+
+		return resultString;
 	}
 
 	/**
@@ -561,9 +579,9 @@ public class ResourceContainerMedia extends ResourceContainer
 	 * @return Returns the client encoding key as string.
 	 * 
 	 */
-	public String getClientEncodingKeyAsString(Context context)
+	private String getClientEncodingKeyAsString(Context context)
 	{
-		return "00";
+		return "c00";
 	}
 
 	/**
@@ -593,8 +611,7 @@ public class ResourceContainerMedia extends ResourceContainer
 
 		if (this.getAliasName() != null) mediaFileName = mediaFileName.replace("${alias}", Util.fitToFileNameCompatibility(this.getAliasName()));
 		mediaFileName = mediaFileName.replace("${identifier}", this.fitIdentifierToFileName(dataIdentifier));
-		mediaFileName = mediaFileName.replace("${serverencodingkey}", this.getServerEncodingKeyAsString(context));
-		mediaFileName = mediaFileName.replace("${clientencodingkey}", this.getClientEncodingKeyAsString(context));
+		mediaFileName = mediaFileName.replace("${encodingkey}", this.getServerEncodingKeyAsString(context));
 		if (hashValue != null) mediaFileName = mediaFileName.replace("${hashvalue}", hashValue.trim());
 		if (fileType != null) mediaFileName = mediaFileName.replace("${filetype}", fileType);
 

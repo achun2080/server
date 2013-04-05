@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * 
  * @changed FW 24.11.2012 - Created
  */
-public class LocaldataManager implements ResourceInterface
+public class LocaldataManager implements ManagerInterface
 {
 	// List of local data properties
 	private Properties localdataProperties = new Properties();
@@ -81,6 +81,12 @@ public class LocaldataManager implements ResourceInterface
 
 	@Override
 	public boolean ckeckOnResourceIdentifierIntegrityError(Context context)
+	{
+		return false;
+	}
+	
+	@Override
+	public boolean readConfiguration(Context context)
 	{
 		return false;
 	}

@@ -37,7 +37,7 @@ import java.util.Set;
  * @changed FW 11.03.2013 - Created
  * 
  */
-public class LicenseManager implements ResourceInterface
+public class LicenseManager implements ManagerInterface
 {
 	// License Item / License Model settings
 	final private HashMap<String, Set<String>> assignedLicenseItemToLicenseModel = new HashMap<String, Set<String>>();
@@ -140,6 +140,12 @@ public class LicenseManager implements ResourceInterface
 
 		// Return
 		return isIntegrityError;
+	}
+	
+	@Override
+	public boolean readConfiguration(Context context)
+	{
+		return false;
 	}
 
 	/**

@@ -57,7 +57,7 @@ public class FileLocationManager
 	private static final String licenseTemplateFileName = "fmagic.template.license.${application}.${licensemodel}.properties";
 
 	private static final String mediaSubPath = "fmagic.media";
-	private static final String mediaFileName = "${application}-${alias}-${identifier}-${serverencodingkey}-${clientencodingkey}-${hashvalue}.${filetype}";
+	private static final String mediaFileName = "${application}-${alias}-${identifier}-${encodingkey}-${hashvalue}.${filetype}";
 	private static final String mediaPendingFileName = "${timestamp}-${application}-${codename}-[${thread}].${filetype}";
 	private static final String mediaPendingSubPath = "pending";
 	private static final String mediaDeletedFileName = "${originalname}-${timestamp}-[${thread}].${filetype}";

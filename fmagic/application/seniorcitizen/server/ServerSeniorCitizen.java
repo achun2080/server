@@ -4,7 +4,7 @@ import fmagic.basic.ApplicationManager;
 import fmagic.basic.Context;
 import fmagic.basic.LicenseManager;
 import fmagic.basic.ResourceContainer;
-import fmagic.basic.ResourceInterface;
+import fmagic.basic.ManagerInterface;
 import fmagic.basic.ResourceManager;
 import fmagic.basic.RightManager;
 import fmagic.server.ServerManager;
@@ -18,7 +18,7 @@ import fmagic.server.ServerManager;
  * 
  */
 public class ServerSeniorCitizen extends ServerManager implements
-		ResourceInterface
+		ManagerInterface
 {
 	// Server version
 	final static private int serverVersionSeniorCitizen = 1;
@@ -92,6 +92,12 @@ public class ServerSeniorCitizen extends ServerManager implements
 
 	@Override
 	public boolean ckeckOnResourceIdentifierIntegrityError(Context context)
+	{
+		return false;
+	}
+	
+	@Override
+	public boolean readConfiguration(Context context)
 	{
 		return false;
 	}

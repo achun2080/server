@@ -15,7 +15,7 @@ import fmagic.server.ServerContext;
  * @changed FW 24.11.2012 - Created
  * 
  */
-public abstract class ApplicationManager implements ResourceInterface
+public abstract class ApplicationManager implements ManagerInterface
 {
 	// Application Server Instance
 	protected ApplicationServer applicationServer = null;
@@ -108,6 +108,9 @@ public abstract class ApplicationManager implements ResourceInterface
 
 				// Write configuration template files
 				if (this.getContext().getConfigurationManager().createTemplateConfigurationFile(this.getContext(), this.getApplicationIdentifier().toString(), origin.toString(), true) == false) isError = true;
+
+				// Read configuration items of all interfaces
+				if (this.getContext().getResourceManager().readConfiguration(this.getContext(), this) == true) isError = true;
 
 				// Check integrity of all read resources
 				if (this.getContext().getResourceManager().ckeckOnSystemResourceIdentifierIntegrityError(this.getContext(), this) == true) isError = true;

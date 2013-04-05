@@ -82,6 +82,12 @@ public class ClientSeniorCitizen extends ClientManager
 	{
 		return false;
 	}
+	
+	@Override
+	public boolean readConfiguration(Context context)
+	{
+		return false;
+	}
 
 	@Override
 	protected boolean assignRightGroups(Context context)

@@ -10,7 +10,7 @@ package fmagic.basic;
  * @changed FW 24.11.2012 - Created
  * 
  */
-public class CommandManager implements ResourceInterface
+public class CommandManager implements ManagerInterface
 {
 	/**
 	 * Constructor
@@ -106,5 +106,11 @@ public class CommandManager implements ResourceInterface
 
 		// Return
 		return isIntegrityError;
+	}
+	
+	@Override
+	public boolean readConfiguration(Context context)
+	{
+		return false;
 	}
 }
