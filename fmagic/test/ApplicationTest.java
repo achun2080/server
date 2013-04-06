@@ -10,6 +10,7 @@ import fmagic.application.seniorcitizen.client.ClientSeniorCitizen;
 import fmagic.application.seniorcitizen.server.ServerSeniorCitizen;
 import fmagic.basic.Context;
 import fmagic.basic.EncodingHandler;
+import fmagic.basic.MediaContainer;
 import fmagic.basic.ResourceContainer;
 import fmagic.basic.ResourceContainerMedia;
 import fmagic.basic.ResourceManager;
@@ -237,15 +238,15 @@ public class ApplicationTest
 			System.out.println("cccccccccccccccccccccccccccccc");
 
 			List<String> directoryList = new ArrayList<String>();
-//			directoryList.add("E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/Stalingrad15-a");
-//			directoryList.add("E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/Stalingrad15-b");
-//			directoryList.add("E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/Stalingrad15-c");
-//			directoryList.add("E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/WilhelmGrosse");
-//			directoryList.add("E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/Zusatzbilder");
-//			directoryList.add("E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/DoktorBarnickel");
-			directoryList.add("E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/DoktorKluger");
-//			directoryList.add("E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/JosefLeitner");
-//			directoryList.add("E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/RudolfBöker");
+			// directoryList.add("E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/Stalingrad15-a");
+			// directoryList.add("E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/Stalingrad15-b");
+			// directoryList.add("E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/Stalingrad15-c");
+			// directoryList.add("E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/WilhelmGrosse");
+			// directoryList.add("E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/Zusatzbilder");
+			// directoryList.add("E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/DoktorBarnickel");
+			 directoryList.add("E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/DoktorKluger");
+			// directoryList.add("E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/JosefLeitner");
+			// directoryList.add("E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/RudolfBöker");
 
 			int dataIdentifierInteger = 0;
 
@@ -270,18 +271,55 @@ public class ApplicationTest
 			System.out.println("");
 			System.out.println("");
 			System.out.println("Nu of files uploaded? " + String.valueOf(dataIdentifierInteger));
-			
+
 			System.out.println("cccccccccccccccccccccccccccccc");
-			
+
 			// Test d
-//			System.out.println("");
-//			System.out.println("dddddddddddddddddddddddddddddd");
-//			System.out.println(documentation);
-//			System.out.println("dddddddddddddddddddddddddddddd");
-			
+			dataIdentifierInteger = 2;
+			MediaContainer media = new MediaContainer(context, mediaResourceContainer, String.valueOf(dataIdentifierInteger));
+
+			System.out.println("");
+			System.out.println("dddddddddddddddddddddddddddddd");
+			System.out.println(media);
+			System.out.println("dddddddddddddddddddddddddddddd");
+
+			media.bindMedia();
+
+			System.out.println("");
+			System.out.println("dddddddddddddddddddddddddddddd");
+			System.out.println(media);
+			System.out.println("dddddddddddddddddddddddddddddd");
+
+			byte[] contentAsByteBuffer = media.readMediaContentAsByteArray();
+
+			if (contentAsByteBuffer != null)
+			{
+				System.out.println("");
+				System.out.println("dddddddddddddddddddddddddddddd");
+				System.out.println("Size of media byte: " + String.valueOf(contentAsByteBuffer.length));
+				System.out.println("dddddddddddddddddddddddddddddd");
+			}
+
+			String contentAsString = media.readMediaContentAsString();
+
+			if (contentAsString != null)
+			{
+				System.out.println("");
+				System.out.println("dddddddddddddddddddddddddddddd");
+				System.out.println("Content: " + contentAsString.substring(0, 100));
+				System.out.println("dddddddddddddddddddddddddddddd");
+			}
+
+			media.releaseMedia();
+
+			System.out.println("");
+			System.out.println("dddddddddddddddddddddddddddddd");
+			System.out.println(media);
+			System.out.println("dddddddddddddddddddddddddddddd");
+
 			// Dump errors
 			if (context.isErrorInDumpList()) context.flushDump();
-			
+
 		}
 		catch (Exception e)
 		{

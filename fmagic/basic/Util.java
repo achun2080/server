@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
+import java.net.URLEncoder;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Date;
@@ -457,5 +458,148 @@ public class Util
 		{
 			return null;
 		}
+	}
+
+	/**
+	 * Read file content and return as byte buffer.
+	 * 
+	 * @param filePath
+	 *            The path of the file to be read.
+	 * 
+	 * @return Returns the content of the file, or <TT>null</TT> if an error
+	 *         occurred, or the file doesn't exist.
+	 */
+	public static byte[] fileReadToByteArray(String filePath)
+	{
+		// Check parameters
+		if (filePath == null || filePath.length() == 0) return null;
+		if (Util.fileExists(filePath) == false) return null;
+
+		// Create FILE objects
+		File file = new File(filePath);
+
+		// Read file content
+		try
+		{
+			return FileUtils.readFileToByteArray(file);
+		}
+		catch (Exception e)
+		{
+			return null;
+		}
+	}
+
+	/**
+	 * Read file content and return as a string, coded as "UTF-8".
+	 * 
+	 * @param filePath
+	 *            The path of the file to be read.
+	 * 
+	 * @return Returns the content of the file, or <TT>null</TT> if an error
+	 *         occurred, or the file doesn't exist.
+	 */
+	public static String fileReadToString(String filePath)
+	{
+		// Check parameters
+		if (filePath == null || filePath.length() == 0) return null;
+		if (Util.fileExists(filePath) == false) return null;
+
+		// Create FILE objects
+		File file = new File(filePath);
+
+		// Read file content
+		try
+		{
+			return FileUtils.readFileToString(file, "UTF-8");
+		}
+		catch (Exception e)
+		{
+			return null;
+		}
+	}
+
+	/**
+	 * Delete all files of a file list, but for the newest one. If some files
+	 * have the same timestamp, delete all but first one.
+	 * 
+	 * @param files
+	 *            The list of files to consider.
+	 * 
+	 * @return Returns the number of deleted files.
+	 */
+	public static int fileCleanFileList(List<String> files)
+	{
+		// Check parameters
+		if (files == null || files.size() == 0) return 0;
+
+		// Initialize variable
+		int nuOfFilesInList = files.size();
+		int nuOfFilesDeleted = 0;
+
+		// Go through the list of files and delete the older ones
+		try
+		{
+			for (String filePath1 : files)
+			{
+				if (Util.fileExists(filePath1) == false) continue;
+
+				for (String filePath2 : files)
+				{
+					if (Util.fileExists(filePath2) == false) continue;
+					if (filePath1.equals(filePath2)) continue;
+
+					File file1 = new File(filePath1);
+					File file2 = new File(filePath2);
+
+					if (FileUtils.isFileNewer(file1, file2))
+					{
+						file2.delete();
+						nuOfFilesDeleted++;
+					}
+				}
+			}
+
+		}
+		catch (Exception e)
+		{
+			// Be silent;
+		}
+
+		// Go through the list of files and delete the first one
+		if ((nuOfFilesDeleted + 1) != nuOfFilesInList)
+		{
+			try
+			{
+				boolean firstFileMark = false;
+
+				for (String filePath : files)
+				{
+					if (firstFileMark == false)
+					{
+						if (Util.fileExists(filePath) == true)
+						{
+							firstFileMark = true;
+						}
+					}
+					else
+					{
+						if (Util.fileExists(filePath) == true)
+						{
+							File file = new File(filePath);
+							file.delete();
+							nuOfFilesDeleted++;
+						}
+					}
+				}
+
+			}
+			catch (Exception e)
+			{
+				// Be silent;
+			}
+		}
+
+		// Return
+		return nuOfFilesDeleted;
 	}
 }

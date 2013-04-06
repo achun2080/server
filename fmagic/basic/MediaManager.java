@@ -931,10 +931,7 @@ public class MediaManager implements ManagerInterface
 	}
 
 	/**
-	 * Encode a media file on server side.
-	 * <p>
-	 * Please notice: This function is currently not implemented yet and
-	 * contains dummy code.
+	 * Encrypt a media file on server side.
 	 * 
 	 * @param context
 	 *            Application context.
@@ -946,12 +943,12 @@ public class MediaManager implements ManagerInterface
 	 *            The full path of the file to be encrypted.
 	 * 
 	 * @param destinationfilePath
-	 *            The full path of the file the encryted code is to store.
+	 *            The full path of the file the encrypted code is to store.
 	 * 
 	 * @return Returns the full path of the encoded pending file that was
 	 *         created, or <TT>null</TT> if an error occurred.
 	 */
-	private String encodeFile(Context context, ResourceContainerMedia mediaResourceContainer, String sourceFilePath, String destinationfilePath)
+	public String encryptFile(Context context, ResourceContainerMedia mediaResourceContainer, String sourceFilePath, String destinationfilePath)
 	{
 		// Check if server encoding is enabled
 		if (this.checkServerEncoding(context, mediaResourceContainer) == false) return sourceFilePath;
@@ -963,6 +960,131 @@ public class MediaManager implements ManagerInterface
 		// Encode media file
 		CipherHandler cipherHandler = new CipherHandler(context);
 		if (cipherHandler.encrypt(keyValue, sourceFilePath, destinationfilePath) == false) return null;
+
+		// Return
+		return destinationfilePath;
+	}
+
+	/**
+	 * Decrypt a media file on server side.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param mediaResourceContainer
+	 *            The media resource container to consider.
+	 * 
+	 * @param sourceFilePath
+	 *            The full path of the file to be decrypted.
+	 * 
+	 * @return Returns the full path of the decoded pending file that was
+	 *         created, or <TT>null</TT> if an error occurred.
+	 */
+	public String decryptFile(Context context, ResourceContainerMedia mediaResourceContainer, String sourceFilePath)
+	{
+		// Validate parameter
+		if (mediaResourceContainer == null) return null;
+		if (sourceFilePath == null || sourceFilePath.length() == 0) return null;
+
+		// Get server encoding key number of the real file
+		int keyNumber = mediaResourceContainer.getEncodingKeyOfRealFileName(context, sourceFilePath);
+
+		// Get file type of media file
+		String fileType = Util.fileGetFileTypePart(sourceFilePath);
+
+		if (fileType == null || fileType.length() == 0)
+		{
+			String errorString = "--> Missing file type of media file.";
+			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+			errorString += "\n--> File name of media file: '" + sourceFilePath + "'";
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnProcessingFile"), errorString, null);
+			return null;
+		}
+
+		// Get file path of working media file
+		String destinationfilePath = mediaResourceContainer.getMediaPendingFilePath(context) + FileLocationManager.getPathElementDelimiterString() + mediaResourceContainer.getMediaPendingFileName(context, fileType);
+
+		// Copy media file only
+		if (keyNumber == 0)
+		{
+			if (Util.fileCopy(sourceFilePath, destinationfilePath) == false)
+			{
+				String errorString = "--> Error on coping media file.";
+				errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+				errorString += "\n--> Source file name: '" + sourceFilePath + "'";
+				errorString += "\n--> Destination file name: '" + destinationfilePath + "'";
+				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnProcessingFile"), errorString, null);
+				return null;
+			}
+		}
+		// Decrypt media file
+		else
+		{
+			// Get key value (password)
+			String keyValue = this.serverMediaKeyList.get(keyNumber);
+
+			if (keyValue == null || keyValue.length() == 0)
+			{
+				String errorString = "--> Missing key value (password) for server encoding key '" + String.valueOf(keyNumber) + "'.";
+				errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+				errorString += "\n--> File name of media file: '" + sourceFilePath + "'";
+				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnProcessingFile"), errorString, null);
+				return null;
+			}
+
+			// Decode media file
+			CipherHandler cipherHandler = new CipherHandler(context);
+
+			if (cipherHandler.decrypt(keyValue, sourceFilePath, destinationfilePath) == false)
+			{
+				String errorString = "--> Error on decrypting media file.";
+				errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+				errorString += "\n--> File name of media file: '" + sourceFilePath + "'";
+				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnProcessingFile"), errorString, null);
+				return null;
+			}
+
+			// Compare hash value to ensure that decrypting worked well
+			String hashValueSourceFile = mediaResourceContainer.getHashValueOfRealFileName(context, sourceFilePath);
+
+			if (hashValueSourceFile == null)
+			{
+				String errorString = "--> Error on analyzing hash value in media file name.";
+				errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+				errorString += "\n--> File name analyzed: '" + sourceFilePath + "'";
+				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnProcessingFile"), errorString, null);
+
+				Util.fileDelete(destinationfilePath);
+
+				return null;
+			}
+
+			String hashValueDestinationFile = Util.fileGetHashValue(destinationfilePath);
+
+			if (hashValueDestinationFile == null)
+			{
+				String errorString = "--> Error on computing hash value of a media file.";
+				errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+				errorString += "\n--> File to be hashed: '" + destinationfilePath + "'";
+				errorString += "\n--> Please notice: The file was not deleted automatically from the 'pending' directory, in order to have a chance to analyze it later.";
+				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnProcessingFile"), errorString, null);
+				return null;
+			}
+
+			if (!hashValueSourceFile.equals(hashValueDestinationFile))
+			{
+				String errorString = "--> Mismatch on hash value after decrypting media file.";
+				errorString += "\n--> The key value (password) of the encoding key: '" + String.valueOf(keyNumber) + "' might be changed.";
+				errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+				errorString += "\n--> Encrypted file [1] before decrypting: '" + sourceFilePath + "'";
+				errorString += "\n--> Hash value of file [1]: '" + hashValueSourceFile + "'";
+				errorString += "\n--> Decrypted file [2] after decrypting: '" + destinationfilePath + "'";
+				errorString += "\n--> Hash value of original file to be copied before: '" + hashValueDestinationFile + "'";
+				errorString += "\n--> Please notice: The file [2] was not deleted automatically from the 'pending' directory, in order to have a chance to analyze it later.";
+				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnProcessingFile"), errorString, null);
+				return null;
+			}
+		}
 
 		// Return
 		return destinationfilePath;
@@ -1127,13 +1249,31 @@ public class MediaManager implements ManagerInterface
 		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "Media file copied: '" + uploadFileNamePath + "' --> '" + pendingFileName + "'");
 
 		/*
+		 * Get hash value of the original file
+		 */
+		String hashValue = Util.fileGetHashValue(pendingFileName);
+
+		if (hashValue == null)
+		{
+			String errorString = "--> Error on computing hash code of the media file.";
+			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+			errorString += "\n--> File to be hashed: '" + pendingFileName + "'";
+			errorString += "\n--> Original file to be uploaded: '" + uploadFileNamePath + "'";
+
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
+			return false;
+		}
+
+		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "Media file hash value [" + hashValue + "] computed for: '" + pendingFileName + "'");
+
+		/*
 		 * Encrypt file on server side
 		 */
 		if (this.checkServerEncoding(context, mediaResourceContainer))
 		{
 			String encryptedPendingFileName = mediaResourceContainer.getMediaPendingFilePath(context) + FileLocationManager.getPathElementDelimiterString() + mediaResourceContainer.getMediaPendingFileName(context, fileType);
 
-			encryptedPendingFileName = this.encodeFile(context, mediaResourceContainer, pendingFileName, encryptedPendingFileName);
+			encryptedPendingFileName = this.encryptFile(context, mediaResourceContainer, pendingFileName, encryptedPendingFileName);
 
 			if (encryptedPendingFileName == null)
 			{
@@ -1158,24 +1298,6 @@ public class MediaManager implements ManagerInterface
 
 			pendingFileName = encryptedPendingFileName;
 		}
-
-		/*
-		 * Get hash value of the file
-		 */
-		String hashValue = Util.fileGetHashValue(pendingFileName);
-
-		if (hashValue == null)
-		{
-			String errorString = "--> Error on computing hash code of the media file.";
-			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
-			errorString += "\n--> File to be hashed: '" + pendingFileName + "'";
-			errorString += "\n--> Original file to be uploaded: '" + uploadFileNamePath + "'";
-
-			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
-			return false;
-		}
-
-		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "Media file hash value [" + hashValue + "] computed for: '" + pendingFileName + "'");
 
 		/*
 		 * Get file names of older version of the media file, in order to delete
@@ -1288,6 +1410,41 @@ public class MediaManager implements ManagerInterface
 		 * Return
 		 */
 		return true;
+	}
+
+	/**
+	 * Delete all files of a media file set, but for the newest one.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param files
+	 *            The list of files to consider.
+	 */
+	public void cleanMediaFileList(Context context, ResourceContainerMedia resourceContainerMedia, List<String> files)
+	{
+		// Validate parameter
+		if (files == null) return;
+		if (files.size() == 0) return;
+
+		// Clean files
+		int nuOfFilesDeleted = Util.fileCleanFileList(files);
+
+		// Notify error message
+		String errorString = "--> Duplicated media files found, for one and the same media item.";
+		errorString += "\n--> Media resource identifier: '" + resourceContainerMedia.getRecourceIdentifier() + "'";
+		
+		for (int i = 0; i < files.size(); i++)
+		{
+			errorString += "\n--> File path [" + String.valueOf(i+1) + "]: '" + files.get(i) + "'";
+		}
+		
+		errorString += "\n--> Additional files were deleted automatically (" + String.valueOf(nuOfFilesDeleted) + " files). Only the newest file was kept.";
+		
+		context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnProcessingFile"), errorString, null);
+
+		// Return
+		return;
 	}
 
 	/**

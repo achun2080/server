@@ -590,7 +590,7 @@ public class ResourceContainerMedia extends ResourceContainer
 	 * <TT>Server Encoding</TT>, <TT>Client Encoding</TT> , <TT>Hash Value</TT>
 	 * and <TT>File Type</TT>.
 	 * <p>
-	 * Example: <TT>seniorcitizen-room-00001234-01-00-a6gt8e.jpg</TT>
+	 * Example: <TT>seniorcitizen-room-00001234-s00-a6gt8e.jpg</TT>
 	 * 
 	 * @param context
 	 *            The context to use.
@@ -618,4 +618,89 @@ public class ResourceContainerMedia extends ResourceContainer
 		return this.getMediaRegularFilePath(context) + FileLocationManager.getPathElementDelimiterString() + mediaFileName;
 	}
 
+	/**
+	 * Get encoding key (server or client), by analyzing the file name of a real media file.
+	 * <p>
+	 * Example: <TT>seniorcitizen-room-00001234-s00-a6gt8e.jpg</TT>
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param mediaFilePath
+	 *            The file path to analyze.
+	 * 
+	 * @return Returns the encoding key number or <TT>0</TT>.
+	 * 
+	 */
+	public int getEncodingKeyOfRealFileName(Context context, String mediaFilePath)
+	{
+		// Validate parameter
+		if (mediaFilePath == null || mediaFilePath.length() == 0) return 0;
+
+		// Get file name
+		String fileName = Util.fileGetFileNamePart(mediaFilePath);
+		if (fileName == null || fileName.length() == 0) return 0;
+
+		// Analyze file name
+		try
+		{
+			String fileNameParts[] = fileName.split("-");
+			if (fileNameParts == null || fileNameParts.length != 5) return 0;
+			
+			String encodingSetting = fileNameParts[3];
+			if (encodingSetting == null || encodingSetting.length() == 0) return 0;
+			
+			if (!(encodingSetting.startsWith("s") || encodingSetting.startsWith("c"))) return 0;
+			
+			int keyNumber = Integer.parseInt(encodingSetting.substring(1));
+			
+			return keyNumber;
+		}
+		catch (Exception e)
+		{
+			// Be silent
+			return 0;
+		}
+	}
+
+	/**
+	 * Get hash value, by analyzing the file name of a real media file.
+	 * <p>
+	 * Example: <TT>seniorcitizen-room-00001234-s00-a6gt8e.jpg</TT>
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param mediaFilePath
+	 *            The file path to analyze.
+	 * 
+	 * @return Returns the hash value of the file or <TT>null</TT>, if an error occurred.
+	 * 
+	 */
+	public String getHashValueOfRealFileName(Context context, String mediaFilePath)
+	{
+		// Validate parameter
+		if (mediaFilePath == null || mediaFilePath.length() == 0) return null;
+
+		// Get file name
+		String fileName = Util.fileGetFileNamePart(mediaFilePath);
+		if (fileName == null || fileName.length() == 0) return null;
+
+		// Analyze file name
+		try
+		{
+			String fileNameParts[] = fileName.split("-");
+			if (fileNameParts == null || fileNameParts.length != 5) return null;
+			
+			String hashValue = fileNameParts[4];
+			if (hashValue == null || hashValue.length() == 0) return null;
+			
+			return hashValue;
+		}
+		catch (Exception e)
+		{
+			// Be silent
+			return null;
+		}
+	}
 }
