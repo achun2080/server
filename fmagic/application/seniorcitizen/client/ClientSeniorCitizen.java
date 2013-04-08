@@ -23,10 +23,10 @@ public class ClientSeniorCitizen extends ClientManager
 	 * @param codeName
 	 *            Code name of the application.
 	 */
-	private ClientSeniorCitizen(String codeName)
+	private ClientSeniorCitizen(String codeName, boolean runningInTestMode)
 	{
 		// Invoke super class
-		super(ApplicationManager.ApplicationIdentifierEnum.SeniorCitizen, ClientSeniorCitizen.clientVersionSeniorCitizen, codeName);
+		super(ApplicationManager.ApplicationIdentifierEnum.SeniorCitizen, ClientSeniorCitizen.clientVersionSeniorCitizen, codeName, runningInTestMode);
 	}
 
 	@Override
@@ -82,7 +82,7 @@ public class ClientSeniorCitizen extends ClientManager
 	{
 		return false;
 	}
-	
+
 	@Override
 	public boolean readConfiguration(Context context)
 	{
@@ -112,10 +112,10 @@ public class ClientSeniorCitizen extends ClientManager
 	 *         couldn't be created. In this case please see the log files or the
 	 *         console for further information.
 	 */
-	public static ClientSeniorCitizen getInstance(String codeName)
+	public static ClientSeniorCitizen getInstance(String codeName, boolean runningInTestMode)
 	{
 		// Instance will always be build because it is a regular constructor
-		ClientSeniorCitizen instance = new ClientSeniorCitizen(codeName);
+		ClientSeniorCitizen instance = new ClientSeniorCitizen(codeName, runningInTestMode);
 
 		// If there was an error during building the application, the factory
 		// method returns wit NULL

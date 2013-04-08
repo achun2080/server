@@ -65,7 +65,12 @@ public class NotificationManager implements ManagerInterface
 	// Log file type
 	public static enum LogfileTypeEnum
 	{
-		DATE_CONTEXT, APPLICATION_DATE, FLAT, TICKET_DOC, TICKET_LOG
+		DATE_CONTEXT,
+		APPLICATION_DATE,
+		FLAT,
+		TICKET_DOC,
+		TICKET_LOG,
+		TEST_LOGGING
 	}
 
 	// Log level
@@ -131,7 +136,7 @@ public class NotificationManager implements ManagerInterface
 	{
 		return false;
 	}
-	
+
 	@Override
 	public boolean readConfiguration(Context context)
 	{
@@ -164,6 +169,11 @@ public class NotificationManager implements ManagerInterface
 
 		// Add code name
 		formattedString += " [" + codeName + "]";
+		
+		// Add free memory
+		formattedString += " {" + String.valueOf(Runtime.getRuntime().freeMemory()/(1024*1024)) + "}";
+		
+		
 
 		// Add thread identification
 		formattedString += " [" + String.format("%04d", Thread.currentThread().getId()) + "]";
@@ -901,6 +911,10 @@ public class NotificationManager implements ManagerInterface
 		{
 			fileName += rootPath + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getLogTicketSubPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getLogTicketSubSubPath();
 		}
+		else if (logfileType == NotificationManager.LogfileTypeEnum.TEST_LOGGING)
+		{
+			fileName += rootPath + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getTestSubPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getTestSubSubPath();
+		}
 		else
 		{
 			fileName += rootPath + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getLogFlatSubPath();
@@ -981,6 +995,10 @@ public class NotificationManager implements ManagerInterface
 
 			fileName += "-DOC" + FileLocationManager.getLogTicketFileType();
 		}
+		else if (logfileType == NotificationManager.LogfileTypeEnum.TEST_LOGGING)
+		{
+			fileName = FileLocationManager.getTestLogFileName();
+		}
 		else
 		{
 			fileName = FileLocationManager.getLogFlatFileName();
@@ -1006,15 +1024,15 @@ public class NotificationManager implements ManagerInterface
 	 * @param logText
 	 *            Text of the message to be logged.
 	 */
-	private synchronized void appendStringToLogFile(PrintWriter output, String text)
+	private synchronized void appendStringToLogFile(PrintWriter output, String logText)
 	{
 		// Check variables
 		if (output == null) return;
-		if (text == null) return;
-		if (text.length() == 0) return;
+		if (logText == null) return;
+		if (logText.length() == 0) return;
 
 		// Write to log file
-		output.append(text);
+		output.append(logText);
 		output.flush();
 	}
 
@@ -1041,6 +1059,32 @@ public class NotificationManager implements ManagerInterface
 				String fileName;
 				File directory;
 				PrintWriter output;
+
+				/**
+				 * Log file type: Test logging
+				 * 
+				 * If the application is running in test mode, all log file
+				 * messages are stored in the specific log files instead of the
+				 * regular log files.
+				 */
+				if (context.isRunningInTestMode())
+				{
+					// Gets file path and file name
+					pathName = getLogfilePath(context, NotificationManager.LogfileTypeEnum.TEST_LOGGING);
+					fileName = getLogfileName(context, NotificationManager.LogfileTypeEnum.TEST_LOGGING, null, null, null);
+
+					// Create directory
+					directory = new File(pathName);
+					directory.mkdirs();
+
+					// Write to log file
+					output = new PrintWriter(new FileOutputStream(new File(pathName + FileLocationManager.getPathElementDelimiterString() + fileName), true));
+					this.appendStringToLogFile(output, normalizedText);
+					output.close();
+
+					// No other log messages
+					break;
+				}
 
 				/**
 				 * Log file type: Date Application

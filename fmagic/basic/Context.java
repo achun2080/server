@@ -1,8 +1,13 @@
 package fmagic.basic;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+
+import fmagic.test.TestManager;
 
 /**
  * This class contains context data needed by all classes and functions of a
@@ -68,6 +73,7 @@ public abstract class Context implements Cloneable, ManagerInterface
 	private final RightManager rightManager;
 	private final LicenseManager licenseManager;
 	private final MediaManager mediaManager;
+	private final TestManager testManager;
 
 	// Common data of context
 	private final String codeName;
@@ -81,11 +87,15 @@ public abstract class Context implements Cloneable, ManagerInterface
 	// Context type
 	public static enum ContextTypeEnum
 	{
-		TRACKING, DUMP, SILENT_DUMP
+		TRACKING, DUMP, SILENT_DUMP, TEST
 	}
 
 	private ContextTypeEnum contextType = Context.ContextTypeEnum.TRACKING;
 	private ResourceContainer contextResourceContainer = null;
+
+	// Test mode
+	private final String ticketNumberOfTest;
+	private final boolean runningInTestMode;
 
 	// List of messages that are stored in the dump list of the current context
 	private List<String> dumpListMessages = new ArrayList<String>();
@@ -110,7 +120,8 @@ public abstract class Context implements Cloneable, ManagerInterface
 	 */
 	public Context(String codeName, String applicationName,
 			int applicationVersion, String originName,
-			ApplicationManager applicationManager)
+			ApplicationManager applicationManager, TestManager testManager,
+			boolean runningInTestMode)
 	{
 		this.codeName = Util.fitToFileNameCompatibility(codeName);
 		this.applicationName = Util.fitToFileNameCompatibility(applicationName);
@@ -127,6 +138,25 @@ public abstract class Context implements Cloneable, ManagerInterface
 		this.rightManager = new RightManager();
 		this.licenseManager = new LicenseManager();
 		this.mediaManager = new MediaManager();
+		this.testManager = testManager;
+
+		// If the application is running in "test mode", the context type is set
+		// to TEST, and it is not possible to change it anymore. Additionally a
+		// test ticket number is created
+		if (runningInTestMode == true)
+		{
+			this.runningInTestMode = true;
+			contextType = Context.ContextTypeEnum.TEST;
+
+			Date messageDate = new Date();
+			SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd-HHmmss-SSS", Locale.getDefault());
+			this.ticketNumberOfTest = simpleDateFormat.format(messageDate);
+		}
+		else
+		{
+			this.runningInTestMode = false;
+			this.ticketNumberOfTest = null;
+		}
 
 		// Get a provisional resource container because the resource files are
 		// not read yet
@@ -339,7 +369,7 @@ public abstract class Context implements Cloneable, ManagerInterface
 	 * error occurs all messages will be rejected.
 	 * 
 	 * @param resourceContextString
-	 *            The context usage identifier (enum) of the dump for using as
+	 *            The context usage identifier (ENUM) of the dump for using as
 	 *            identification and as part of the log file name.
 	 * 
 	 * @param suspendWatchdog
@@ -351,6 +381,10 @@ public abstract class Context implements Cloneable, ManagerInterface
 	 */
 	public Context createDumpContext(ResourceContainer contextResourceContainer)
 	{
+		// If the context type is set to TEST it must not be changed anymore
+		if (this.getContextType() == ContextTypeEnum.TEST) return this;
+
+		// Set new context type
 		return createContext(ContextTypeEnum.DUMP, contextResourceContainer, false);
 	}
 
@@ -359,6 +393,10 @@ public abstract class Context implements Cloneable, ManagerInterface
 	 */
 	public Context createDumpContext(ResourceContainer contextResourceContainer, boolean suspendWatchdog)
 	{
+		// If the context type is set to TEST it must not be changed anymore
+		if (this.getContextType() == ContextTypeEnum.TEST) return this;
+
+		// Set new context type
 		return createContext(ContextTypeEnum.DUMP, contextResourceContainer, suspendWatchdog);
 	}
 
@@ -384,6 +422,10 @@ public abstract class Context implements Cloneable, ManagerInterface
 	 */
 	public Context createSilentDumpContext(ResourceContainer contextResourceContainer)
 	{
+		// If the context type is set to TEST it must not be changed anymore
+		if (this.getContextType() == ContextTypeEnum.TEST) return this;
+
+		// Set new context type
 		return createContext(ContextTypeEnum.SILENT_DUMP, contextResourceContainer, false);
 	}
 
@@ -392,6 +434,10 @@ public abstract class Context implements Cloneable, ManagerInterface
 	 */
 	public Context createSilentDumpContext(ResourceContainer contextResourceContainer, boolean suspendWatchdog)
 	{
+		// If the context type is set to TEST it must not be changed anymore
+		if (this.getContextType() == ContextTypeEnum.TEST) return this;
+
+		// Set new context type
 		return createContext(ContextTypeEnum.SILENT_DUMP, contextResourceContainer, suspendWatchdog);
 	}
 
@@ -414,6 +460,10 @@ public abstract class Context implements Cloneable, ManagerInterface
 	 */
 	public Context createTrackingContext(ResourceContainer contextResourceContainer)
 	{
+		// If the context type is set to TEST it must not be changed anymore
+		if (this.getContextType() == ContextTypeEnum.TEST) return this;
+
+		// Set new context type
 		return createContext(ContextTypeEnum.TRACKING, contextResourceContainer, false);
 	}
 
@@ -422,6 +472,10 @@ public abstract class Context implements Cloneable, ManagerInterface
 	 */
 	public Context createTrackingContext(ResourceContainer contextResourceContainer, boolean suspendWatchdog)
 	{
+		// If the context type is set to TEST it must not be changed anymore
+		if (this.getContextType() == ContextTypeEnum.TEST) return this;
+
+		// Set new context type
 		return createContext(ContextTypeEnum.TRACKING, contextResourceContainer, suspendWatchdog);
 	}
 
@@ -686,6 +740,14 @@ public abstract class Context implements Cloneable, ManagerInterface
 	/**
 	 * Getter
 	 */
+	public TestManager getTestManager()
+	{
+		return this.testManager;
+	}
+
+	/**
+	 * Getter
+	 */
 	public String getApplicationName()
 	{
 		return applicationName;
@@ -747,5 +809,21 @@ public abstract class Context implements Cloneable, ManagerInterface
 		{
 			return true;
 		}
+	}
+
+	/**
+	 * Getter
+	 */
+	public String getTicketNumberOfTest()
+	{
+		return this.ticketNumberOfTest;
+	}
+
+	/**
+	 * Getter
+	 */
+	public boolean isRunningInTestMode()
+	{
+		return this.runningInTestMode;
 	}
 }

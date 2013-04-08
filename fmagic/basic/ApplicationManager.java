@@ -62,16 +62,17 @@ public abstract class ApplicationManager implements ManagerInterface
 	 */
 	protected ApplicationManager(
 			ApplicationManager.ApplicationIdentifierEnum applicationIdentifier,
-			int applicationVersion, String codeName, OriginEnum origin)
+			int applicationVersion, String codeName, OriginEnum origin,
+			boolean runningInTestMode)
 	{
 		// Create default context
 		if (origin.toString().equals(OriginEnum.Server.toString()))
 		{
-			this.context = new ServerContext(codeName, applicationIdentifier.toString(), applicationVersion, this);
+			this.context = new ServerContext(codeName, applicationIdentifier.toString(), applicationVersion, this, runningInTestMode);
 		}
 		else
 		{
-			this.context = new ClientContext(codeName, applicationIdentifier.toString(), applicationVersion, this);
+			this.context = new ClientContext(codeName, applicationIdentifier.toString(), applicationVersion, this, runningInTestMode);
 		}
 
 		// Adopt constructor data
@@ -292,7 +293,7 @@ public abstract class ApplicationManager implements ManagerInterface
 			{
 				if (this.getContext().getLabelManager().loadTranslatedLabelFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Basic.toString(), applicationVersion, language) == false) isSuccessful = false;
 				if (this.getContext().getLabelManager().loadTranslatedLabelFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Common.toString(), applicationVersion, language) == false) isSuccessful = false;
-				if (this.getContext().getLabelManager().loadTranslatedLabelFile(this.getContext(),this.getApplicationIdentifier().toString(), applicationVersion, language) == false) isSuccessful = false;
+				if (this.getContext().getLabelManager().loadTranslatedLabelFile(this.getContext(), this.getApplicationIdentifier().toString(), applicationVersion, language) == false) isSuccessful = false;
 				if (this.getContext().getLabelManager().loadTranslatedLabelFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Extension.toString(), applicationVersion, language) == false) isSuccessful = false;
 			}
 		}

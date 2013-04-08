@@ -645,6 +645,9 @@ public class WatchdogManager
 	 */
 	public void addWatchdogCommand(Context callerContext, String resourceIdentifier, String messageText, String additionalText, String resourceDocumentationText, String exceptionText, Date messageDate)
 	{
+		// Do not add if the test mode of the application is set
+		if (callerContext.isRunningInTestMode()) return;
+		
 		// Lock message processing
 		if (this.lockMessageHandling("Watchdog", resourceIdentifier) == true) return;
 

@@ -63,6 +63,11 @@ public class FileLocationManager
 	private static final String mediaDeletedFileName = "${originalname}-${timestamp}-[${thread}].${filetype}";
 	private static final String mediaDeletedSubPath = "deleted";
 
+	private static final String testSubPath = "fmagic.test";
+	private static final String testSubSubPath = "${application}-${origin}-${testticket}";
+	private static final String testLogFileName = "LOGGING-${application}-${origin}-${codename}-[${thread}].log";
+	private static final String testAssertFileName = "ASSERT-${application}-${origin}-${codename}-[${thread}].log";
+
 	/**
 	 * Get the delimiter character that divides parts of path elements.
 	 * 
@@ -124,6 +129,7 @@ public class FileLocationManager
 			resultString = resultString.replace("${context}", context.getContextResourceContainer().getAliasName().toLowerCase());
 			resultString = resultString.replace("${thread}", String.format("%04d", Thread.currentThread().getId()));
 			resultString = resultString.replace("${origin}", context.getOriginName().toLowerCase());
+			resultString = resultString.replace("${testticket}", context.getTicketNumberOfTest().toLowerCase());
 
 			if (language != null && language.length() > 0)
 			{
@@ -485,4 +491,25 @@ public class FileLocationManager
 	{
 		return mediaPendingSubPath;
 	}
+
+	public static String getTestSubPath()
+	{
+		return testSubPath;
+	}
+
+	public static String getTestSubSubPath()
+	{
+		return testSubSubPath;
+	}
+
+	public static String getTestLogFileName()
+	{
+		return testLogFileName;
+	}
+
+	public static String getTestAssertFileName()
+	{
+		return testAssertFileName;
+	}
+	
 }

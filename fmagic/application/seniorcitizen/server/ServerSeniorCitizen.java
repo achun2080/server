@@ -36,10 +36,10 @@ public class ServerSeniorCitizen extends ServerManager implements
 	 *            Timeout to use as a socket connection timeout.
 	 */
 	private ServerSeniorCitizen(String codeName, int serverSocketPort,
-			int timeoutTimeInMilliseconds)
+			int timeoutTimeInMilliseconds, boolean runningInTestMode)
 	{
 		// Invoke super class
-		super(ApplicationManager.ApplicationIdentifierEnum.SeniorCitizen, ServerSeniorCitizen.serverVersionSeniorCitizen, codeName, serverSocketPort, timeoutTimeInMilliseconds);
+		super(ApplicationManager.ApplicationIdentifierEnum.SeniorCitizen, ServerSeniorCitizen.serverVersionSeniorCitizen, codeName, serverSocketPort, timeoutTimeInMilliseconds, runningInTestMode);
 	}
 
 	@Override
@@ -95,7 +95,7 @@ public class ServerSeniorCitizen extends ServerManager implements
 	{
 		return false;
 	}
-	
+
 	@Override
 	public boolean readConfiguration(Context context)
 	{
@@ -144,7 +144,7 @@ public class ServerSeniorCitizen extends ServerManager implements
 		if (rightManager.addRightItem(context, gAdmin, iRead) == false) isSuccessful = false;
 		if (rightManager.addRightItem(context, gAdmin, iDelete) == false) isSuccessful = false;
 		if (rightManager.addRightItem(context, gAdmin, iLogging) == false) isSuccessful = false;
-		
+
 		return isSuccessful;
 	}
 
@@ -163,7 +163,7 @@ public class ServerSeniorCitizen extends ServerManager implements
 		ResourceContainer iOnlineBilling = ResourceManager.license(context, "Service", "OnlineBilling");
 		ResourceContainer iNuOfFreeArticles = ResourceManager.license(context, "Service", "NuOfFreeArticles");
 		ResourceContainer iNuOfSoldArticles = ResourceManager.license(context, "Service", "NuOfSoldArticles");
-		
+
 		ResourceContainer iSiteName = ResourceManager.license(context, "Organize", "SiteName");
 		ResourceContainer iCopyrightText = ResourceManager.license(context, "Organize", "CopyrightText");
 		ResourceContainer iApplyFromDate = ResourceManager.license(context, "Organize", "ApplyFromDate");
@@ -224,10 +224,10 @@ public class ServerSeniorCitizen extends ServerManager implements
 	 *         couldn't be created. In this case please see the log files or the
 	 *         console for further information.
 	 */
-	public static ServerSeniorCitizen getInstance(String codeName, int serverSocketPort, int timeoutTimeInMilliseconds)
+	public static ServerSeniorCitizen getInstance(String codeName, int serverSocketPort, int timeoutTimeInMilliseconds, boolean runningInTestMode)
 	{
 		// Instance will always be build because it is a regular constructor
-		ServerSeniorCitizen instance = new ServerSeniorCitizen(codeName, serverSocketPort, serverSocketPort);
+		ServerSeniorCitizen instance = new ServerSeniorCitizen(codeName, serverSocketPort, serverSocketPort, runningInTestMode);
 
 		// If there was an error during building the application, the factory
 		// method returns wit NULL

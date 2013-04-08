@@ -11,24 +11,25 @@ import fmagic.basic.ResourceManager;
 import fmagic.basic.Util;
 import fmagic.server.ServerManager;
 
-public class ApplicationTestMedia implements Runnable
+public class ServerTestMedia implements Runnable
 {
 	private final Context context;
 	private final ServerManager server;
-	
+
 	private final String mediaResourceGroup;
 	private final String mediaResourceName;
 
 	/**
 	 * Constructor
 	 */
-	public ApplicationTestMedia(ServerManager server, Context context, String mediaResourceGroup, String mediaResourceName)
+	public ServerTestMedia(ServerManager server, Context context,
+			String mediaResourceGroup, String mediaResourceName)
 	{
 		this.server = server;
 		this.context = context.createSilentDumpContext(ResourceManager.context(context, "Media", "Processing"));
 		this.mediaResourceGroup = mediaResourceGroup;
 		this.mediaResourceName = mediaResourceName;
-		
+
 	}
 
 	private void testSetup()
@@ -46,18 +47,18 @@ public class ApplicationTestMedia implements Runnable
 	{
 		// Check if server is instantiated
 		if (this.server == null) return;
-		
+
 		// Setup test environment
 		this.testSetup();
 
 		// Test
-//		this.testMediaAttribute("Media", "ClientEncoding");
-//		this.testMediaResource(mediaResourceGroup, mediaResourceName);
-//		this.testMediaFileManagement(mediaResourceGroup, mediaResourceName);
-		this.testUploadFile(mediaResourceGroup, mediaResourceName);
-		this.testObsoleteFile(mediaResourceGroup, mediaResourceName);
-//		this.testStressTestUploadFiles(mediaResourceGroup, mediaResourceName, 2, 1, 40);
-		
+		// this.testMediaAttribute("Media", "ClientEncoding");
+		// this.testMediaResource(mediaResourceGroup, mediaResourceName);
+		// this.testMediaFileManagement(mediaResourceGroup, mediaResourceName);
+		// this.testUploadFile(mediaResourceGroup, mediaResourceName);
+		// this.testObsoleteFile(mediaResourceGroup, mediaResourceName);
+		this.testStressTestUploadFiles(mediaResourceGroup, mediaResourceName, 10, 1, 40);
+
 		// Cleanup test environment
 		this.testCleanup();
 	}
@@ -70,9 +71,7 @@ public class ApplicationTestMedia implements Runnable
 		ResourceContainer attributeResourceContainer = ResourceManager.attribute(context, mediaResourceGroup, mediaResourceName);
 		String documentation = attributeResourceContainer.printManual(context);
 
-		System.out.println("");
-		System.out.println("===> [" + this.server.getCodeName() + "] testMediaAttribute()");
-		System.out.println("");
+		TestManager.assertPrint(context, "===> testMediaAttribute()", null);
 
 		System.out.println(documentation);
 	}
@@ -82,9 +81,7 @@ public class ApplicationTestMedia implements Runnable
 	 */
 	private void testMediaResource(String mediaResourceGroup, String mediaResourceName)
 	{
-		System.out.println("");
-		System.out.println("===> [" + this.server.getCodeName() + "] testMediaResource()");
-		System.out.println("");
+		TestManager.assertPrint(context, "===> testMediaResource()", null);
 
 		ResourceContainerMedia mediaResourceContainer = ResourceManager.media(context, mediaResourceGroup, mediaResourceName);
 		String documentation = mediaResourceContainer.printManual(context);
@@ -114,9 +111,7 @@ public class ApplicationTestMedia implements Runnable
 	 */
 	private void testMediaFileManagement(String mediaResourceGroup, String mediaResourceName)
 	{
-		System.out.println("");
-		System.out.println("===> [" + this.server.getCodeName() + "] testMediaFileManagement()");
-		System.out.println("");
+		TestManager.assertPrint(context, "===> testMediaFileManagement()", null);
 
 		ResourceContainerMedia mediaResourceContainer = ResourceManager.media(context, mediaResourceGroup, mediaResourceName);
 
@@ -132,23 +127,48 @@ public class ApplicationTestMedia implements Runnable
 	 */
 	private void testUploadFile(String mediaResourceGroup, String mediaResourceName)
 	{
-		System.out.println("");
-		System.out.println("===> [" + this.server.getCodeName() + "] testUploadFile()");
-		System.out.println("");
+		TestManager.assertPrint(context, "===> testUploadFile()", null);
 
-		ResourceContainerMedia mediaResourceContainer = ResourceManager.media(context, mediaResourceGroup, mediaResourceName);
+		try
+		{
+			ResourceContainerMedia mediaResourceContainer = ResourceManager.media(context, mediaResourceGroup, mediaResourceName);
 
-		String uploadFileName = "E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/DoktorBarnickel/Apotheker_Reinsdorf.jpg";
-		String dataIdentifierString = "1234";
+			// Upload a file
+			String uploadFileName = "E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/DoktorBarnickel/Apotheker_Reinsdorf.jpg";
+			String dataIdentifierString = "1234";
 
-		System.out.println("Upload file? " + uploadFileName);
-		System.out.println("Data identifier? " + dataIdentifierString);
-		System.out.println("Upload result? " + context.getMediaManager().mediaFileOperationUpload(context, mediaResourceContainer, uploadFileName, dataIdentifierString));
+			String additionalText = "--> Tried to upload a file";
+			additionalText += "\n--> Upload file? '" + uploadFileName + "'";
+			additionalText += "\n--> Data identifier? '" + dataIdentifierString + "'";
 
-		MediaContainer uploadMedia = new MediaContainer(context, mediaResourceContainer, dataIdentifierString);
-		uploadMedia.bindMedia();
-		System.out.println(uploadMedia);
-		uploadMedia.releaseMedia();
+			boolean booleanResult = context.getMediaManager().mediaFileOperationUpload(context, mediaResourceContainer, uploadFileName, dataIdentifierString);
+			TestManager.assertTrue(context, additionalText, booleanResult);
+
+			// Check if file content can be read
+			additionalText = "--> Tried to read file content of an uploaded file";
+			additionalText += "\n--> Upload file? '" + uploadFileName + "'";
+			additionalText += "\n--> Data identifier? '" + dataIdentifierString + "'";
+
+			MediaContainer media = new MediaContainer(context, mediaResourceContainer, dataIdentifierString);
+			TestManager.assertNotNull(context, additionalText, media);
+
+			if (media != null)
+			{
+				booleanResult = media.bindMedia();
+				TestManager.assertTrue(context, additionalText, booleanResult);
+
+				byte[] contentAsByteBuffer = media.readMediaContentAsByteArray();
+				TestManager.assertNotNull(context, additionalText, contentAsByteBuffer);
+				TestManager.assertGreaterThan(context, additionalText, contentAsByteBuffer.length, 0);
+
+				booleanResult = media.releaseMedia();
+				TestManager.assertTrue(context, additionalText, booleanResult);
+			}
+		}
+		catch (Exception e)
+		{
+			TestManager.assertPrintException(context, "Unexpected Exception", e);
+		}
 	}
 
 	/**
@@ -156,9 +176,7 @@ public class ApplicationTestMedia implements Runnable
 	 */
 	private void testObsoleteFile(String mediaResourceGroup, String mediaResourceName)
 	{
-		System.out.println("");
-		System.out.println("===> [" + this.server.getCodeName() + "] testObsoleteFile()");
-		System.out.println("");
+		TestManager.assertPrint(context, "===> testObsoleteFile()", null);
 
 		ResourceContainerMedia mediaResourceContainer = ResourceManager.media(context, mediaResourceGroup, mediaResourceName);
 		String dataIdentifierString = "1234";
@@ -184,9 +202,7 @@ public class ApplicationTestMedia implements Runnable
 	 */
 	private void testStressTestUploadFiles(String mediaResourceGroup, String mediaResourceName, int nuOfTestCycles, int dataIdentifierFrom, int dataIdentifierToo)
 	{
-		System.out.println("");
-		System.out.println("===> [" + this.server.getCodeName() + "] testStressTestUploadFiles()");
-		System.out.println("");
+		TestManager.assertPrint(context, "===> testStressTestUploadFiles()", null);
 
 		ResourceContainerMedia mediaResourceContainer = ResourceManager.media(context, mediaResourceGroup, mediaResourceName);
 
@@ -207,11 +223,8 @@ public class ApplicationTestMedia implements Runnable
 
 			for (int testCounter = 1; testCounter <= nuOfTestCycles; testCounter++)
 			{
-				System.out.println("");
-				System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-				System.out.println("$ Test cycle: " + String.valueOf(testCounter));
-				System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-				System.out.println("");
+				String cycleText = "Test cycle " + String.valueOf(testCounter) + " of " + String.valueOf(nuOfTestCycles);
+				TestManager.assertPrint(context, cycleText, null);
 
 				for (String filePath : directoryList)
 				{
@@ -221,33 +234,50 @@ public class ApplicationTestMedia implements Runnable
 					{
 						for (String fileName : fileList)
 						{
+							// Upload file
 							if (dataIdentifierInteger >= dataIdentifierToo) dataIdentifierInteger = dataIdentifierFrom;
 							dataIdentifierInteger++;
 
-							System.out.println("");
-							System.out.println("Test cycle [" + this.server.getCodeName() + "]? " + String.valueOf(testCounter));
-							System.out.println("File? " + fileName);
-							System.out.println("Data identifier? " + String.valueOf(dataIdentifierInteger));
-							System.out.println("Upload result? " + context.getMediaManager().mediaFileOperationUpload(context, mediaResourceContainer, fileName, String.valueOf(dataIdentifierInteger)));
+							String additionalText = "--> Tried to upload a file";
+							additionalText += "\n--> Test cycle? '" + String.valueOf(testCounter) + "'";
+							additionalText += "\n--> Upload file? '" + fileName + "'";
+							additionalText += "\n--> Data identifier? '" + String.valueOf(dataIdentifierInteger) + "'";
+
+							boolean booleanResult = context.getMediaManager().mediaFileOperationUpload(context, mediaResourceContainer, fileName, String.valueOf(dataIdentifierInteger));
+							TestManager.assertTrue(context, additionalText, booleanResult);
+
+							// Check if file content can be read
+							additionalText = "--> Tried to read file content of an uploaded file";
+							additionalText += "\n--> Upload file? '" + fileName + "'";
+							additionalText += "\n--> Data identifier? '" + String.valueOf(dataIdentifierInteger) + "'";
 
 							MediaContainer media = new MediaContainer(context, mediaResourceContainer, String.valueOf(dataIdentifierInteger));
-							media.bindMedia();
-							byte[] contentAsByteBuffer = media.readMediaContentAsByteArray();
-							if (contentAsByteBuffer != null) System.out.println("Size of media byte? " + String.valueOf(contentAsByteBuffer.length));
-							String contentAsString = media.readMediaContentAsString();
-							if (contentAsString != null) System.out.println("Content? " + contentAsString.substring(0, 10));
-							media.releaseMedia();
+							TestManager.assertNotNull(context, additionalText, media);
+
+							if (media != null)
+							{
+								booleanResult = media.bindMedia();
+								TestManager.assertTrue(context, additionalText, booleanResult);
+
+								byte[] contentAsByteBuffer = media.readMediaContentAsByteArray();
+								TestManager.assertNotNull(context, additionalText, contentAsByteBuffer);
+
+								if (contentAsByteBuffer != null)
+								{
+									TestManager.assertGreaterThan(context, additionalText, contentAsByteBuffer.length, 0);
+								}
+
+								booleanResult = media.releaseMedia();
+								TestManager.assertTrue(context, additionalText, booleanResult);
+							}
 						}
 					}
 				}
-
-				// Dump errors
-				if (context.isErrorInDumpList()) context.flushDump();
 			}
 		}
 		catch (Exception e)
 		{
-			e.printStackTrace();
+			TestManager.assertPrintException(context, "Unexpected Exception", e);
 		}
 
 		return;

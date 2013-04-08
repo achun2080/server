@@ -8,10 +8,6 @@ import fmagic.application.seniorcitizen.client.ClientSeniorCitizen;
 import fmagic.application.seniorcitizen.server.ServerSeniorCitizen;
 import fmagic.basic.Context;
 import fmagic.basic.EncodingHandler;
-import fmagic.basic.ResponseContainer;
-import fmagic.client.ClientCommand;
-import fmagic.client.ClientCommandCreateSession;
-import fmagic.client.ClientCommandHandshake;
 import fmagic.client.ClientManager;
 import fmagic.server.ServerManager;
 
@@ -43,55 +39,40 @@ public class ApplicationTest
 
 		try
 		{
-			// Instantiate and Start
-			server = ServerSeniorCitizen.getInstance("ap1", 8090, 1000000);
-			if (server != null) server.startApplication();
+			// Instantiate server
+			server = ServerSeniorCitizen.getInstance("ap1", 8090, 1000000, true);
 
-			ApplicationTest.mediaTest(server, server.getContext());
+			// Start server and testing
+			if (server != null)
+			{
+				server.startApplication();
+
+				ApplicationTest.mediaTest(server, server.getContext());
+			}
 		}
 		catch (Exception e)
 		{
 			e.printStackTrace();
 		}
 
-		// Start client
-		ClientManager client;
+		/*
+		 * Start client
+		 */
+		ClientManager client = null;
 
 		try
 		{
 			if (server != null)
 			{
-				// Create client
-				client = ClientSeniorCitizen.getInstance("cl1");
+				// Instantiate client
+				client = ClientSeniorCitizen.getInstance("cl1", true);
 
+				// Start client and testing
 				if (client != null)
 				{
 					// Start client
 					client.startApplication();
 					client.setSocketConnectionParameter("localhost", 8090, 1000000);
-
-					// Do something
-					ClientCommand command;
-					ResponseContainer responseContainer;
-
-					// COMMAND Create Session 1
-					command = new ClientCommandCreateSession(client.getContext(), client);
-					responseContainer = command.execute();
-
-					// COMMAND Handshake 1
-					command = new ClientCommandHandshake(client.getContext(), client);
-					responseContainer = command.execute();
-
-					// COMMAND Handshake 2
-					// command = new ClientCommandHandshake(client.getContext(),
-					// client);
-					// responseContainer = command.execute();
-
-					// COMMAND Create Session 2
-					// command = new
-					// ClientCommandCreateSession(client.getContext(),
-					// client);
-					// responseContainer = command.execute();
 
 					// Stop client
 					client.stopApplication();
@@ -104,7 +85,10 @@ public class ApplicationTest
 		}
 
 		// Shutdown Application server
-		if (server != null) server.stopApplication();
+		if (server != null)
+		{
+			server.stopApplication();
+		}
 	}
 
 	/**
@@ -115,10 +99,25 @@ public class ApplicationTest
 		// Run test
 		if (server != null && context != null)
 		{
-			ApplicationTestMedia testMedia;
+			ServerTestMedia testMedia;
 
-			testMedia = new ApplicationTestMedia(server, server.getContext(), "Apartment", "Room");
-			server.getExecutorService().execute(testMedia);
+			testMedia = new ServerTestMedia(server, server.getContext(), "Apartment", "Room");
+			new Thread(testMedia).start();
+
+			testMedia = new ServerTestMedia(server, server.getContext(), "Apartment", "Floor");
+			new Thread(testMedia).start();
+
+			testMedia = new ServerTestMedia(server, server.getContext(), "Apartment", "Bedroom");
+			new Thread(testMedia).start();
+
+			testMedia = new ServerTestMedia(server, server.getContext(), "Apartment", "Kitchen");
+			new Thread(testMedia).start();
+
+			testMedia = new ServerTestMedia(server, server.getContext(), "Apartment", "Bathroom");
+			new Thread(testMedia).start();
+
+			testMedia = new ServerTestMedia(server, server.getContext(), "Apartment", "Room");
+			new Thread(testMedia).start();
 		}
 	}
 

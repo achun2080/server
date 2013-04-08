@@ -48,10 +48,10 @@ public abstract class ClientManager extends ApplicationManager
 	 */
 	protected ClientManager(
 			ApplicationManager.ApplicationIdentifierEnum applicationIdentifier,
-			int applicationVersion, String codeName)
+			int applicationVersion, String codeName, boolean runningInTestMode)
 	{
 		// Instantiate super class
-		super(applicationIdentifier, applicationVersion, codeName, OriginEnum.Client);
+		super(applicationIdentifier, applicationVersion, codeName, OriginEnum.Client, runningInTestMode);
 	}
 
 	@Override

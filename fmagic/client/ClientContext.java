@@ -3,6 +3,7 @@ package fmagic.client;
 import fmagic.basic.ApplicationManager;
 import fmagic.basic.Context;
 import fmagic.basic.ResourceContainer;
+import fmagic.test.TestManagerClient;
 
 /**
  * This class contains common context functions used by all client applications.
@@ -18,9 +19,10 @@ public class ClientContext extends Context
 	 * Constructor
 	 */
 	public ClientContext(String codeName, String applicationName,
-			int applicationVersion, ApplicationManager applicationManager)
+			int applicationVersion, ApplicationManager applicationManager,
+			boolean runningInTestMode)
 	{
-		super(codeName, applicationName, applicationVersion, ResourceContainer.OriginEnum.Client.toString(), applicationManager);
+		super(codeName, applicationName, applicationVersion, ResourceContainer.OriginEnum.Client.toString(), applicationManager, new TestManagerClient(), runningInTestMode);
 	}
 
 	@Override
@@ -29,7 +31,7 @@ public class ClientContext extends Context
 		boolean isError = super.validateResources(context);
 		return isError;
 	}
-	
+
 	@Override
 	public boolean readConfiguration(Context context)
 	{

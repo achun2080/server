@@ -75,10 +75,10 @@ public abstract class ServerManager extends ApplicationManager
 	protected ServerManager(
 			ApplicationManager.ApplicationIdentifierEnum applicationIdentifier,
 			int applicationVersion, String codeName, int serverSocketPort,
-			int timeoutTimeInMilliseconds)
+			int timeoutTimeInMilliseconds, boolean runningInTestMode)
 	{
 		// Instantiate super class
-		super(applicationIdentifier, applicationVersion, codeName, OriginEnum.Server);
+		super(applicationIdentifier, applicationVersion, codeName, OriginEnum.Server, runningInTestMode);
 
 		// Adopt constructor data
 		this.serverSocketPort = serverSocketPort;
@@ -114,6 +114,7 @@ public abstract class ServerManager extends ApplicationManager
 	{
 		// Create Thread pool
 		this.executorService = Executors.newCachedThreadPool();
+		
 
 		// Open server socket
 		try
@@ -230,7 +231,8 @@ public abstract class ServerManager extends ApplicationManager
 	}
 
 	/**
-	 * Get a client session object from the list of client sessions the server holds.
+	 * Get a client session object from the list of client sessions the server
+	 * holds.
 	 * <p>
 	 * If the session exists the modification date will be updated to the
 	 * current date/time automatically.
@@ -245,7 +247,7 @@ public abstract class ServerManager extends ApplicationManager
 	{
 		// Initialize data
 		SessionContainer session = null;
-		
+
 		// Validate data
 		String clientSessionIdentifierNormalized = clientSessionIdentifier.trim();
 
