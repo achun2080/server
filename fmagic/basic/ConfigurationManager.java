@@ -118,11 +118,11 @@ public class ConfigurationManager implements ManagerInterface
 	}
 
 	@Override
-	public boolean ckeckOnResourceIdentifierIntegrityError(Context context)
+	public boolean validateResources(Context context)
 	{
 		return false;
 	}
-	
+
 	@Override
 	public boolean readConfiguration(Context context)
 	{
@@ -369,7 +369,7 @@ public class ConfigurationManager implements ManagerInterface
 						 */
 						if (mandatory == true)
 						{
-							additionaltext = "--> Tried to read configuration property, but it wasn't set in any configuration file." + additionaltext;
+							additionaltext = "--> Tried to read a mandatory configuration property, but it wasn't set in any configuration file." + additionaltext;
 							context.getNotificationManager().notifyEvent(context, context.getResourceManager().getResourceContainer(context, TypeEnum.Notification, ApplicationManager.ApplicationIdentifierEnum.Basic, OriginEnum.All, UsageEnum.Event, "Configuration", "ConfigurationPropertyNotSet"), additionaltext, null);
 						}
 						else
@@ -823,7 +823,7 @@ public class ConfigurationManager implements ManagerInterface
 		}
 
 		// Read default properties
-		fileName = FileLocationManager.getRootPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getConfigurationDefaultSubPath() + FileLocationManager.getPathElementDelimiterString() +  FileLocationManager.getConfigurationDefaultFileName();
+		fileName = FileLocationManager.getRootPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getConfigurationDefaultSubPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getConfigurationDefaultFileName();
 
 		try
 		{

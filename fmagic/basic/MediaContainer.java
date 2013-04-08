@@ -58,21 +58,12 @@ public class MediaContainer
 		// Check if media is already bound
 		if (this.boundMark == true) this.releaseMedia();
 
-		// Get file path of original media file
-		List<String> files = this.resourceContainerMedia.getMediaRealFileName(this.context, this.dataIdentifier);
-		
-		if (files.size() > 1)
-		{
-			this.context.getMediaManager().cleanMediaFileList(context, this.resourceContainerMedia, files);
-			files = this.resourceContainerMedia.getMediaRealFileName(this.context, this.dataIdentifier);
-			if (files.size() != 1) return false;
-		}
-
-		this.originalMediaFilePath = files.get(0);
+		// Get file path of the most recent original media file
+		this.originalMediaFilePath = this.resourceContainerMedia.getMediaRealFileName(this.context, this.dataIdentifier);
 		if (this.originalMediaFilePath == null || this.originalMediaFilePath.length() == 0) return false;
 
 		// Copy or decrypt media file to a pending (temporary) file
-		this.workingMediaFilePath = this.context.getMediaManager().decryptFile(this.context, this.resourceContainerMedia, this.originalMediaFilePath);
+		this.workingMediaFilePath = this.context.getMediaManager().mediaFileOperationDecrypt(this.context, this.resourceContainerMedia, this.originalMediaFilePath);
 		if (this.workingMediaFilePath == null || this.workingMediaFilePath.length() == 0) return false;
 
 		// Set bind mark

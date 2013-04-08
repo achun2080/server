@@ -24,9 +24,9 @@ public class ClientContext extends Context
 	}
 
 	@Override
-	public boolean ckeckOnResourceIdentifierIntegrityError(Context context)
+	public boolean validateResources(Context context)
 	{
-		boolean isError = super.ckeckOnResourceIdentifierIntegrityError(context);
+		boolean isError = super.validateResources(context);
 		return isError;
 	}
 	

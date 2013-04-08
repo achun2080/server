@@ -390,7 +390,7 @@ public class ResourceContainerMedia extends ResourceContainer
 	 */
 	public String getMediaRegularFilePath(Context context)
 	{
-		String mediaFilePath = context.getMediaManager().getMediaRootFilePath(context) + FileLocationManager.getPathElementDelimiterString() + Util.fitToFileNameCompatibility(context.getApplicationName()) + FileLocationManager.getPathElementDelimiterString() + this.getLogicalPath(context);
+		String mediaFilePath = context.getMediaManager().mediaFileGetRootFilePath(context) + FileLocationManager.getPathElementDelimiterString() + Util.fitToFileNameCompatibility(context.getApplicationName()) + FileLocationManager.getPathElementDelimiterString() + this.getLogicalPath(context);
 		return mediaFilePath;
 	}
 
@@ -513,6 +513,29 @@ public class ResourceContainerMedia extends ResourceContainer
 	}
 
 	/**
+	 * Get the name of the most current existing media file of the local media repository,
+	 * regarding a specific media resource item and a specific data identifier.
+	 * <p>
+	 * Example: <TT>seniorcitizen-room-00001234-*-*-*.*</TT>
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param dataIdentifier
+	 *            The data identifier to consider.
+	 * 
+	 * @return Returns the most current, existing media file, or <TT>null</TT> if an
+	 *         error occurred, or no file could be found.
+	 * 
+	 */
+	public String getMediaRealFileName(Context context, String dataIdentifier)
+	{
+		String mediaFileNameMask = this.getMediaFileNameMask(context, dataIdentifier);
+		String mediaFilePath = this.getMediaRegularFilePath(context);
+		return Util.fileSearchDirectoryOnMostRecentFile(mediaFilePath, mediaFileNameMask);
+	}
+
+	/**
 	 * Get the names of an existing file of the local media repository,
 	 * regarding a specific media resource item and a specific data identifier.
 	 * <p>
@@ -528,7 +551,7 @@ public class ResourceContainerMedia extends ResourceContainer
 	 *         error occurred.
 	 * 
 	 */
-	public List<String> getMediaRealFileName(Context context, String dataIdentifier)
+	public List<String> getMediaRealFileNameList(Context context, String dataIdentifier)
 	{
 		String mediaFileNameMask = this.getMediaFileNameMask(context, dataIdentifier);
 		String mediaFilePath = this.getMediaRegularFilePath(context);
@@ -550,9 +573,9 @@ public class ResourceContainerMedia extends ResourceContainer
 		// Get key number
 		int serverMediaKeyNumber = 0;
 
-		if (context.getMediaManager().checkServerEncoding(context, this))
+		if (context.getMediaManager().isServerEncodingEnabled(context, this))
 		{
-			serverMediaKeyNumber = context.getMediaManager().getServerMediaKeyNumber();
+			serverMediaKeyNumber = context.getMediaManager().getServerEncodingKeyNumber();
 		}
 
 		// Compose string

@@ -2,13 +2,11 @@ package fmagic.basic;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FilenameFilter;
-import java.net.URLEncoder;
-import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
 import org.apache.commons.io.FileUtils;
 
 /**
@@ -218,14 +216,14 @@ public class Util
 	 * @param filePath
 	 *            The path of the files to be searched for.
 	 * 
-	 * @param fileNameMask
+	 * @param fileFilterMask
 	 *            The file name mask to be searched for, including wildcards (*,
 	 *            ?).
 	 * 
 	 * @return Returns a list of files that were found, or <TT>null</TT>, if an
 	 *         error occurred.
 	 */
-	public static List<String> fileSearchDirectory(String filePath, String fileNameMask)
+	public static List<String> fileSearchDirectory(String filePath, String fileFilterMask)
 	{
 		class UtilFileFilter implements FilenameFilter
 		{
@@ -251,7 +249,7 @@ public class Util
 
 		// Check parameters
 		if (filePath == null || filePath.length() == 0) return null;
-		if (fileNameMask == null || fileNameMask.length() == 0) return null;
+		if (fileFilterMask == null || fileFilterMask.length() == 0) return null;
 
 		// Initialize variables
 		List<String> fileList = new ArrayList<String>();
@@ -262,7 +260,7 @@ public class Util
 			File directory = new File(filePath);
 			if (directory.isDirectory() == false) return null;
 
-			File[] files = directory.listFiles(new UtilFileFilter(directory, fileNameMask));
+			File[] files = directory.listFiles(new UtilFileFilter(directory, fileFilterMask));
 
 			for (File file : files)
 			{
@@ -337,7 +335,7 @@ public class Util
 		File sourceFile = new File(sourceFilePath);
 		File destinationFile = new File(destinationFilePath);
 
-		// Rename file
+		// Move file
 		try
 		{
 			FileUtils.moveFile(sourceFile, destinationFile);
@@ -601,5 +599,130 @@ public class Util
 
 		// Return
 		return nuOfFilesDeleted;
+	}
+
+	/**
+	 * Change the modified date of a file.
+	 * 
+	 * @param filePath
+	 *            The path of the file to be considered.
+	 * 
+	 * @param modifiedDate
+	 *            The modified date to set.
+	 * 
+	 * @return Returns <TT>true</TT> if the modified date could be changed,
+	 *         otherwise <TT>false</TT>.
+	 */
+	public static boolean fileSetLastModified(String filePath, Date modifiedDate)
+	{
+		// Check parameters
+		if (filePath == null || filePath.length() == 0) return false;
+		if (Util.fileExists(filePath) == false) return false;
+		if (modifiedDate == null) return false;
+
+		// Create FILE objects
+		File file = new File(filePath);
+
+		// Set the modified date
+		try
+		{
+			return file.setLastModified(modifiedDate.getTime());
+		}
+		catch (Exception e)
+		{
+			return false;
+		}
+	}
+
+	/**
+	 * Search for file names in a directory and return with the file path of the
+	 * most recent file, based on the 'modified date' of the file.
+	 * 
+	 * @param filePath
+	 *            The path of the files to be searched for.
+	 * 
+	 * @param fileFilterMask
+	 *            The file name mask to be searched for, including wildcards (*,
+	 *            ?).
+	 * 
+	 * @return Returns the most recent, existing file, or <TT>null</TT> if an
+	 *         error occurred, or no file could be found.
+	 */
+	public static String fileSearchDirectoryOnMostRecentFile(String filePath, String fileFilterMask)
+	{
+		// Get list of files that matches the file filter mask
+		List<String> filePathList = Util.fileSearchDirectory(filePath, fileFilterMask);
+		if (filePathList == null) return null;
+		if (filePathList.size() == 0) return null;
+
+		// Initialize variables
+		String returnFilePath = null;
+
+		// Go through the list of files to find the most current one
+		try
+		{
+			returnFilePath = filePathList.get(0);
+
+			for (String currentFilePath : filePathList)
+			{
+				File returnFile = new File(returnFilePath);
+				File file = new File(currentFilePath);
+
+				if (FileUtils.isFileNewer(file, returnFile))
+				{
+					returnFilePath = currentFilePath;
+				}
+			}
+
+		}
+		catch (Exception e)
+		{
+			return null;
+		}
+
+		// Return
+		return returnFilePath;
+	}
+
+	/**
+	 * Search for file names in a directory and return with a list of obsolete
+	 * files, based on the 'modified date' of the file. That means the most
+	 * recent media file of a given media identifier will not be part of the
+	 * list.
+	 * 
+	 * @param filePath
+	 *            The path of the files to be searched for.
+	 * 
+	 * @param fileNameMask
+	 *            The file name mask to be searched for, including wildcards (*,
+	 *            ?).
+	 * 
+	 * @return Returns the list of obsolete files, or <TT>null</TT> if an error
+	 *         occurred, or no files could be found.
+	 */
+	public static List<String> fileSearchDirectoryOnObsoleteFiles(String filePath, String fileFilterMask)
+	{
+		// Get list of files that matches the file filter mask
+		List<String> filePathList = Util.fileSearchDirectory(filePath, fileFilterMask);
+		if (filePathList == null) return null;
+		if (filePathList.size() == 0) return null;
+
+		// Get the most recent file that matches the file filter mask
+		String mostRecentFilePath = Util.fileSearchDirectoryOnMostRecentFile(filePath, fileFilterMask);
+		if (mostRecentFilePath == null) return null;
+		if (mostRecentFilePath.length() == 0) return null;
+
+		// Remove the most recent file from the list of files
+		try
+		{
+			filePathList.remove(mostRecentFilePath);
+		}
+		catch (Exception e)
+		{
+			return null;
+		}
+
+		// Return
+		return filePathList;
 	}
 }

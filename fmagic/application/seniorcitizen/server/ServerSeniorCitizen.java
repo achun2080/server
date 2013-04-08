@@ -91,7 +91,7 @@ public class ServerSeniorCitizen extends ServerManager implements
 	}
 
 	@Override
-	public boolean ckeckOnResourceIdentifierIntegrityError(Context context)
+	public boolean validateResources(Context context)
 	{
 		return false;
 	}

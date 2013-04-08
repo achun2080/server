@@ -59,7 +59,7 @@ public interface ManagerInterface
 	 * @return Returns <TT>true</TT> if an error was found, otherwise
 	 *         <TT>false</TT>.
 	 */
-	public boolean ckeckOnResourceIdentifierIntegrityError(Context context);
+	public boolean validateResources(Context context);
 
 	/**
 	 * Read configuration parameters and check them.

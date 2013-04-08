@@ -127,7 +127,7 @@ public class NotificationManager implements ManagerInterface
 	}
 
 	@Override
-	public boolean ckeckOnResourceIdentifierIntegrityError(Context context)
+	public boolean validateResources(Context context)
 	{
 		return false;
 	}

@@ -109,7 +109,7 @@ public class ResourceManager implements ManagerInterface
 	}
 
 	@Override
-	public boolean ckeckOnResourceIdentifierIntegrityError(Context context)
+	public boolean validateResources(Context context)
 	{
 		// Variables
 		boolean isIntegrityError = false;
@@ -2264,7 +2264,7 @@ public class ResourceManager implements ManagerInterface
 	 * @return Returns <TT>true</TT> if an error was found, otherwise
 	 *         <TT>false</TT>.
 	 */
-	public boolean ckeckOnSystemResourceIdentifierIntegrityError(Context context, ManagerInterface application)
+	public boolean validateResources(Context context, ManagerInterface application)
 	{
 		// Variables
 		boolean isIntegrityError = false;
@@ -2272,17 +2272,17 @@ public class ResourceManager implements ManagerInterface
 		// Check for integrity errors (Named resource identifiers)
 		try
 		{
-			if (this.ckeckOnResourceIdentifierIntegrityError(context) == true) isIntegrityError = true;
-			if (context.ckeckOnResourceIdentifierIntegrityError(context) == true) isIntegrityError = true;
-			if (context.getCommandManager().ckeckOnResourceIdentifierIntegrityError(context) == true) isIntegrityError = true;
-			if (context.getNotificationManager().ckeckOnResourceIdentifierIntegrityError(context) == true) isIntegrityError = true;
-			if (context.getConfigurationManager().ckeckOnResourceIdentifierIntegrityError(context) == true) isIntegrityError = true;
-			if (context.getLabelManager().ckeckOnResourceIdentifierIntegrityError(context) == true) isIntegrityError = true;
-			if (context.getLocaldataManager().ckeckOnResourceIdentifierIntegrityError(context) == true) isIntegrityError = true;
-			if (context.getRightManager().ckeckOnResourceIdentifierIntegrityError(context) == true) isIntegrityError = true;
-			if (context.getLicenseManager().ckeckOnResourceIdentifierIntegrityError(context) == true) isIntegrityError = true;
-			if (context.getMediaManager().ckeckOnResourceIdentifierIntegrityError(context) == true) isIntegrityError = true;
-			if (application.ckeckOnResourceIdentifierIntegrityError(context) == true) isIntegrityError = true;
+			if (this.validateResources(context) == true) isIntegrityError = true;
+			if (context.validateResources(context) == true) isIntegrityError = true;
+			if (context.getCommandManager().validateResources(context) == true) isIntegrityError = true;
+			if (context.getNotificationManager().validateResources(context) == true) isIntegrityError = true;
+			if (context.getConfigurationManager().validateResources(context) == true) isIntegrityError = true;
+			if (context.getLabelManager().validateResources(context) == true) isIntegrityError = true;
+			if (context.getLocaldataManager().validateResources(context) == true) isIntegrityError = true;
+			if (context.getRightManager().validateResources(context) == true) isIntegrityError = true;
+			if (context.getLicenseManager().validateResources(context) == true) isIntegrityError = true;
+			if (context.getMediaManager().validateResources(context) == true) isIntegrityError = true;
+			if (application.validateResources(context) == true) isIntegrityError = true;
 		}
 		catch (Exception e)
 		{
@@ -2310,7 +2310,7 @@ public class ResourceManager implements ManagerInterface
 		// Read configuration items of all interfaces
 		try
 		{
-			if (this.ckeckOnResourceIdentifierIntegrityError(context) == true) isError = true;
+			if (this.validateResources(context) == true) isError = true;
 			if (context.readConfiguration(context) == true) isError = true;
 			if (context.getCommandManager().readConfiguration(context) == true) isError = true;
 			if (context.getNotificationManager().readConfiguration(context) == true) isError = true;

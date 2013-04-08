@@ -182,7 +182,7 @@ public abstract class Context implements Cloneable, ManagerInterface
 	}
 
 	@Override
-	public boolean ckeckOnResourceIdentifierIntegrityError(Context context)
+	public boolean validateResources(Context context)
 	{
 		// Variables
 		boolean isIntegrityError = false;

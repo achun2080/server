@@ -113,7 +113,7 @@ public abstract class ApplicationManager implements ManagerInterface
 				if (this.getContext().getResourceManager().readConfiguration(this.getContext(), this) == true) isError = true;
 
 				// Check integrity of all read resources
-				if (this.getContext().getResourceManager().ckeckOnSystemResourceIdentifierIntegrityError(this.getContext(), this) == true) isError = true;
+				if (this.getContext().getResourceManager().validateResources(this.getContext(), this) == true) isError = true;
 
 				// Read security keys from configuration
 				if (this.readSecurityKeys() == false) isError = true;
