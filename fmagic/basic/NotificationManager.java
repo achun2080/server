@@ -913,7 +913,7 @@ public class NotificationManager implements ManagerInterface
 		}
 		else if (logfileType == NotificationManager.LogfileTypeEnum.TEST_LOGGING)
 		{
-			fileName += rootPath + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getTestSubPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getTestSubSubPath();
+			fileName += rootPath + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getTestLoggingSubPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getTestLoggingSubSubPath();
 		}
 		else
 		{
@@ -997,7 +997,7 @@ public class NotificationManager implements ManagerInterface
 		}
 		else if (logfileType == NotificationManager.LogfileTypeEnum.TEST_LOGGING)
 		{
-			fileName = FileLocationManager.getTestLogFileName();
+			fileName = FileLocationManager.getTestLoggingLogFileName();
 		}
 		else
 		{

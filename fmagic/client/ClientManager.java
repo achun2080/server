@@ -45,13 +45,22 @@ public abstract class ClientManager extends ApplicationManager
 	 * 
 	 * @param codeName
 	 *            Name for identifying the name from outside.
+	 * 
+	 * @param runningInTestMode
+	 *            Set to TRUE if the application is running in test mode.
+	 * 
+	 * @param testCaseName
+	 *            Is to be set to the name of the test case, if the application
+	 *            is running in test mode, or <TT>null</TT> if the application
+	 *            is running in productive mode.
 	 */
 	protected ClientManager(
 			ApplicationManager.ApplicationIdentifierEnum applicationIdentifier,
-			int applicationVersion, String codeName, boolean runningInTestMode)
+			int applicationVersion, String codeName, boolean runningInTestMode,
+			String testCaseName)
 	{
 		// Instantiate super class
-		super(applicationIdentifier, applicationVersion, codeName, OriginEnum.Client, runningInTestMode);
+		super(applicationIdentifier, applicationVersion, codeName, OriginEnum.Client, runningInTestMode, testCaseName);
 	}
 
 	@Override

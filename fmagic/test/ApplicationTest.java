@@ -40,7 +40,7 @@ public class ApplicationTest
 		try
 		{
 			// Instantiate server
-			server = ServerSeniorCitizen.getInstance("ap1", 8090, 1000000, true);
+			server = ServerSeniorCitizen.getTestInstance("ap1", 8090, 1000000, "mediatest");
 
 			// Start server and testing
 			if (server != null)
@@ -65,7 +65,7 @@ public class ApplicationTest
 			if (server != null)
 			{
 				// Instantiate client
-				client = ClientSeniorCitizen.getInstance("cl1", true);
+				client = ClientSeniorCitizen.getTestInstance("cl1", "mediatest");
 
 				// Start client and testing
 				if (client != null)
@@ -101,23 +101,28 @@ public class ApplicationTest
 		{
 			ServerTestMedia testMedia;
 
-			testMedia = new ServerTestMedia(server, server.getContext(), "Apartment", "Room");
+			testMedia = new ServerTestMedia(server, server.getContext());
 			new Thread(testMedia).start();
 
-			testMedia = new ServerTestMedia(server, server.getContext(), "Apartment", "Floor");
-			new Thread(testMedia).start();
-
-			testMedia = new ServerTestMedia(server, server.getContext(), "Apartment", "Bedroom");
-			new Thread(testMedia).start();
-
-			testMedia = new ServerTestMedia(server, server.getContext(), "Apartment", "Kitchen");
-			new Thread(testMedia).start();
-
-			testMedia = new ServerTestMedia(server, server.getContext(), "Apartment", "Bathroom");
-			new Thread(testMedia).start();
-
-			testMedia = new ServerTestMedia(server, server.getContext(), "Apartment", "Room");
-			new Thread(testMedia).start();
+			// testMedia = new ServerTestMedia(server, server.getContext(),
+			// "Apartment", "Floor");
+			// new Thread(testMedia).start();
+			//
+			// testMedia = new ServerTestMedia(server, server.getContext(),
+			// "Apartment", "Bedroom");
+			// new Thread(testMedia).start();
+			//
+			// testMedia = new ServerTestMedia(server, server.getContext(),
+			// "Apartment", "Kitchen");
+			// new Thread(testMedia).start();
+			//
+			// testMedia = new ServerTestMedia(server, server.getContext(),
+			// "Apartment", "Bathroom");
+			// new Thread(testMedia).start();
+			//
+			// testMedia = new ServerTestMedia(server, server.getContext(),
+			// "Apartment", "Room");
+			// new Thread(testMedia).start();
 		}
 	}
 

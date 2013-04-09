@@ -81,6 +81,112 @@ public class TestManager implements ManagerInterface
 	}
 
 	/**
+	 * Get the absolute file path for the <TT>Resource</TT> directory of the
+	 * test environment, regarding a specific test case.
+	 * <p>
+	 * The result file path is combined of the root path of the development
+	 * environment, and the sub path "test", and the name of the test case, and
+	 * the <TT>Resource</TT> sub path.
+	 * <p>
+	 * For example, if the root path of the development environment is set to
+	 * "c:/fmagic" and the test case is named "mediatest" you will get:
+	 * <p>
+	 * <TT>c:/fmagic/test/mediatest/fmagic.resource</TT>
+	 * 
+	 * @param context
+	 *            The application context.
+	 * 
+	 * @return Returns the file path or <TT>null</TT> if an error occurred.
+	 */
+	public static String getTestResourceFilePath(Context context)
+	{
+		String filePath = FileLocationManager.getRootPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getTestResourceSubPath();
+		filePath = FileLocationManager.replacePlacholder(context, filePath);
+
+		return filePath;
+	}
+
+	/**
+	 * Get the absolute file path for the <TT>Test Stuff</TT> directory of the
+	 * test environment, regarding a specific test case. This directory holds
+	 * additional files and information needed for running a test case, e. g.
+	 * image files, documents and others.
+	 * <p>
+	 * The result file path is combined of the root path of the development
+	 * environment, and the sub path "test", and the name of the test case, and
+	 * the <TT>Test Stuff</TT> sub path.
+	 * <p>
+	 * For example, if the root path of the development environment is set to
+	 * "c:/fmagic" and the test case is named "mediatest" you will get:
+	 * <p>
+	 * <TT>c:/fmagic/test/mediatest/fmagic.stuff</TT>
+	 * 
+	 * @param context
+	 *            The application context.
+	 * 
+	 * @return Returns the file path or <TT>null</TT> if an error occurred.
+	 */
+	public static String getTestStuffFilePath(Context context)
+	{
+		String filePath = FileLocationManager.getRootPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getTestStuffSubPath();
+		filePath = FileLocationManager.replacePlacholder(context, filePath);
+
+		return filePath;
+	}
+
+	/**
+	 * Get the absolute file path for the <TT>Configuration</TT> directory of
+	 * the test environment, regarding a specific test case.
+	 * <p>
+	 * The result file path is combined of the root path of the development
+	 * environment, and the sub path "test", and the name of the test case, and
+	 * the <TT>Configuration</TT> sub path.
+	 * <p>
+	 * For example, if the root path of the development environment is set to
+	 * "c:/fmagic" and the test case is named "mediatest" you will get:
+	 * <p>
+	 * <TT>c:/fmagic/test/mediatest/fmagic.configuration</TT>
+	 * 
+	 * @param context
+	 *            The application context.
+	 * 
+	 * @return Returns the file path or <TT>null</TT> if an error occurred.
+	 */
+	public static String getTestConfigurationFilePath(Context context)
+	{
+		String filePath = FileLocationManager.getRootPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getTestConfigurationSubPath();
+		filePath = FileLocationManager.replacePlacholder(context, filePath);
+
+		return filePath;
+	}
+
+	/**
+	 * Get the absolute file path for the <TT>License</TT> directory of the test
+	 * environment, regarding a specific test case.
+	 * <p>
+	 * The result file path is combined of the root path of the development
+	 * environment, and the sub path "test", and the name of the test case, and
+	 * the <TT>License</TT> sub path.
+	 * <p>
+	 * For example, if the root path of the development environment is set to
+	 * "c:/fmagic" and the test case is named "mediatest" you will get:
+	 * <p>
+	 * <TT>c:/fmagic/test/mediatest/fmagic.license</TT>
+	 * 
+	 * @param context
+	 *            The application context.
+	 * 
+	 * @return Returns the file path or <TT>null</TT> if an error occurred.
+	 */
+	public static String getTestLicenseFilePath(Context context)
+	{
+		String filePath = FileLocationManager.getRootPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getTestLicenseSubPath();
+		filePath = FileLocationManager.replacePlacholder(context, filePath);
+
+		return filePath;
+	}
+
+	/**
 	 * Format a assert message to a common string format.
 	 * 
 	 * @param assertText
@@ -149,10 +255,10 @@ public class TestManager implements ManagerInterface
 			PrintWriter output;
 
 			// Gets file path and file name
-			pathName = FileLocationManager.getRootPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getTestSubPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getTestSubSubPath();
+			pathName = FileLocationManager.getRootPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getTestLoggingSubPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getTestLoggingSubSubPath();
 			pathName = FileLocationManager.replacePlacholder(context, pathName);
 
-			fileName = FileLocationManager.getTestAssertFileName();
+			fileName = FileLocationManager.getTestLoggingAssertFileName();
 			fileName = FileLocationManager.replacePlacholder(context, fileName);
 
 			// Create directory
@@ -368,6 +474,39 @@ public class TestManager implements ManagerInterface
 	}
 
 	/**
+	 * Assert: Check if <TT>String</TT> value 1 ends with value 2.
+	 * 
+	 * @param context
+	 *            Application context of the message.
+	 * 
+	 * @param additionalText
+	 *            Additional text of the message.
+	 * 
+	 * @param value1
+	 *            The first value.
+	 * 
+	 * @param value2
+	 *            The second value.
+	 */
+	public static void assertEndsWith(Context context, String additionalText, String value1, String value2)
+	{
+		if (!value1.endsWith(value2))
+		{
+			context.getTestManager().setErrorFound();
+
+			String assertText = "Assertion failed: String 1 doesn't end with string 2";
+			assertText += "\n--> String value 1: '" + value1 + "'";
+			assertText += "\n--> String value 2: '" + value2 + "'";
+
+			TestManager.assertPrintError(context, assertText, additionalText);
+		}
+		else
+		{
+			TestManager.assertProgress(context);
+		}
+	}
+
+	/**
 	 * Assert: Compare if <TT>String</TT> value 1 contains <TT>String</TT> value
 	 * 2.
 	 * 
@@ -390,8 +529,42 @@ public class TestManager implements ManagerInterface
 			context.getTestManager().setErrorFound();
 
 			String assertText = "Assertion failed: String value 1 doesn't contain string value 2";
-			assertText += "\n--> String value 1: '" + value1 + "'";
-			assertText += "\n--> String value 2: '" + value2 + "'";
+			assertText += "\n--> String value 1:\n'" + value1 + "'\n";
+			assertText += "\n--> String value 2:\n'" + value2 + "'\n";
+
+			TestManager.assertPrintError(context, assertText, additionalText);
+		}
+		else
+		{
+			TestManager.assertProgress(context);
+		}
+	}
+
+	/**
+	 * Assert: Assert that <TT>String</TT> value 1 <TT>NOT</TT> contains
+	 * <TT>String</TT> value 2.
+	 * 
+	 * @param context
+	 *            Application context of the message.
+	 * 
+	 * @param additionalText
+	 *            Additional text of the message.
+	 * 
+	 * @param value1
+	 *            The first value.
+	 * 
+	 * @param value2
+	 *            The second value.
+	 */
+	public static void assertNotContains(Context context, String additionalText, String value1, String value2)
+	{
+		if (value1.contains(value2))
+		{
+			context.getTestManager().setErrorFound();
+
+			String assertText = "Assertion failed: String value 1 contains string value 2";
+			assertText += "\n--> String value 1:\n'" + value1 + "'\n";
+			assertText += "\n--> String value 2:\n'" + value2 + "'\n";
 
 			TestManager.assertPrintError(context, assertText, additionalText);
 		}
@@ -422,9 +595,42 @@ public class TestManager implements ManagerInterface
 		{
 			context.getTestManager().setErrorFound();
 
-			String assertText = "Assertion failed: Comparing boolean values";
+			String assertText = "Assertion failed: Comparing boolean values (equals)";
 			assertText += "\n--> Boolean value 1: '" + String.valueOf(value1) + "'";
 			assertText += "\n--> Boolean value 2: '" + String.valueOf(value2) + "'";
+
+			TestManager.assertPrintError(context, assertText, additionalText);
+		}
+		else
+		{
+			TestManager.assertProgress(context);
+		}
+	}
+
+	/**
+	 * Assert: Compare if <TT>integer</TT> values are equal.
+	 * 
+	 * @param context
+	 *            Application context of the message.
+	 * 
+	 * @param additionalText
+	 *            Additional text of the message.
+	 * 
+	 * @param value1
+	 *            The first value.
+	 * 
+	 * @param value2
+	 *            The second value.
+	 */
+	public static void assertEquals(Context context, String additionalText, int value1, int value2)
+	{
+		if (value1 != value2)
+		{
+			context.getTestManager().setErrorFound();
+
+			String assertText = "Assertion failed: Comparing integer values (equals)";
+			assertText += "\n--> Integer value 1: '" + String.valueOf(value1) + "'";
+			assertText += "\n--> Integer value 2: '" + String.valueOf(value2) + "'";
 
 			TestManager.assertPrintError(context, assertText, additionalText);
 		}

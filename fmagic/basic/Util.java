@@ -178,6 +178,38 @@ public class Util
 	}
 
 	/**
+	 * Check if a directory exists physically.
+	 * 
+	 * @param filePath
+	 *            The directory path.
+	 * 
+	 * @return Returns <TT>true</TT> if the directory exists and is accessible,
+	 *         otherwise <TT>false</TT>.
+	 */
+	public static boolean fileDirectoryExists(String filePath)
+	{
+		if (filePath == null) return false;
+		if (filePath.length() == 0) return false;
+
+		boolean isAccessable = true;
+
+		try
+		{
+			File file = new File(filePath);
+
+			if (file.exists() == false) isAccessable = false;
+			if (file.canRead() == false) isAccessable = false;
+			if (file.isDirectory() == false) isAccessable = false;
+		}
+		catch (Exception e)
+		{
+			isAccessable = false;
+		}
+
+		return isAccessable;
+	}
+
+	/**
 	 * Get hash value (MD5) of a file.
 	 * 
 	 * @param filePath
@@ -348,7 +380,7 @@ public class Util
 	}
 
 	/**
-	 * Delete a file.
+	 * Delete a single file.
 	 * 
 	 * @param filePath
 	 *            The path of the file to be deleted.
@@ -374,6 +406,51 @@ public class Util
 		catch (Exception e)
 		{
 			return false;
+		}
+	}
+
+	/**
+	 * Delete a list of files file.
+	 * 
+	 * @param fileList
+	 *            The list of files to delete, each item containing a file path.
+	 * 
+	 * @return Returns the number of deleted files.
+	 */
+	public static int fileDelete(List<String> fileList)
+	{
+		// Check parameters
+		if (fileList == null) return 0;
+		if (fileList.size() == 0) return 0;
+
+		// Initialize variables
+		int nuOfDeletedFiles = 0;
+
+		// Delete files
+		try
+		{
+			for (String filePath : fileList)
+			{
+				File file = new File(filePath);
+
+				if (file.isFile() == false) continue;
+				if (Util.fileExists(filePath) == false) continue;
+
+				try
+				{
+					if (file.delete() == true) nuOfDeletedFiles++;
+				}
+				catch (Exception e)
+				{
+					// Be silent
+				}
+			}
+
+			return nuOfDeletedFiles;
+		}
+		catch (Exception e)
+		{
+			return nuOfDeletedFiles;
 		}
 	}
 
@@ -518,7 +595,7 @@ public class Util
 
 	/**
 	 * Delete all files of a file list, but for the newest one. If some files
-	 * have the same timestamp, delete all but first one.
+	 * have the same timestamp, delete all but thr first one.
 	 * 
 	 * @param files
 	 *            The list of files to consider.
@@ -613,12 +690,11 @@ public class Util
 	 * @return Returns <TT>true</TT> if the modified date could be changed,
 	 *         otherwise <TT>false</TT>.
 	 */
-	public static boolean fileSetLastModified(String filePath, Date modifiedDate)
+	public static boolean fileSetLastModified(String filePath)
 	{
 		// Check parameters
 		if (filePath == null || filePath.length() == 0) return false;
 		if (Util.fileExists(filePath) == false) return false;
-		if (modifiedDate == null) return false;
 
 		// Create FILE objects
 		File file = new File(filePath);
@@ -626,7 +702,8 @@ public class Util
 		// Set the modified date
 		try
 		{
-			return file.setLastModified(modifiedDate.getTime());
+			FileUtils.touch(file);
+			return true;
 		}
 		catch (Exception e)
 		{

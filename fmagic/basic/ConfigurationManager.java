@@ -20,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import fmagic.basic.ResourceContainer.OriginEnum;
 import fmagic.basic.ResourceContainer.TypeEnum;
 import fmagic.basic.ResourceContainer.UsageEnum;
+import fmagic.test.TestManager;
 
 /**
  * This class implements the management of configuration of a the fmagic system.
@@ -387,11 +388,21 @@ public class ConfigurationManager implements ManagerInterface
 				if (value != null) value = value.trim();
 
 				// Read additional configuration file if it is linked via
-				// "{...}"
+				// "${...}"
 				if (value != null && value.startsWith("${") && value.endsWith("}"))
 				{
-					// Set file name
-					String fileName = FileLocationManager.getRootPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getConfigurationSubPath() + FileLocationManager.getPathElementDelimiterString() + value.substring(2, value.length() - 1);
+					// If the application is running in "test mode", the test
+					// environment is used instead of the regular environment.
+					String fileName = null;
+
+					if (context.isRunningInTestMode())
+					{
+						fileName = TestManager.getTestConfigurationFilePath(context) + FileLocationManager.getPathElementDelimiterString() + value.substring(2, value.length() - 1);
+					}
+					else
+					{
+						fileName = FileLocationManager.getRootPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getConfigurationSubPath() + FileLocationManager.getPathElementDelimiterString() + value.substring(2, value.length() - 1);
+					}
 
 					// Logging
 					context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "Tries to read addtional configuration file '" + value + "' of property key '" + identifier + "'");
@@ -803,8 +814,19 @@ public class ConfigurationManager implements ManagerInterface
 	 */
 	public boolean loadPropertiesFile(Context context)
 	{
-		// Read application properties
-		String fileName = this.getConfigurationFilePath(context) + FileLocationManager.getPathElementDelimiterString() + this.getConfigurationFileName(context);
+		String fileName = null;
+
+		// Read application properties. If the application is running in "test
+		// mode", the test environment is used instead of the regular
+		// environment.
+		if (context.isRunningInTestMode())
+		{
+			fileName = TestManager.getTestConfigurationFilePath(context) + FileLocationManager.getPathElementDelimiterString() + this.getConfigurationFileName(context);
+		}
+		else
+		{
+			fileName = this.getConfigurationFilePath(context) + FileLocationManager.getPathElementDelimiterString() + this.getConfigurationFileName(context);
+		}
 
 		try
 		{
@@ -822,8 +844,17 @@ public class ConfigurationManager implements ManagerInterface
 			return false;
 		}
 
-		// Read default properties
-		fileName = FileLocationManager.getRootPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getConfigurationDefaultSubPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getConfigurationDefaultFileName();
+		// Read default properties. If the application is running in "test
+		// mode", the test environment is used instead of the regular
+		// environment.
+		if (context.isRunningInTestMode())
+		{
+			fileName = TestManager.getTestConfigurationFilePath(context) + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getConfigurationDefaultFileName();
+		}
+		else
+		{
+			fileName = FileLocationManager.getRootPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getConfigurationDefaultSubPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getConfigurationDefaultFileName();
+		}
 
 		try
 		{
@@ -861,6 +892,10 @@ public class ConfigurationManager implements ManagerInterface
 	 */
 	public synchronized boolean createTemplateConfigurationFile(Context context, String application, String origin, boolean includingResourceIdentifiers)
 	{
+		// If the application is running in "test
+		// mode", the test template files are not created.
+		if (context.isRunningInTestMode()) return true;
+
 		// Check parameter
 		boolean isError = false;
 		if (application == null) isError = true;

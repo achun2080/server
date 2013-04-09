@@ -54,14 +54,8 @@ public abstract class ServerManager extends ApplicationManager
 	 * @param applicationIdentifier
 	 *            Identifier of the application.
 	 * 
-	 * @param serverVersion
-	 *            Software version of the application server.
-	 * 
-	 * @param persistenceManager
-	 *            LocalData manager to use.
-	 * 
-	 * @param labelManager
-	 *            Label manager to use.
+	 * @param applicationVersion
+	 *            Software version of the application.
 	 * 
 	 * @param codeName
 	 *            Code name of the application.
@@ -71,14 +65,22 @@ public abstract class ServerManager extends ApplicationManager
 	 * 
 	 * @param timeoutTimeInMilliseconds
 	 *            Timeout to use as a socket connection timeout.
+	 * 
+	 * @param runningInTestMode
+	 *            Set to TRUE if the application is running in test mode.
+	 * 
+	 * @param testCaseName
+	 *            Is to be set to the name of the test case, if the application
+	 *            is running in test mode, or <TT>null</TT> if the application
+	 *            is running in productive mode.
 	 */
 	protected ServerManager(
 			ApplicationManager.ApplicationIdentifierEnum applicationIdentifier,
 			int applicationVersion, String codeName, int serverSocketPort,
-			int timeoutTimeInMilliseconds, boolean runningInTestMode)
+			int timeoutTimeInMilliseconds, boolean runningInTestMode, String testCaseName)
 	{
 		// Instantiate super class
-		super(applicationIdentifier, applicationVersion, codeName, OriginEnum.Server, runningInTestMode);
+		super(applicationIdentifier, applicationVersion, codeName, OriginEnum.Server, runningInTestMode, testCaseName);
 
 		// Adopt constructor data
 		this.serverSocketPort = serverSocketPort;

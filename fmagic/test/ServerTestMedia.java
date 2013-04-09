@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import fmagic.basic.Context;
+import fmagic.basic.FileLocationManager;
 import fmagic.basic.MediaContainer;
 import fmagic.basic.ResourceContainer;
 import fmagic.basic.ResourceContainerMedia;
@@ -16,19 +17,21 @@ public class ServerTestMedia implements Runnable
 	private final Context context;
 	private final ServerManager server;
 
-	private final String mediaResourceGroup;
-	private final String mediaResourceName;
+	private String parameterResourceGroup = "Apartment";
+	private String parameterResourceName = "Room";
+	private String parameterDataIdentifierTestUpload = "1234";
+	private String parameterDataIdentifierTestObsolete = "1235";
+	private int parameterTestCycleNumber = 1;
+	private int parameterTestCycleDataIdentifierFrom = 1;
+	private int parameterTestCycleDataIdentifierToo = 10;
 
 	/**
 	 * Constructor
 	 */
-	public ServerTestMedia(ServerManager server, Context context,
-			String mediaResourceGroup, String mediaResourceName)
+	public ServerTestMedia(ServerManager server, Context context)
 	{
 		this.server = server;
 		this.context = context.createSilentDumpContext(ResourceManager.context(context, "Media", "Processing"));
-		this.mediaResourceGroup = mediaResourceGroup;
-		this.mediaResourceName = mediaResourceName;
 
 	}
 
@@ -52,12 +55,11 @@ public class ServerTestMedia implements Runnable
 		this.testSetup();
 
 		// Test
-		// this.testMediaAttribute("Media", "ClientEncoding");
-		// this.testMediaResource(mediaResourceGroup, mediaResourceName);
-		// this.testMediaFileManagement(mediaResourceGroup, mediaResourceName);
-		// this.testUploadFile(mediaResourceGroup, mediaResourceName);
-		// this.testObsoleteFile(mediaResourceGroup, mediaResourceName);
-		this.testStressTestUploadFiles(mediaResourceGroup, mediaResourceName, 10, 1, 40);
+		this.testMediaAttribute();
+		this.testMediaResource();
+		this.testUploadFile(this.parameterResourceGroup, this.parameterResourceName, this.parameterDataIdentifierTestUpload);
+		this.testObsoleteFile(this.parameterResourceGroup, this.parameterResourceName, this.parameterDataIdentifierTestObsolete);
+		this.testStressTestUploadFiles(this.parameterResourceGroup, this.parameterResourceName, this.parameterTestCycleNumber, this.parameterTestCycleDataIdentifierFrom, this.parameterTestCycleDataIdentifierToo);
 
 		// Cleanup test environment
 		this.testCleanup();
@@ -66,103 +68,30 @@ public class ServerTestMedia implements Runnable
 	/**
 	 * Test: Media Attribute
 	 */
-	private void testMediaAttribute(String mediaResourceGroup, String mediaResourceName)
+	private void testMediaAttribute()
 	{
-		ResourceContainer attributeResourceContainer = ResourceManager.attribute(context, mediaResourceGroup, mediaResourceName);
-		String documentation = attributeResourceContainer.printManual(context);
-
 		TestManager.assertPrint(context, "===> testMediaAttribute()", null);
-
-		System.out.println(documentation);
-	}
-
-	/**
-	 * Test: Media Resource
-	 */
-	private void testMediaResource(String mediaResourceGroup, String mediaResourceName)
-	{
-		TestManager.assertPrint(context, "===> testMediaResource()", null);
-
-		ResourceContainerMedia mediaResourceContainer = ResourceManager.media(context, mediaResourceGroup, mediaResourceName);
-		String documentation = mediaResourceContainer.printManual(context);
-
-		System.out.println("");
-		System.out.println(documentation);
-
-		System.out.println("");
-		System.out.println("Is IMAGE? " + mediaResourceContainer.isMediaTypeImage(context));
-		System.out.println("Is VIDEO? " + mediaResourceContainer.isMediaTypeVideo(context));
-		System.out.println("Is AUDIO? " + mediaResourceContainer.isMediaTypeAudio(context));
-		System.out.println("Is DOCUMENT? " + mediaResourceContainer.isMediaTypeDocument(context));
-		System.out.println("JPG supported? " + mediaResourceContainer.isFileTypeSupported(context, "JPG"));
-		System.out.println("jpg supported? " + mediaResourceContainer.isFileTypeSupported(context, "jpg"));
-		System.out.println("mkv supported? " + mediaResourceContainer.isFileTypeSupported(context, "mkv"));
-		System.out.println("AAA supported? " + mediaResourceContainer.isFileTypeSupported(context, "aaa"));
-		System.out.println("StorageLocation is SERVER? " + mediaResourceContainer.isStorageLocationServer(context));
-		System.out.println("StorageLocation is CLIENT? " + mediaResourceContainer.isStorageLocationClient(context));
-		System.out.println("StorageLocation is SYNCHRONIZED? " + mediaResourceContainer.isStorageLocationSynchronize(context));
-		System.out.println("LogicalPath? " + mediaResourceContainer.getLogicalPath(context));
-		System.out.println("ServerEncoding? " + mediaResourceContainer.isServerEncoding(context));
-		System.out.println("ClientEncoding? " + mediaResourceContainer.isClientEncoding(context));
-	}
-
-	/**
-	 * Test: Media File Management
-	 */
-	private void testMediaFileManagement(String mediaResourceGroup, String mediaResourceName)
-	{
-		TestManager.assertPrint(context, "===> testMediaFileManagement()", null);
-
-		ResourceContainerMedia mediaResourceContainer = ResourceManager.media(context, mediaResourceGroup, mediaResourceName);
-
-		System.out.println("Local media file path? " + mediaResourceContainer.getMediaRegularFilePath(context));
-		System.out.println("Media file name mask? " + mediaResourceContainer.getMediaFileNameMask(context, "1234"));
-		System.out.println("Temp file name? " + mediaResourceContainer.getMediaPendingFileName(context, "png"));
-		System.out.println("Pending file path? " + mediaResourceContainer.getMediaPendingFilePath(context));
-		System.out.println("Deleted file path? " + mediaResourceContainer.getMediaDeletedFilePath(context));
-	}
-
-	/**
-	 * Test: Upload File
-	 */
-	private void testUploadFile(String mediaResourceGroup, String mediaResourceName)
-	{
-		TestManager.assertPrint(context, "===> testUploadFile()", null);
 
 		try
 		{
-			ResourceContainerMedia mediaResourceContainer = ResourceManager.media(context, mediaResourceGroup, mediaResourceName);
+			List<String> attributeList = new ArrayList<String>();
+			attributeList.add("MediaType");
+			attributeList.add("FileTypes");
+			attributeList.add("StorageLocation");
+			attributeList.add("LogicalPath");
+			attributeList.add("ServerEncoding");
+			attributeList.add("ClientEncoding");
 
-			// Upload a file
-			String uploadFileName = "E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/DoktorBarnickel/Apotheker_Reinsdorf.jpg";
-			String dataIdentifierString = "1234";
+			String group = "Media";
 
-			String additionalText = "--> Tried to upload a file";
-			additionalText += "\n--> Upload file? '" + uploadFileName + "'";
-			additionalText += "\n--> Data identifier? '" + dataIdentifierString + "'";
-
-			boolean booleanResult = context.getMediaManager().mediaFileOperationUpload(context, mediaResourceContainer, uploadFileName, dataIdentifierString);
-			TestManager.assertTrue(context, additionalText, booleanResult);
-
-			// Check if file content can be read
-			additionalText = "--> Tried to read file content of an uploaded file";
-			additionalText += "\n--> Upload file? '" + uploadFileName + "'";
-			additionalText += "\n--> Data identifier? '" + dataIdentifierString + "'";
-
-			MediaContainer media = new MediaContainer(context, mediaResourceContainer, dataIdentifierString);
-			TestManager.assertNotNull(context, additionalText, media);
-
-			if (media != null)
+			for (String name : attributeList)
 			{
-				booleanResult = media.bindMedia();
-				TestManager.assertTrue(context, additionalText, booleanResult);
+				ResourceContainer attribute = ResourceManager.attribute(context, group, name);
 
-				byte[] contentAsByteBuffer = media.readMediaContentAsByteArray();
-				TestManager.assertNotNull(context, additionalText, contentAsByteBuffer);
-				TestManager.assertGreaterThan(context, additionalText, contentAsByteBuffer.length, 0);
+				String additionalText = "--> Media attribute: '" + group + "." + name + "' is not defined in the resource files.";
 
-				booleanResult = media.releaseMedia();
-				TestManager.assertTrue(context, additionalText, booleanResult);
+				String documentation = attribute.printManual(context);
+				TestManager.assertNotContains(context, additionalText, documentation, "Resource.*.*.*.");
 			}
 		}
 		catch (Exception e)
@@ -172,28 +101,132 @@ public class ServerTestMedia implements Runnable
 	}
 
 	/**
+	 * Test: Media Resource
+	 */
+	private void testMediaResource()
+	{
+		TestManager.assertPrint(context, "===> testMediaResource()", null);
+
+		try
+		{
+			ResourceContainerMedia media = ResourceManager.media(context, "Test", "TestMediaResource");
+
+			TestManager.assertTrue(context, null, media.isMediaTypeImage(context));
+			TestManager.assertFalse(context, null, media.isMediaTypeVideo(context));
+			TestManager.assertFalse(context, null, media.isMediaTypeAudio(context));
+			TestManager.assertFalse(context, null, media.isMediaTypeDocument(context));
+			TestManager.assertTrue(context, null, media.isFileTypeSupported(context, "JPG"));
+			TestManager.assertTrue(context, null, media.isFileTypeSupported(context, "jpg"));
+			TestManager.assertTrue(context, null, media.isFileTypeSupported(context, "png"));
+			TestManager.assertFalse(context, null, media.isFileTypeSupported(context, "gif"));
+			TestManager.assertFalse(context, null, media.isFileTypeSupported(context, "MKV"));
+			TestManager.assertFalse(context, null, media.isFileTypeSupported(context, "mkv"));
+			TestManager.assertFalse(context, null, media.isFileTypeSupported(context, "aaa"));
+			TestManager.assertFalse(context, null, media.isStorageLocationServer(context));
+			TestManager.assertFalse(context, null, media.isStorageLocationClient(context));
+			TestManager.assertTrue(context, null, media.isStorageLocationSynchronize(context));
+			TestManager.assertEqualsIgnoreCase(context, null, media.getLogicalPath(context), "test/media/resource");
+			TestManager.assertTrue(context, null, media.isServerEncoding(context));
+			TestManager.assertFalse(context, null, media.isClientEncoding(context));
+
+			TestManager.assertEndsWith(context, null, media.getMediaRegularFilePath(context), "test/media/resource");
+			TestManager.assertEndsWith(context, null, media.getMediaFileNameMask(context, "1234"), "-testmediaresource-00000000001234-*-*.*");
+			TestManager.assertEndsWith(context, null, media.getMediaPendingFileName(context, "png"), ".png");
+			TestManager.assertEndsWith(context, null, media.getMediaPendingFilePath(context), "test/media/resource/pending");
+			TestManager.assertEndsWith(context, null, media.getMediaDeletedFilePath(context), "test/media/resource/deleted");
+		}
+		catch (Exception e)
+		{
+			TestManager.assertPrintException(context, "Unexpected Exception", e);
+		}
+	}
+
+	/**
+	 * Test: Upload File
+	 */
+	private void testUploadFile(String group, String name, String dataIdentifierString)
+	{
+		TestManager.assertPrint(context, "===> testUploadFile()", null);
+
+		// Clear (delete) media files
+		ResourceContainerMedia mediaResource = ResourceManager.media(context, group, name);
+		String mediaFileNameMask = mediaResource.getMediaFileNameMask(context, dataIdentifierString);
+		String mediaFilePath = mediaResource.getMediaRegularFilePath(context);
+		List<String> mediaFiles = Util.fileSearchDirectory(mediaFilePath, mediaFileNameMask);
+
+		if (mediaFiles != null && mediaFiles.size() > 0)
+		{
+			int nuOfDeletedFiles = Util.fileDelete(mediaFiles);
+			TestManager.assertEquals(context, null, mediaFiles.size(), nuOfDeletedFiles);
+		}
+
+		// Get file List
+		String uploadFilePath = TestManager.getTestStuffFilePath(context) + FileLocationManager.getPathElementDelimiterString() + "Images";
+		List<String> fileNameList = Util.fileSearchDirectory(uploadFilePath, "*.jpg");
+		
+		// Try some uploads
+		this.doUploadFile(group, name, dataIdentifierString, fileNameList.get(0));
+		this.doUploadFile(group, name, dataIdentifierString, fileNameList.get(1));
+		this.doUploadFile(group, name, dataIdentifierString, fileNameList.get(2));
+		this.doUploadFile(group, name, dataIdentifierString, fileNameList.get(0));
+		this.doUploadFile(group, name, dataIdentifierString, fileNameList.get(1));
+		this.doUploadFile(group, name, dataIdentifierString, fileNameList.get(2));
+		this.doUploadFile(group, name, dataIdentifierString, fileNameList.get(3));
+	}
+
+	/**
 	 * Test: Obsolete File
 	 */
-	private void testObsoleteFile(String mediaResourceGroup, String mediaResourceName)
+	private void testObsoleteFile(String group, String name, String dataIdentifierString)
 	{
 		TestManager.assertPrint(context, "===> testObsoleteFile()", null);
 
-		ResourceContainerMedia mediaResourceContainer = ResourceManager.media(context, mediaResourceGroup, mediaResourceName);
-		String dataIdentifierString = "1234";
-
-		String mediaFileNameMask = mediaResourceContainer.getMediaFileNameMask(context, dataIdentifierString);
-		String mediaFilePath = mediaResourceContainer.getMediaRegularFilePath(context);
-		List<String> obsoleteFiles = Util.fileSearchDirectoryOnObsoleteFiles(mediaFilePath, mediaFileNameMask);
-
-		if (obsoleteFiles != null && obsoleteFiles.size() > 0)
+		try
 		{
-			System.out.println("");
-			System.out.println("List of obsolete file:");
+			// Initialize variables
+			ResourceContainerMedia mediaResource = ResourceManager.media(context, group, name);
+			int nuOfObsoleteFiles = 0;
 
-			for (String obsoleteFilePath : obsoleteFiles)
+			String uploadFilePath = TestManager.getTestStuffFilePath(context) + FileLocationManager.getPathElementDelimiterString() + "Images";
+			List<String> fileNameList = Util.fileSearchDirectory(uploadFilePath, "*.jpg");
+
+			// Clear (delete) media files
+			String mediaFileNameMask = mediaResource.getMediaFileNameMask(context, dataIdentifierString);
+			String mediaFilePath = mediaResource.getMediaRegularFilePath(context);
+			List<String> mediaFiles = Util.fileSearchDirectory(mediaFilePath, mediaFileNameMask);
+
+			if (mediaFiles != null)
 			{
-				System.out.println("Obsolete?: " + obsoleteFilePath);
+				nuOfObsoleteFiles = mediaFiles.size();
+
+				if (nuOfObsoleteFiles > 0)
+				{
+					int nuOfDeletedFiles = Util.fileDelete(mediaFiles);
+					TestManager.assertEquals(context, null, mediaFiles.size(), nuOfDeletedFiles);
+				}
 			}
+
+			nuOfObsoleteFiles = -1;
+
+			// Override the file and check number of obsolete files again
+			for (int i = 0; i < 10; i++)
+			{
+				// Override (upload) media file
+				this.doUploadFile(group, name, dataIdentifierString, fileNameList.get(i));
+
+				// Get list of obsolete files
+				List<String> obsoleteFiles = Util.fileSearchDirectoryOnObsoleteFiles(mediaFilePath, mediaFileNameMask);
+				TestManager.assertNotNull(context, null, obsoleteFiles);
+				TestManager.assertEquals(context, null, obsoleteFiles.size(), nuOfObsoleteFiles + i + 1);
+
+				// The new uploaded file name must not be part of the list
+				String recentFileName = mediaResource.getMediaRealFileName(context, dataIdentifierString);
+				TestManager.assertFalse(context, null, obsoleteFiles.contains(recentFileName));
+			}
+		}
+		catch (Exception e)
+		{
+			TestManager.assertPrintException(context, "Unexpected Exception", e);
 		}
 	}
 
@@ -204,20 +237,11 @@ public class ServerTestMedia implements Runnable
 	{
 		TestManager.assertPrint(context, "===> testStressTestUploadFiles()", null);
 
-		ResourceContainerMedia mediaResourceContainer = ResourceManager.media(context, mediaResourceGroup, mediaResourceName);
-
 		try
 		{
+			String uploadFilePath = TestManager.getTestStuffFilePath(context) + FileLocationManager.getPathElementDelimiterString() + "Images";
 			List<String> directoryList = new ArrayList<String>();
-			directoryList.add("E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/Stalingrad15-a");
-			directoryList.add("E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/Stalingrad15-b");
-			directoryList.add("E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/Stalingrad15-c");
-			directoryList.add("E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/WilhelmGrosse");
-			directoryList.add("E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/Zusatzbilder");
-			directoryList.add("E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/DoktorBarnickel");
-			directoryList.add("E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/DoktorKluger");
-			directoryList.add("E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/JosefLeitner");
-			directoryList.add("E:/Bücher/Active/Busch, Rotes Kreuz über Stalingrad 1 + 2/Images/RudolfBöker");
+			directoryList.add(uploadFilePath);
 
 			int dataIdentifierInteger = dataIdentifierFrom;
 
@@ -236,40 +260,8 @@ public class ServerTestMedia implements Runnable
 						{
 							// Upload file
 							if (dataIdentifierInteger >= dataIdentifierToo) dataIdentifierInteger = dataIdentifierFrom;
+							this.doUploadFile(mediaResourceGroup, mediaResourceName, String.valueOf(dataIdentifierInteger), fileName);
 							dataIdentifierInteger++;
-
-							String additionalText = "--> Tried to upload a file";
-							additionalText += "\n--> Test cycle? '" + String.valueOf(testCounter) + "'";
-							additionalText += "\n--> Upload file? '" + fileName + "'";
-							additionalText += "\n--> Data identifier? '" + String.valueOf(dataIdentifierInteger) + "'";
-
-							boolean booleanResult = context.getMediaManager().mediaFileOperationUpload(context, mediaResourceContainer, fileName, String.valueOf(dataIdentifierInteger));
-							TestManager.assertTrue(context, additionalText, booleanResult);
-
-							// Check if file content can be read
-							additionalText = "--> Tried to read file content of an uploaded file";
-							additionalText += "\n--> Upload file? '" + fileName + "'";
-							additionalText += "\n--> Data identifier? '" + String.valueOf(dataIdentifierInteger) + "'";
-
-							MediaContainer media = new MediaContainer(context, mediaResourceContainer, String.valueOf(dataIdentifierInteger));
-							TestManager.assertNotNull(context, additionalText, media);
-
-							if (media != null)
-							{
-								booleanResult = media.bindMedia();
-								TestManager.assertTrue(context, additionalText, booleanResult);
-
-								byte[] contentAsByteBuffer = media.readMediaContentAsByteArray();
-								TestManager.assertNotNull(context, additionalText, contentAsByteBuffer);
-
-								if (contentAsByteBuffer != null)
-								{
-									TestManager.assertGreaterThan(context, additionalText, contentAsByteBuffer.length, 0);
-								}
-
-								booleanResult = media.releaseMedia();
-								TestManager.assertTrue(context, additionalText, booleanResult);
-							}
 						}
 					}
 				}
@@ -281,5 +273,105 @@ public class ServerTestMedia implements Runnable
 		}
 
 		return;
+	}
+
+	/**
+	 * Test: Upload File
+	 */
+	private void doUploadFile(String ResourceGroup, String resourceName, String dataIdentifierString, String uploadFileName)
+	{
+		try
+		{
+			ResourceContainerMedia mediaResource = ResourceManager.media(context, ResourceGroup, resourceName);
+
+			// Upload a file
+			String additionalText = "--> Tried to upload a file";
+			additionalText += "\n--> Upload file? '" + uploadFileName + "'";
+			additionalText += "\n--> Data identifier? '" + dataIdentifierString + "'";
+
+			boolean booleanResult = context.getMediaManager().mediaFileOperationUpload(context, mediaResource, uploadFileName, dataIdentifierString);
+			TestManager.assertTrue(context, additionalText, booleanResult);
+
+			// Check if file content can be read
+			additionalText = "--> Tried to read file content of an uploaded file";
+			additionalText += "\n--> Upload file? '" + uploadFileName + "'";
+			additionalText += "\n--> Data identifier? '" + dataIdentifierString + "'";
+
+			MediaContainer mediaContainer = new MediaContainer(context, mediaResource, dataIdentifierString);
+			TestManager.assertNotNull(context, additionalText, mediaContainer);
+
+			if (mediaContainer != null)
+			{
+				booleanResult = mediaContainer.bindMedia();
+				TestManager.assertTrue(context, additionalText, booleanResult);
+
+				byte[] contentAsByteBuffer = mediaContainer.readMediaContentAsByteArray();
+				TestManager.assertNotNull(context, additionalText, contentAsByteBuffer);
+				TestManager.assertGreaterThan(context, additionalText, contentAsByteBuffer.length, 0);
+
+				booleanResult = mediaContainer.releaseMedia();
+				TestManager.assertTrue(context, additionalText, booleanResult);
+			}
+		}
+		catch (Exception e)
+		{
+			TestManager.assertPrintException(context, "Unexpected Exception", e);
+		}
+	}
+
+	/**
+	 * Setter
+	 */
+	public void setParameterResourceGroup(String parameterResourceGroup)
+	{
+		this.parameterResourceGroup = parameterResourceGroup;
+	}
+
+	/**
+	 * Setter
+	 */
+	public void setParameterResourceName(String parameterResourceName)
+	{
+		this.parameterResourceName = parameterResourceName;
+	}
+
+	/**
+	 * Setter
+	 */
+	public void setParameterDataIdentifierTestUpload(String parameterDataIdentifierTestUpload)
+	{
+		this.parameterDataIdentifierTestUpload = parameterDataIdentifierTestUpload;
+	}
+
+	/**
+	 * Setter
+	 */
+	public void setParameterDataIdentifierTestObsolete(String parameterDataIdentifierTestObsolete)
+	{
+		this.parameterDataIdentifierTestObsolete = parameterDataIdentifierTestObsolete;
+	}
+
+	/**
+	 * Setter
+	 */
+	public void setParameterTestCycleNumber(int parameterTestCycleNumber)
+	{
+		this.parameterTestCycleNumber = parameterTestCycleNumber;
+	}
+
+	/**
+	 * Setter
+	 */
+	public void setParameterTestCycleDataIdentifierFrom(int parameterTestCycleDataIdentifierFrom)
+	{
+		this.parameterTestCycleDataIdentifierFrom = parameterTestCycleDataIdentifierFrom;
+	}
+
+	/**
+	 * Setter
+	 */
+	public void setParameterTestCycleDataIdentifierToo(int parameterTestCycleDataIdentifierToo)
+	{
+		this.parameterTestCycleDataIdentifierToo = parameterTestCycleDataIdentifierToo;
 	}
 }

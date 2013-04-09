@@ -96,6 +96,7 @@ public abstract class Context implements Cloneable, ManagerInterface
 	// Test mode
 	private final String ticketNumberOfTest;
 	private final boolean runningInTestMode;
+	private final String testCaseName;
 
 	// List of messages that are stored in the dump list of the current context
 	private List<String> dumpListMessages = new ArrayList<String>();
@@ -117,11 +118,39 @@ public abstract class Context implements Cloneable, ManagerInterface
 
 	/**
 	 * Constructor
+	 * 
+	 * @param codeName
+	 *            Code name of the application.
+	 * 
+	 * @param applicationName
+	 *            The name of the application.
+	 * 
+	 * @param applicationVersion
+	 *            Software version of the application.
+	 * 
+	 * @param originName
+	 *            Origin name "Server" or "Client".
+	 * 
+	 * @param applicationManager
+	 *            The instance of the application manager that is to be assigned
+	 *            to the context.
+	 * 
+	 * @param testManager
+	 *            The instance of the current test manager that is to be
+	 *            assigned to the context.
+	 * 
+	 * @param runningInTestMode
+	 *            Set to TRUE if the application is running in test mode.
+	 * 
+	 * @param testCaseName
+	 *            Is to be set to the name of the test case, if the application
+	 *            is running in test mode, or <TT>null</TT> if the application
+	 *            is running in productive mode.
 	 */
 	public Context(String codeName, String applicationName,
 			int applicationVersion, String originName,
 			ApplicationManager applicationManager, TestManager testManager,
-			boolean runningInTestMode)
+			boolean runningInTestMode, String testCaseName)
 	{
 		this.codeName = Util.fitToFileNameCompatibility(codeName);
 		this.applicationName = Util.fitToFileNameCompatibility(applicationName);
@@ -146,7 +175,17 @@ public abstract class Context implements Cloneable, ManagerInterface
 		if (runningInTestMode == true)
 		{
 			this.runningInTestMode = true;
-			contextType = Context.ContextTypeEnum.TEST;
+
+			if (testCaseName == null || testCaseName.length() == 0)
+			{
+				this.testCaseName = "default";
+			}
+			else
+			{
+				this.testCaseName = Util.fitToFileNameCompatibility(testCaseName);
+			}
+
+			this.contextType = Context.ContextTypeEnum.TEST;
 
 			Date messageDate = new Date();
 			SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd-HHmmss-SSS", Locale.getDefault());
@@ -155,6 +194,7 @@ public abstract class Context implements Cloneable, ManagerInterface
 		else
 		{
 			this.runningInTestMode = false;
+			this.testCaseName = null;
 			this.ticketNumberOfTest = null;
 		}
 
@@ -825,5 +865,13 @@ public abstract class Context implements Cloneable, ManagerInterface
 	public boolean isRunningInTestMode()
 	{
 		return this.runningInTestMode;
+	}
+
+	/**
+	 * Getter
+	 */
+	public String getTestCaseName()
+	{
+		return this.testCaseName;
 	}
 }

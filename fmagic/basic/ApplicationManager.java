@@ -5,6 +5,7 @@ import java.util.HashMap;
 import fmagic.basic.ResourceContainer.OriginEnum;
 import fmagic.client.ClientContext;
 import fmagic.server.ServerContext;
+import fmagic.test.TestManager;
 
 /**
  * This class implements common data needed to organize client/server FMAGIC
@@ -45,7 +46,7 @@ public abstract class ApplicationManager implements ManagerInterface
 	// Application codes
 	public static enum ApplicationIdentifierEnum
 	{
-		Basic, Common, Extension, SeniorCitizen, SteriManagement
+		Basic, Common, Extension, Test, SeniorCitizen, SteriManagement
 	}
 
 	/**
@@ -59,20 +60,31 @@ public abstract class ApplicationManager implements ManagerInterface
 	 * 
 	 * @param codeName
 	 *            Code name of the application.
+	 * 
+	 * @param origin
+	 *            Origin "Server" or "Client".
+	 * 
+	 * @param runningInTestMode
+	 *            Set to TRUE if the application is running in test mode.
+	 * 
+	 * @param testCaseName
+	 *            Is to be set to the name of the test case, if the application
+	 *            is running in test mode, or <TT>null</TT> if the application
+	 *            is running in productive mode.
 	 */
 	protected ApplicationManager(
 			ApplicationManager.ApplicationIdentifierEnum applicationIdentifier,
 			int applicationVersion, String codeName, OriginEnum origin,
-			boolean runningInTestMode)
+			boolean runningInTestMode, String testCaseName)
 	{
 		// Create default context
 		if (origin.toString().equals(OriginEnum.Server.toString()))
 		{
-			this.context = new ServerContext(codeName, applicationIdentifier.toString(), applicationVersion, this, runningInTestMode);
+			this.context = new ServerContext(codeName, applicationIdentifier.toString(), applicationVersion, this, runningInTestMode, testCaseName);
 		}
 		else
 		{
-			this.context = new ClientContext(codeName, applicationIdentifier.toString(), applicationVersion, this, runningInTestMode);
+			this.context = new ClientContext(codeName, applicationIdentifier.toString(), applicationVersion, this, runningInTestMode, testCaseName);
 		}
 
 		// Adopt constructor data
@@ -233,10 +245,22 @@ public abstract class ApplicationManager implements ManagerInterface
 		// Read and check
 		try
 		{
-			if (this.getContext().getResourceManager().loadCommonResourceFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Basic.toString(), applicationVersion) == false) isSuccessful = false;
-			if (this.getContext().getResourceManager().loadCommonResourceFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Common.toString(), applicationVersion) == false) isSuccessful = false;
-			if (this.getContext().getResourceManager().loadCommonResourceFile(this.getContext(), this.getApplicationIdentifier().toString(), applicationVersion) == false) isSuccessful = false;
-			if (this.getContext().getResourceManager().loadCommonResourceFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Extension.toString(), applicationVersion) == false) isSuccessful = false;
+			// Read regular resources
+			if (this.getContext().getResourceManager().loadCommonResourceFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Basic.toString(), this.applicationVersion, null) == false) isSuccessful = false;
+			if (this.getContext().getResourceManager().loadCommonResourceFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Common.toString(), this.applicationVersion, null) == false) isSuccessful = false;
+			if (this.getContext().getResourceManager().loadCommonResourceFile(this.getContext(), this.getApplicationIdentifier().toString(), this.applicationVersion, null) == false) isSuccessful = false;
+			if (this.getContext().getResourceManager().loadCommonResourceFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Extension.toString(), this.applicationVersion, null) == false) isSuccessful = false;
+			
+			// Read test resources. if the application is running in "test mode", the test resources are loaded additionally.
+			if (context.isRunningInTestMode())
+			{
+				String fileName = TestManager.getTestResourceFilePath(this.getContext()) + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getResourceFileName();
+				fileName = FileLocationManager.replacePlaceholder(this.getContext(), fileName, ApplicationManager.ApplicationIdentifierEnum.Test.toString(), null);
+				
+				if (this.getContext().getResourceManager().loadCommonResourceFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Test.toString(), this.applicationVersion, fileName) == false) isSuccessful = false;
+			}
+			
+			
 		}
 		catch (Exception e)
 		{

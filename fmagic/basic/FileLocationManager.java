@@ -7,30 +7,30 @@ import java.util.Locale;
 public class FileLocationManager
 {
 	// Root path set for testing purposes only.
-	private static String rootPath = "E:/Gewerbe/Fmagic/Workspaces/fmagic/AppsServer/src/configuration";
+	private static String rootPath = "E:/Gewerbe/Fmagic/Workspaces/fmagic/AppsServer/src";
 
-	private static final String resourceSubPath = "fmagic.resource";
+	private static final String resourceSubPath = "configuration/fmagic.resource";
 	private static final String resourceFileName = "fmagic.resource.${application}.properties";
 
-	private static final String resourceLabelSubPath = "fmagic.resource";
+	private static final String resourceLabelSubPath = "configuration/fmagic.resource";
 	private static final String resourceLabelFileName = "fmagic.label.${application}.properties";
 
-	private static final String resourceLabelTranslatedSubPath = "fmagic.label";
+	private static final String resourceLabelTranslatedSubPath = "configuration/fmagic.label";
 	private static final String resourceLabelTranslatedFileName = "fmagic.label.${application}.${language}.properties";
 
-	private static final String resourceLabelTemplateSubPath = "fmagic.label/templates";
+	private static final String resourceLabelTemplateSubPath = "configuration/fmagic.label/templates";
 	private static final String resourceLabelTemplateFileName = "fmagic.template.label.${application}.${language}.properties";
 
-	private static final String configurationSubPath = "fmagic.configuration";
+	private static final String configurationSubPath = "configuration/fmagic.configuration";
 	private static final String configurationFileName = "fmagic.${codename}.configuration.properties";
 
-	private static final String configurationDefaultSubPath = "fmagic.configuration";
+	private static final String configurationDefaultSubPath = "configuration/fmagic.configuration";
 	private static final String configurationDefaultFileName = "fmagic.default.configuration.properties";
 
-	private static final String configurationTemplateSubPath = "fmagic.configuration/templates";
+	private static final String configurationTemplateSubPath = "configuration/fmagic.configuration/templates";
 	private static final String configurationTemplateFileName = "fmagic.template.configuration.${application}.${origin}.properties";
 
-	private static final String localdataSubPath = "fmagic.localdata";
+	private static final String localdataSubPath = "configuration/fmagic.localdata";
 	private static final String localdataFileName = "fmagic.${codename}.localdata.properties";
 
 	private static final String logContextSubPath = "fmagic.logging/fmagic.logging.context";
@@ -41,32 +41,36 @@ public class FileLocationManager
 	private static final String logApplicationSubSubPath = "${codename}/${sdate}";
 	private static final String logApplicationFileName = "fmagic-${codename}-${ndate}.log";
 
-	private static final String logFlatSubPath = "fmagic.logging/fmagic.logging.flat";
+	private static final String logFlatSubPath = "configuration/fmagic.logging/fmagic.logging.flat";
 	private static final String logFlatFileName = "fmagic-flat-${ndate}.log";
 
-	private static final String logTicketSubPath = "fmagic.logging/fmagic.logging.tickets";
+	private static final String logTicketSubPath = "configuration/fmagic.logging/fmagic.logging.tickets";
 	private static final String logTicketSubSubPath = "${sdate}";
 	private static final String logTicketComposer = "fmagic-${codename}-${context}-${timestamp}-[${thread}]";
 	private static final String logTicketFileType = ".log";
 
-	private static final String licenseSubPath = "fmagic.license";
+	private static final String licenseSubPath = "configuration/fmagic.license";
 	private static final String licenseFileName = "fmagic.license.${application}.${licensekey}.license";
 	private static final String licenseFileNameType = "license";
 
-	private static final String licenseTemplateSubPath = "fmagic.license/templates";
+	private static final String licenseTemplateSubPath = "configuration/fmagic.license/templates";
 	private static final String licenseTemplateFileName = "fmagic.template.license.${application}.${licensemodel}.properties";
 
-	private static final String mediaSubPath = "fmagic.media";
 	private static final String mediaFileName = "${application}-${alias}-${identifier}-${encodingkey}-${hashvalue}.${filetype}";
 	private static final String mediaPendingFileName = "${timestamp}-${application}-${codename}-[${thread}].${filetype}";
 	private static final String mediaPendingSubPath = "pending";
 	private static final String mediaDeletedFileName = "${originalname}-${timestamp}-[${thread}].${filetype}";
 	private static final String mediaDeletedSubPath = "deleted";
 
-	private static final String testSubPath = "fmagic.test";
-	private static final String testSubSubPath = "${application}-${origin}-${testticket}";
-	private static final String testLogFileName = "LOGGING-${application}-${origin}-${codename}-[${thread}].log";
-	private static final String testAssertFileName = "ASSERT-${application}-${origin}-${codename}-[${thread}].log";
+	private static final String testLoggingSubPath = "test/${testcasename}/fmagic.logging";
+	private static final String testLoggingSubSubPath = "${application}-${origin}-${testticket}";
+	private static final String testLoggingLogFileName = "LOGGING-${application}-${origin}-${codename}-[${thread}].log";
+	private static final String testLoggingAssertFileName = "ASSERT-${application}-${origin}-${codename}-[${thread}].log";
+
+	private static final String testResourceSubPath = "test/${testcasename}/fmagic.resource";
+	private static final String testStuffSubPath = "test/${testcasename}/fmagic.stuff";
+	private static final String testConfigurationSubPath = "test/${testcasename}/fmagic.configuration";
+	private static final String testLicenseSubPath = "test/${testcasename}/fmagic.license";
 
 	/**
 	 * Get the delimiter character that divides parts of path elements.
@@ -130,6 +134,7 @@ public class FileLocationManager
 			resultString = resultString.replace("${thread}", String.format("%04d", Thread.currentThread().getId()));
 			resultString = resultString.replace("${origin}", context.getOriginName().toLowerCase());
 			resultString = resultString.replace("${testticket}", context.getTicketNumberOfTest().toLowerCase());
+			resultString = resultString.replace("${testcasename}", context.getTestCaseName().toLowerCase());
 
 			if (language != null && language.length() > 0)
 			{
@@ -447,14 +452,6 @@ public class FileLocationManager
 	/**
 	 * Getter
 	 */
-	public static String getMediaSubPath()
-	{
-		return mediaSubPath;
-	}
-
-	/**
-	 * Getter
-	 */
 	public static String getMediaFileName()
 	{
 		return mediaFileName;
@@ -492,24 +489,43 @@ public class FileLocationManager
 		return mediaPendingSubPath;
 	}
 
-	public static String getTestSubPath()
+	public static String getTestLoggingSubPath()
 	{
-		return testSubPath;
+		return testLoggingSubPath;
 	}
 
-	public static String getTestSubSubPath()
+	public static String getTestLoggingSubSubPath()
 	{
-		return testSubSubPath;
+		return testLoggingSubSubPath;
 	}
 
-	public static String getTestLogFileName()
+	public static String getTestLoggingLogFileName()
 	{
-		return testLogFileName;
+		return testLoggingLogFileName;
 	}
 
-	public static String getTestAssertFileName()
+	public static String getTestLoggingAssertFileName()
 	{
-		return testAssertFileName;
+		return testLoggingAssertFileName;
 	}
-	
+
+	public static String getTestResourceSubPath()
+	{
+		return testResourceSubPath;
+	}
+
+	public static String getTestStuffSubPath()
+	{
+		return testStuffSubPath;
+	}
+
+	public static String getTestConfigurationSubPath()
+	{
+		return testConfigurationSubPath;
+	}
+
+	public static String getTestLicenseSubPath()
+	{
+		return testLicenseSubPath;
+	}
 }

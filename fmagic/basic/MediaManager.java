@@ -1516,7 +1516,7 @@ public class MediaManager implements ManagerInterface
 		// up-to-date.
 		if (Util.fileExists(destinationFileName) == true)
 		{
-			if (Util.fileSetLastModified(destinationFileName, new Date()) == false)
+			if (Util.fileSetLastModified(destinationFileName) == false)
 			{
 				String errorString = "--> Error on setting 'last modified' date to a media file.";
 				errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";

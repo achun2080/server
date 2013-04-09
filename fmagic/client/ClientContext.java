@@ -17,12 +17,33 @@ public class ClientContext extends Context
 {
 	/**
 	 * Constructor
+	 * 
+	 * @param codeName
+	 *            Code name of the application.
+	 * 
+	 * @param applicationName
+	 *            The name of the application.
+	 * 
+	 * @param applicationVersion
+	 *            Software version of the application.
+	 * 
+	 * @param applicationManager
+	 *            The instance of the application manager that is to be assigned
+	 *            to the context.
+	 * 
+	 * @param runningInTestMode
+	 *            Set to TRUE if the application is running in test mode.
+	 * 
+	 * @param testCaseName
+	 *            Is to be set to the name of the test case, if the application
+	 *            is running in test mode, or <TT>null</TT> if the application
+	 *            is running in productive mode.
 	 */
 	public ClientContext(String codeName, String applicationName,
 			int applicationVersion, ApplicationManager applicationManager,
-			boolean runningInTestMode)
+			boolean runningInTestMode, String testCaseName)
 	{
-		super(codeName, applicationName, applicationVersion, ResourceContainer.OriginEnum.Client.toString(), applicationManager, new TestManagerClient(), runningInTestMode);
+		super(codeName, applicationName, applicationVersion, ResourceContainer.OriginEnum.Client.toString(), applicationManager, new TestManagerClient(), runningInTestMode, testCaseName);
 	}
 
 	@Override

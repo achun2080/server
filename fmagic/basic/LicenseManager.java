@@ -12,6 +12,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import fmagic.test.TestManager;
+
 /**
  * This class implements the management of licenses used by servers and clients.
  * <p>
@@ -141,7 +143,7 @@ public class LicenseManager implements ManagerInterface
 		// Return
 		return isIntegrityError;
 	}
-	
+
 	@Override
 	public boolean readConfiguration(Context context)
 	{
@@ -194,38 +196,53 @@ public class LicenseManager implements ManagerInterface
 	public boolean loadLicenseFiles(Context context, String applicationIdentifier, int applicationVersion)
 	{
 		// Get all files of the license directory as a list
-		String licenseFilePath = this.getLicenseFilePath(context);
-		File[] fileList = null;
+		// If the application is running in "test mode", the test
+		// environment is used instead of the regular environment.
+		String licenseFilePath = null;
 
-		try
+		if (context.isRunningInTestMode())
 		{
-			File dir = new File(licenseFilePath);
-			fileList = dir.listFiles();
+			licenseFilePath = TestManager.getTestLicenseFilePath(context);
 		}
-		catch (Exception e)
+		else
+		{
+			licenseFilePath = this.getLicenseFilePath(context);
+		}
+
+		if (Util.fileDirectoryExists(licenseFilePath) == false)
 		{
 			String additionalText = "--> Error on parsing license file path";
-			additionalText += "\n--> Searched in path: '" + licenseFilePath + "'";
-			context.getNotificationManager().notifyEvent(context, ResourceManager.notification(context, "License", "ErrorOnReadingLicenseFile"), additionalText, e);
+			additionalText += "\n--> License file path doesn't exist: '" + licenseFilePath + "'";
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "License", "ErrorOnReadingLicenseFile"), additionalText, null);
 			return false;
 		}
 
-		if (fileList == null) return false;
+		String licenseFileNameTypeMask = "*." + this.getLicenseFileNameType(context);
+
+		List<String> fileList = Util.fileSearchDirectory(licenseFilePath, licenseFileNameTypeMask);
+
+		if (fileList == null)
+		{
+			String additionalText = "--> Error on parsing license file path";
+			additionalText += "\n--> Searched in path: '" + licenseFilePath + "'";
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "License", "ErrorOnReadingLicenseFile"), additionalText, null);
+			return false;
+		}
+
+		// Check if any license file was found
+		if (fileList.size() == 0) return true;
 
 		// Go through the list of license files
-		String licenseFileNameType = this.getLicenseFileNameType(context);
-		String licenseFileName = null;
 		boolean isSuccessful = true;
+		String licenseFileName = null;
 
 		try
 		{
-			for (File file : fileList)
+			for (String fileName : fileList)
 			{
+				licenseFileName = fileName;
+
 				HashMap<String, String> organizationalProperties = new HashMap<String, String>();
-
-				licenseFileName = file.getAbsolutePath();
-
-				if (!licenseFileName.endsWith(licenseFileNameType)) continue;
 
 				if (context.getResourceManager().loadResourceFile(context, applicationIdentifier, null, licenseFileName, null, true, organizationalProperties) == false) isSuccessful = false;
 			}
@@ -234,7 +251,7 @@ public class LicenseManager implements ManagerInterface
 		{
 			String additionalText = "--> Error on reading license file";
 			additionalText += "\n--> On license file: '" + "*." + licenseFileName + "'";
-			context.getNotificationManager().notifyEvent(context, ResourceManager.notification(context, "License", "ErrorOnReadingLicenseFile"), additionalText, e);
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "License", "ErrorOnReadingLicenseFile"), additionalText, e);
 			isSuccessful = false;
 		}
 
@@ -1034,6 +1051,10 @@ public class LicenseManager implements ManagerInterface
 	 */
 	public boolean createTemplateLicenseFiles(Context context, String application, int version)
 	{
+		// If the application is running in "test mode", no license template
+		// files are to be created.
+		if (context.isRunningInTestMode()) return true;
+
 		// Initialization
 		boolean isSuccessful = true;
 

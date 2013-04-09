@@ -148,7 +148,7 @@ public class ResourceManager implements ManagerInterface
 		// Return
 		return isIntegrityError;
 	}
-	
+
 	@Override
 	public boolean readConfiguration(Context context)
 	{
@@ -1789,15 +1789,29 @@ public class ResourceManager implements ManagerInterface
 	 * @param applicationVersion
 	 *            Current version of the application.
 	 * 
+	 * @param otherFileName
+	 *            Set the resource file name explicitly. If the parameter is set
+	 *            to <TT>null</TT>, the file name is built automatically inside
+	 *            this method.
+	 * 
 	 * @return Returns <TT>true</TT> if the resource file could be read
 	 *         successfully, otherwise <TT>false</TT>.
 	 */
-	public boolean loadCommonResourceFile(Context context, String applicationIdentifier, int applicationVersion)
+	public boolean loadCommonResourceFile(Context context, String applicationIdentifier, int applicationVersion, String otherFileName)
 	{
 		HashMap<String, String> organizationalProperties = new HashMap<String, String>();
 
 		// Set File name
-		String fileName = this.getResourceFilePath(context) + FileLocationManager.getPathElementDelimiterString() + getResourceFileName(context, applicationIdentifier);
+		String fileName = null;
+		
+		if (otherFileName != null && otherFileName.length() > 0)
+		{
+			fileName = otherFileName;
+		}
+		else
+		{
+			fileName = this.getResourceFilePath(context) + FileLocationManager.getPathElementDelimiterString() + getResourceFileName(context, applicationIdentifier);
+		}
 
 		// Invoke general function to read resource files
 		boolean isSuccessful = loadResourceFile(context, applicationIdentifier, applicationVersion, fileName, null, false, organizationalProperties);
