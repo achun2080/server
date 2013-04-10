@@ -641,7 +641,7 @@ public class LabelManager implements ManagerInterface
 
 			if (commonAttributes != null && commonAttributes.length() > 0)
 			{
-				output.append(Util.normalizeNewLine(commonAttributes));
+				output.append(FileUtil.normalizeNewLine(commonAttributes));
 			}
 
 			// Go through the list and get the manual for each resource item
@@ -687,7 +687,7 @@ public class LabelManager implements ManagerInterface
 					if (text == null) text = "";
 					manualText += identifier + ResourceManager.getAttributeDelimiterString() + label.getAttributeResourceIdentifier(context, number, destinationLanguage) + "=" + text.trim() + "\n\n";
 
-					resourceTemplateText += Util.normalizeNewLine(manualText);
+					resourceTemplateText += FileUtil.normalizeNewLine(manualText);
 				}
 
 				output.append(resourceTemplateText);

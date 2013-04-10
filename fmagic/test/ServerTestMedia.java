@@ -9,13 +9,14 @@ import fmagic.basic.MediaContainer;
 import fmagic.basic.ResourceContainer;
 import fmagic.basic.ResourceContainerMedia;
 import fmagic.basic.ResourceManager;
-import fmagic.basic.Util;
+import fmagic.basic.FileUtil;
 import fmagic.server.ServerManager;
 
 public class ServerTestMedia implements Runnable
 {
 	private final Context context;
 	private final ServerManager server;
+	private final boolean concurrentAccess;
 
 	private String parameterResourceGroup = "Apartment";
 	private String parameterResourceName = "Room";
@@ -28,21 +29,52 @@ public class ServerTestMedia implements Runnable
 	/**
 	 * Constructor
 	 */
-	public ServerTestMedia(ServerManager server, Context context)
+	public ServerTestMedia(ServerManager server, Context context,
+			boolean concurrentAccess)
 	{
 		this.server = server;
 		this.context = context.createSilentDumpContext(ResourceManager.context(context, "Media", "Processing"));
+		this.concurrentAccess = concurrentAccess;
 
 	}
 
-	private void testSetup()
+	/**
+	 * Setup test environment
+	 */
+	public void doSetup()
 	{
 		if (this.server == null) return;
+
+		// Clean 'pending' directory
+		this.doRemoveAllFilesInPendingDirectory(this.parameterResourceGroup, this.parameterResourceName);
+
+		// Clean 'regular' directory
+		this.doRemoveAllFilesInRegularDirectory(this.parameterResourceGroup, this.parameterResourceName);
+
+		// Clean 'deleted' directory
+		this.doRemoveAllFilesInDeletedDirectory(this.parameterResourceGroup, this.parameterResourceName);
 	}
 
-	private void testCleanup()
+	/**
+	 * Cleanup test environment
+	 */
+	public void doCleanup()
 	{
 		if (this.server == null) return;
+
+		if (!this.isConcurrentAccess())
+		{
+		}
+	}
+
+	/**
+	 * Test all functions
+	 */
+	public void testAll()
+	{
+		if (this.server == null) return;
+
+		this.run();
 	}
 
 	@Override
@@ -51,8 +83,8 @@ public class ServerTestMedia implements Runnable
 		// Check if server is instantiated
 		if (this.server == null) return;
 
-		// Setup test environment
-		this.testSetup();
+		// Setup
+		if (!this.isConcurrentAccess()) this.doSetup();
 
 		// Test
 		this.testMediaAttribute();
@@ -61,14 +93,14 @@ public class ServerTestMedia implements Runnable
 		this.testObsoleteFile(this.parameterResourceGroup, this.parameterResourceName, this.parameterDataIdentifierTestObsolete);
 		this.testStressTestUploadFiles(this.parameterResourceGroup, this.parameterResourceName, this.parameterTestCycleNumber, this.parameterTestCycleDataIdentifierFrom, this.parameterTestCycleDataIdentifierToo);
 
-		// Cleanup test environment
-		this.testCleanup();
+		// Cleanup
+		if (!this.isConcurrentAccess()) this.doCleanup();
 	}
 
 	/**
 	 * Test: Media Attribute
 	 */
-	private void testMediaAttribute()
+	public void testMediaAttribute()
 	{
 		TestManager.assertPrint(context, "===> testMediaAttribute()", null);
 
@@ -103,7 +135,7 @@ public class ServerTestMedia implements Runnable
 	/**
 	 * Test: Media Resource
 	 */
-	private void testMediaResource()
+	public void testMediaResource()
 	{
 		TestManager.assertPrint(context, "===> testMediaResource()", null);
 
@@ -144,78 +176,68 @@ public class ServerTestMedia implements Runnable
 	/**
 	 * Test: Upload File
 	 */
-	private void testUploadFile(String group, String name, String dataIdentifierString)
+	public void testUploadFile(String group, String name, String dataIdentifierString)
 	{
 		TestManager.assertPrint(context, "===> testUploadFile()", null);
 
-		// Clear (delete) media files
-		ResourceContainerMedia mediaResource = ResourceManager.media(context, group, name);
-		String mediaFileNameMask = mediaResource.getMediaFileNameMask(context, dataIdentifierString);
-		String mediaFilePath = mediaResource.getMediaRegularFilePath(context);
-		List<String> mediaFiles = Util.fileSearchDirectory(mediaFilePath, mediaFileNameMask);
-
-		if (mediaFiles != null && mediaFiles.size() > 0)
+		// Clean files and directories
+		if (!this.isConcurrentAccess())
 		{
-			int nuOfDeletedFiles = Util.fileDelete(mediaFiles);
-			TestManager.assertEquals(context, null, mediaFiles.size(), nuOfDeletedFiles);
+			this.doRemoveMediaFiles(group, name, dataIdentifierString);
+			this.doRemoveAllFilesInPendingDirectory(group, name);
 		}
 
 		// Get file List
 		String uploadFilePath = TestManager.getTestStuffFilePath(context) + FileLocationManager.getPathElementDelimiterString() + "Images";
-		List<String> fileNameList = Util.fileSearchDirectory(uploadFilePath, "*.jpg");
-		
+		List<String> fileNameList = FileUtil.fileSearchDirectoryForFiles(uploadFilePath, "*.jpg");
+
 		// Try some uploads
-		this.doUploadFile(group, name, dataIdentifierString, fileNameList.get(0));
-		this.doUploadFile(group, name, dataIdentifierString, fileNameList.get(1));
-		this.doUploadFile(group, name, dataIdentifierString, fileNameList.get(2));
-		this.doUploadFile(group, name, dataIdentifierString, fileNameList.get(0));
-		this.doUploadFile(group, name, dataIdentifierString, fileNameList.get(1));
-		this.doUploadFile(group, name, dataIdentifierString, fileNameList.get(2));
-		this.doUploadFile(group, name, dataIdentifierString, fileNameList.get(3));
+		for (int i = 0; i < 20; i++)
+		{
+			int index = (int) (Math.random() * 14);
+			this.doUploadFile(group, name, dataIdentifierString, fileNameList.get(index));
+		}
+
+		// Check pending directory
+		if (!this.isConcurrentAccess())
+		{
+			this.doCheckClearedPendingDirectory(group, name);
+		}
 	}
 
 	/**
 	 * Test: Obsolete File
 	 */
-	private void testObsoleteFile(String group, String name, String dataIdentifierString)
+	public void testObsoleteFile(String group, String name, String dataIdentifierString)
 	{
 		TestManager.assertPrint(context, "===> testObsoleteFile()", null);
 
+		if (this.isConcurrentAccess()) return;
+
 		try
 		{
+			// Clean files and directories
+			this.doRemoveMediaFiles(group, name, dataIdentifierString);
+			this.doRemoveAllFilesInPendingDirectory(group, name);
+
 			// Initialize variables
 			ResourceContainerMedia mediaResource = ResourceManager.media(context, group, name);
-			int nuOfObsoleteFiles = 0;
-
-			String uploadFilePath = TestManager.getTestStuffFilePath(context) + FileLocationManager.getPathElementDelimiterString() + "Images";
-			List<String> fileNameList = Util.fileSearchDirectory(uploadFilePath, "*.jpg");
-
-			// Clear (delete) media files
 			String mediaFileNameMask = mediaResource.getMediaFileNameMask(context, dataIdentifierString);
 			String mediaFilePath = mediaResource.getMediaRegularFilePath(context);
-			List<String> mediaFiles = Util.fileSearchDirectory(mediaFilePath, mediaFileNameMask);
 
-			if (mediaFiles != null)
-			{
-				nuOfObsoleteFiles = mediaFiles.size();
+			String uploadFilePath = TestManager.getTestStuffFilePath(context) + FileLocationManager.getPathElementDelimiterString() + "Images";
+			List<String> fileNameList = FileUtil.fileSearchDirectoryForFiles(uploadFilePath, "*.jpg");
 
-				if (nuOfObsoleteFiles > 0)
-				{
-					int nuOfDeletedFiles = Util.fileDelete(mediaFiles);
-					TestManager.assertEquals(context, null, mediaFiles.size(), nuOfDeletedFiles);
-				}
-			}
+			// Override media files and count number of obsolete files
+			int nuOfObsoleteFiles = -1;
 
-			nuOfObsoleteFiles = -1;
-
-			// Override the file and check number of obsolete files again
 			for (int i = 0; i < 10; i++)
 			{
 				// Override (upload) media file
 				this.doUploadFile(group, name, dataIdentifierString, fileNameList.get(i));
 
 				// Get list of obsolete files
-				List<String> obsoleteFiles = Util.fileSearchDirectoryOnObsoleteFiles(mediaFilePath, mediaFileNameMask);
+				List<String> obsoleteFiles = FileUtil.fileSearchDirectoryOnObsoleteFiles(mediaFilePath, mediaFileNameMask);
 				TestManager.assertNotNull(context, null, obsoleteFiles);
 				TestManager.assertEquals(context, null, obsoleteFiles.size(), nuOfObsoleteFiles + i + 1);
 
@@ -223,6 +245,9 @@ public class ServerTestMedia implements Runnable
 				String recentFileName = mediaResource.getMediaRealFileName(context, dataIdentifierString);
 				TestManager.assertFalse(context, null, obsoleteFiles.contains(recentFileName));
 			}
+
+			// Check pending directory
+			this.doCheckClearedPendingDirectory(group, name);
 		}
 		catch (Exception e)
 		{
@@ -252,19 +277,25 @@ public class ServerTestMedia implements Runnable
 
 				for (String filePath : directoryList)
 				{
-					List<String> fileList = Util.fileSearchDirectory(filePath, "*.jpg");
+					List<String> fileList = FileUtil.fileSearchDirectoryForFiles(filePath, "*.jpg");
 
 					if (fileList != null)
 					{
 						for (String fileName : fileList)
 						{
 							// Upload file
-							if (dataIdentifierInteger >= dataIdentifierToo) dataIdentifierInteger = dataIdentifierFrom;
+							if (dataIdentifierInteger > dataIdentifierToo) dataIdentifierInteger = dataIdentifierFrom;
 							this.doUploadFile(mediaResourceGroup, mediaResourceName, String.valueOf(dataIdentifierInteger), fileName);
 							dataIdentifierInteger++;
 						}
 					}
 				}
+			}
+
+			// Check pending directory
+			if (!this.isConcurrentAccess())
+			{
+				this.doCheckClearedPendingDirectory(mediaResourceGroup, mediaResourceName);
 			}
 		}
 		catch (Exception e)
@@ -302,16 +333,142 @@ public class ServerTestMedia implements Runnable
 
 			if (mediaContainer != null)
 			{
+				// Bind media object
 				booleanResult = mediaContainer.bindMedia();
-				TestManager.assertTrue(context, additionalText, booleanResult);
+				TestManager.assertTrue(context, additionalText + "\n--> Error on binding media file", booleanResult);
 
+				// Compare check sum of source file and destination file
+				if (!this.isConcurrentAccess())
+				{
+					long checksumSourceFile = FileUtil.fileGetChecksum(uploadFileName);
+					TestManager.assertGreaterThan(context, additionalText + "\n--> Error on computing checksum of file '" + uploadFileName + "'", checksumSourceFile, 0);
+
+					long checksumDestinationFile = FileUtil.fileGetChecksum(mediaContainer.getWorkingMediaFilePath());
+					TestManager.assertGreaterThan(context, additionalText + "\n--> Error on computing checksum of file '" + mediaContainer.getWorkingMediaFilePath() + "'", checksumDestinationFile, 0);
+
+					TestManager.assertEquals(context, additionalText + "\n--> Checksum mismatch", checksumSourceFile, checksumDestinationFile);
+				}
+
+				// Read file content
 				byte[] contentAsByteBuffer = mediaContainer.readMediaContentAsByteArray();
-				TestManager.assertNotNull(context, additionalText, contentAsByteBuffer);
+				TestManager.assertNotNull(context, additionalText + "\n--> Error on reading media file content", contentAsByteBuffer);
 				TestManager.assertGreaterThan(context, additionalText, contentAsByteBuffer.length, 0);
 
+				// Release media file
 				booleanResult = mediaContainer.releaseMedia();
-				TestManager.assertTrue(context, additionalText, booleanResult);
+				TestManager.assertTrue(context, additionalText + "\n--> Error on releasing media file", booleanResult);
 			}
+
+		}
+		catch (Exception e)
+		{
+			TestManager.assertPrintException(context, "Unexpected Exception", e);
+		}
+	}
+
+	/**
+	 * Util: Remove media files, regarding a specific media resource container
+	 * and a specific data identifier.
+	 */
+	private void doRemoveMediaFiles(String group, String name, String dataIdentifierString)
+	{
+		try
+		{
+			ResourceContainerMedia mediaResource = ResourceManager.media(context, group, name);
+			String mediaFileNameMask = mediaResource.getMediaFileNameMask(context, dataIdentifierString);
+			String mediaFilePath = mediaResource.getMediaRegularFilePath(context);
+			List<String> mediaFiles = FileUtil.fileSearchDirectoryForFiles(mediaFilePath, mediaFileNameMask);
+
+			if (mediaFiles != null && mediaFiles.size() > 0)
+			{
+				int nuOfDeletedFiles = FileUtil.fileDelete(mediaFiles);
+				TestManager.assertEquals(context, null, mediaFiles.size(), nuOfDeletedFiles);
+			}
+		}
+		catch (Exception e)
+		{
+			TestManager.assertPrintException(context, "Unexpected Exception", e);
+		}
+	}
+
+	/**
+	 * Util: Remove all files from the 'pending' directory, regarding a specific
+	 * media resource container.
+	 */
+	private void doRemoveAllFilesInPendingDirectory(String group, String name)
+	{
+		try
+		{
+			ResourceContainerMedia mediaResource = ResourceManager.media(context, group, name);
+			String pendingDirectory = mediaResource.getMediaPendingFilePath(context);
+			TestManager.assertNotNull(context, null, pendingDirectory);
+
+			boolean isSuccessful = FileUtil.fileCleanDirectory(pendingDirectory);
+			TestManager.assertTrue(context, "--> Error on cleaning 'pending' directory '" + pendingDirectory + "'", isSuccessful);
+		}
+		catch (Exception e)
+		{
+			TestManager.assertPrintException(context, "Unexpected Exception", e);
+		}
+	}
+
+	/**
+	 * Util: Remove all files from the 'regular' directory, regarding a specific
+	 * media resource container.
+	 */
+	private void doRemoveAllFilesInRegularDirectory(String group, String name)
+	{
+		try
+		{
+			ResourceContainerMedia mediaResource = ResourceManager.media(context, group, name);
+			String regularDirectory = mediaResource.getMediaRegularFilePath(context);
+			TestManager.assertNotNull(context, null, regularDirectory);
+
+			boolean isSuccessful = FileUtil.fileCleanDirectory(regularDirectory);
+			TestManager.assertTrue(context, "--> Error on cleaning 'regular' directory '" + regularDirectory + "'", isSuccessful);
+		}
+		catch (Exception e)
+		{
+			TestManager.assertPrintException(context, "Unexpected Exception", e);
+		}
+	}
+
+	/**
+	 * Util: Remove all files from the 'deleted' directory, regarding a specific
+	 * media resource container.
+	 */
+	private void doRemoveAllFilesInDeletedDirectory(String group, String name)
+	{
+		try
+		{
+			ResourceContainerMedia mediaResource = ResourceManager.media(context, group, name);
+			String deletedDirectory = mediaResource.getMediaDeletedFilePath(context);
+			TestManager.assertNotNull(context, null, deletedDirectory);
+
+			boolean isSuccessful = FileUtil.fileCleanDirectory(deletedDirectory);
+			TestManager.assertTrue(context, "--> Error on cleaning 'deleted' directory '" + deletedDirectory + "'", isSuccessful);
+		}
+		catch (Exception e)
+		{
+			TestManager.assertPrintException(context, "Unexpected Exception", e);
+		}
+	}
+
+	/**
+	 * Util: Check if the pending directory is empty, regarding a specific media
+	 * resource container.
+	 */
+	private void doCheckClearedPendingDirectory(String group, String name)
+	{
+		try
+		{
+			ResourceContainerMedia mediaResource = ResourceManager.media(context, group, name);
+			String pendingDirectory = mediaResource.getMediaPendingFilePath(context);
+			TestManager.assertNotNull(context, null, pendingDirectory);
+
+			List<String> filelist = FileUtil.fileSearchDirectoryForFiles(pendingDirectory, "*");
+			TestManager.assertNotNull(context, null, filelist);
+			TestManager.assertEquals(context, "--> Files found in 'pending' directory '" + pendingDirectory + "'", filelist.size(), 0);
 		}
 		catch (Exception e)
 		{
@@ -373,5 +530,13 @@ public class ServerTestMedia implements Runnable
 	public void setParameterTestCycleDataIdentifierToo(int parameterTestCycleDataIdentifierToo)
 	{
 		this.parameterTestCycleDataIdentifierToo = parameterTestCycleDataIdentifierToo;
+	}
+
+	/**
+	 * Getter
+	 */
+	public boolean isConcurrentAccess()
+	{
+		return concurrentAccess;
 	}
 }

@@ -763,7 +763,7 @@ public class NotificationManager implements ManagerInterface
 
 			// Write to log file
 			PrintWriter output = new PrintWriter(new FileOutputStream(new File(pathFileNameMessageDump), false));
-			output.append(Util.normalizeNewLine(dumpMessageText));
+			output.append(FileUtil.normalizeNewLine(dumpMessageText));
 			output.close();
 		}
 		catch (Exception e)
@@ -788,7 +788,7 @@ public class NotificationManager implements ManagerInterface
 
 			// Write to log file
 			PrintWriter output = new PrintWriter(new FileOutputStream(new File(pathFileNameDocumentationDump), false));
-			output.append(Util.normalizeNewLine(dumpDocumentationText));
+			output.append(FileUtil.normalizeNewLine(dumpDocumentationText));
 			output.close();
 		}
 		catch (Exception e)
@@ -1048,7 +1048,7 @@ public class NotificationManager implements ManagerInterface
 	private void writeMessageToLogfile(Context context, String logText)
 	{
 		// Normalize new line first
-		String normalizedText = Util.normalizeNewLine(logText);
+		String normalizedText = FileUtil.normalizeNewLine(logText);
 
 		// Write message to log file
 		try

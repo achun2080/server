@@ -858,7 +858,7 @@ public class ResourceManager implements ManagerInterface
 		}
 
 		// Return
-		return Util.normalizeNewLine(manualText);
+		return FileUtil.normalizeNewLine(manualText);
 	}
 
 	/**
@@ -1004,7 +1004,7 @@ public class ResourceManager implements ManagerInterface
 		}
 
 		// Return
-		return Util.normalizeNewLine(manualText);
+		return FileUtil.normalizeNewLine(manualText);
 	}
 
 	/**
@@ -1151,7 +1151,7 @@ public class ResourceManager implements ManagerInterface
 		}
 
 		// Return
-		return Util.normalizeNewLine(listText);
+		return FileUtil.normalizeNewLine(listText);
 	}
 
 	/**

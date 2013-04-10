@@ -439,7 +439,7 @@ public abstract class ApplicationManager implements ManagerInterface
 
 			// Notify shutdown on console. Wait for 2 seconds to have the error
 			// messages as the last messages on console.
-			Util.sleepSeconds(2);
+			FileUtil.sleepSeconds(2);
 			System.err.println(shutdownText);
 			System.err.println(dumpText);
 

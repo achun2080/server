@@ -16,8 +16,11 @@ import org.apache.commons.io.FileUtils;
  * 
  * @changed FW 19.12.2012 - Created
  */
-public class Util
+public class FileUtil
 {
+	private static int defaultNuOfRetrials = 10;
+	private static int defaultIdleTimeBetweenRetrialsInMilliseconds = 1000;
+
 	/**
 	 * Normalize new line to the system standards.
 	 * 
@@ -129,7 +132,7 @@ public class Util
 	}
 
 	/**
-	 * Executing a pause for some seconds.
+	 * Executing a pause for some Seconds.
 	 * 
 	 * @param seconds
 	 *            Number of seconds to pause.
@@ -139,6 +142,23 @@ public class Util
 		try
 		{
 			Thread.sleep(seconds * 1000);
+		}
+		catch (InterruptedException e)
+		{
+		}
+	}
+
+	/**
+	 * Executing a pause for some Milliseconds.
+	 * 
+	 * @param milliseconds
+	 *            Number of Milliseconds to pause.
+	 */
+	public static void sleepMilliseconds(int milliseconds)
+	{
+		try
+		{
+			Thread.sleep(milliseconds);
 		}
 		catch (InterruptedException e)
 		{
@@ -222,7 +242,7 @@ public class Util
 	{
 		// Check parameters
 		if (filePath == null || filePath.length() == 0) return null;
-		if (Util.fileExists(filePath) == false) return null;
+		if (FileUtil.fileExists(filePath) == false) return null;
 
 		// Compute hash value
 		String md5 = null;
@@ -255,7 +275,7 @@ public class Util
 	 * @return Returns a list of files that were found, or <TT>null</TT>, if an
 	 *         error occurred.
 	 */
-	public static List<String> fileSearchDirectory(String filePath, String fileFilterMask)
+	public static List<String> fileSearchDirectoryForFiles(String filePath, String fileFilterMask)
 	{
 		class UtilFileFilter implements FilenameFilter
 		{
@@ -265,13 +285,14 @@ public class Util
 			public UtilFileFilter(File directory, String fileNameMask)
 			{
 				this.directory = directory;
-				this.fileNameMask = Util.convertRegularWildcardsToRegexWildcards(fileNameMask);
+				this.fileNameMask = FileUtil.convertRegularWildcardsToRegexWildcards(fileNameMask);
 			}
 
 			public boolean accept(File currentDirectory, String currentFileName)
 			{
 				if (directory == null) return false;
 				if (fileNameMask == null) return false;
+
 				if (!currentDirectory.equals(this.directory)) return false;
 				if (!currentFileName.matches(fileNameMask)) return false;
 
@@ -296,7 +317,7 @@ public class Util
 
 			for (File file : files)
 			{
-				fileList.add(file.getAbsolutePath());
+				if (file.isFile()) fileList.add(file.getAbsolutePath());
 			}
 		}
 		catch (Exception e)
@@ -325,7 +346,7 @@ public class Util
 		// Check parameters
 		if (sourceFilePath == null || sourceFilePath.length() == 0) return false;
 		if (destinationFilePath == null || destinationFilePath.length() == 0) return false;
-		if (Util.fileExists(sourceFilePath) == false) return false;
+		if (FileUtil.fileExists(sourceFilePath) == false) return false;
 
 		// Create FILE objects
 		File sourceFile = new File(sourceFilePath);
@@ -360,8 +381,8 @@ public class Util
 		// Check parameters
 		if (sourceFilePath == null || sourceFilePath.length() == 0) return false;
 		if (destinationFilePath == null || destinationFilePath.length() == 0) return false;
-		if (Util.fileExists(sourceFilePath) == false) return false;
-		if (Util.fileExists(destinationFilePath) == true) return false;
+		if (FileUtil.fileExists(sourceFilePath) == false) return false;
+		if (FileUtil.fileExists(destinationFilePath) == true) return false;
 
 		// Create FILE objects
 		File sourceFile = new File(sourceFilePath);
@@ -392,7 +413,7 @@ public class Util
 	{
 		// Check parameters
 		if (filePath == null || filePath.length() == 0) return false;
-		if (Util.fileExists(filePath) == false) return false;
+		if (FileUtil.fileExists(filePath) == false) return false;
 
 		// Create FILE objects
 		File file = new File(filePath);
@@ -434,7 +455,7 @@ public class Util
 				File file = new File(filePath);
 
 				if (file.isFile() == false) continue;
-				if (Util.fileExists(filePath) == false) continue;
+				if (FileUtil.fileExists(filePath) == false) continue;
 
 				try
 				{
@@ -548,7 +569,7 @@ public class Util
 	{
 		// Check parameters
 		if (filePath == null || filePath.length() == 0) return null;
-		if (Util.fileExists(filePath) == false) return null;
+		if (FileUtil.fileExists(filePath) == false) return null;
 
 		// Create FILE objects
 		File file = new File(filePath);
@@ -577,7 +598,7 @@ public class Util
 	{
 		// Check parameters
 		if (filePath == null || filePath.length() == 0) return null;
-		if (Util.fileExists(filePath) == false) return null;
+		if (FileUtil.fileExists(filePath) == false) return null;
 
 		// Create FILE objects
 		File file = new File(filePath);
@@ -595,7 +616,7 @@ public class Util
 
 	/**
 	 * Delete all files of a file list, but for the newest one. If some files
-	 * have the same timestamp, delete all but thr first one.
+	 * have the same timestamp, delete all but the first one.
 	 * 
 	 * @param files
 	 *            The list of files to consider.
@@ -616,11 +637,11 @@ public class Util
 		{
 			for (String filePath1 : files)
 			{
-				if (Util.fileExists(filePath1) == false) continue;
+				if (FileUtil.fileExists(filePath1) == false) continue;
 
 				for (String filePath2 : files)
 				{
-					if (Util.fileExists(filePath2) == false) continue;
+					if (FileUtil.fileExists(filePath2) == false) continue;
 					if (filePath1.equals(filePath2)) continue;
 
 					File file1 = new File(filePath1);
@@ -651,14 +672,14 @@ public class Util
 				{
 					if (firstFileMark == false)
 					{
-						if (Util.fileExists(filePath) == true)
+						if (FileUtil.fileExists(filePath) == true)
 						{
 							firstFileMark = true;
 						}
 					}
 					else
 					{
-						if (Util.fileExists(filePath) == true)
+						if (FileUtil.fileExists(filePath) == true)
 						{
 							File file = new File(filePath);
 							file.delete();
@@ -679,7 +700,12 @@ public class Util
 	}
 
 	/**
-	 * Change the modified date of a file.
+	 * Change the 'modified date' of a file.
+	 * <p>
+	 * In contrast to the similar method <TT>fileSetLastModified()</TT> the
+	 * function is executed a bunch of times, if it fails the first time. This
+	 * can happen if the file is touched by another process for a while, e. g.
+	 * because it is just copied.
 	 * 
 	 * @param filePath
 	 *            The path of the file to be considered.
@@ -690,11 +716,109 @@ public class Util
 	 * @return Returns <TT>true</TT> if the modified date could be changed,
 	 *         otherwise <TT>false</TT>.
 	 */
-	public static boolean fileSetLastModified(String filePath)
+	public static boolean fileSetLastModifiedRetry(String filePath, Date modifiedDate)
+	{
+		return FileUtil.fileSetLastModified(filePath, modifiedDate, FileUtil.defaultNuOfRetrials, FileUtil.defaultIdleTimeBetweenRetrialsInMilliseconds);
+	}
+
+	/**
+	 * Change the 'modified date' of a file.
+	 * <p>
+	 * Please use the similar method <TT>fileSetLastModifiedRetry()</TT> when
+	 * you want to executed the function a bunch of times, if it fails the first
+	 * time. This can happen if the file is touched by another process for a
+	 * while, e. g. because it is just copied.
+	 * 
+	 * @param filePath
+	 *            The path of the file to be considered.
+	 * 
+	 * @param modifiedDate
+	 *            The modified date to set.
+	 * 
+	 * @return Returns <TT>true</TT> if the modified date could be changed,
+	 *         otherwise <TT>false</TT>.
+	 */
+	public static boolean fileSetLastModified(String filePath, Date modifiedDate)
+	{
+		return FileUtil.fileSetLastModified(filePath, modifiedDate, 0, 0);
+	}
+
+	/**
+	 * Change the modified date of a file.
+	 * 
+	 * @param filePath
+	 *            The path of the file to be considered.
+	 * 
+	 * @param modifiedDate
+	 *            The modified date to set.
+	 * 
+	 * @param nuOfRetrials
+	 *            The maximum number of trials, if the function false the first
+	 *            time.
+	 * 
+	 * @param idleTimeBetweenRetrialsInMilliseconds
+	 *            The idle time between trials, if the function false the first
+	 *            time.
+	 * 
+	 * @return Returns <TT>true</TT> if the modified date could be changed,
+	 *         otherwise <TT>false</TT>.
+	 */
+	private static boolean fileSetLastModified(String filePath, Date modifiedDate, int nuOfRetrials, int idleTimeBetweenRetrialsInMilliseconds)
 	{
 		// Check parameters
 		if (filePath == null || filePath.length() == 0) return false;
-		if (Util.fileExists(filePath) == false) return false;
+		if (FileUtil.fileExists(filePath) == false) return false;
+		if (modifiedDate == null) return false;
+
+		if (nuOfRetrials < 0) nuOfRetrials = 0;
+		if (nuOfRetrials > 10) nuOfRetrials = 10;
+
+		if (idleTimeBetweenRetrialsInMilliseconds < 0) idleTimeBetweenRetrialsInMilliseconds = 0;
+		if (idleTimeBetweenRetrialsInMilliseconds > 1000) idleTimeBetweenRetrialsInMilliseconds = 1000;
+
+		// Create FILE objects
+		File file = new File(filePath);
+
+		// Set the modified date
+		boolean isSuccessful = false;
+
+		try
+		{
+			isSuccessful = file.setLastModified(modifiedDate.getTime());
+			if (isSuccessful == true) return true;
+
+			for (int i = 0; i < nuOfRetrials; i++)
+			{
+				FileUtil.sleepMilliseconds(idleTimeBetweenRetrialsInMilliseconds);
+
+				isSuccessful = file.setLastModified(modifiedDate.getTime());
+				if (isSuccessful == true) break;
+			}
+		}
+		catch (Exception e)
+		{
+			return false;
+		}
+
+		// Return
+		return isSuccessful;
+	}
+
+	/**
+	 * Change the modified date of a file by touching it (opens the file and
+	 * closes it).
+	 * 
+	 * @param filePath
+	 *            The path of the file to be considered.
+	 * 
+	 * @return Returns <TT>true</TT> if the file could be touched, otherwise
+	 *         <TT>false</TT>.
+	 */
+	public static boolean fileTouch(String filePath)
+	{
+		// Check parameters
+		if (filePath == null || filePath.length() == 0) return false;
+		if (FileUtil.fileExists(filePath) == false) return false;
 
 		// Create FILE objects
 		File file = new File(filePath);
@@ -708,6 +832,35 @@ public class Util
 		catch (Exception e)
 		{
 			return false;
+		}
+	}
+
+	/**
+	 * Get the checksum (CRC32) of a file.
+	 * 
+	 * @param filePath
+	 *            The path of the file to be considered.
+	 * 
+	 * @return Returns the checksum, or <TT>0</TT> if the file couldn't be read.
+	 */
+	public static long fileGetChecksum(String filePath)
+	{
+		// Check parameters
+		if (filePath == null || filePath.length() == 0) return 0L;
+		if (FileUtil.fileExists(filePath) == false) return 0L;
+
+		// Create FILE objects
+		File file = new File(filePath);
+		if (file.isFile() == false) return 0L;
+
+		// Set the modified date
+		try
+		{
+			return FileUtils.checksumCRC32(file);
+		}
+		catch (Exception e)
+		{
+			return 0L;
 		}
 	}
 
@@ -728,7 +881,7 @@ public class Util
 	public static String fileSearchDirectoryOnMostRecentFile(String filePath, String fileFilterMask)
 	{
 		// Get list of files that matches the file filter mask
-		List<String> filePathList = Util.fileSearchDirectory(filePath, fileFilterMask);
+		List<String> filePathList = FileUtil.fileSearchDirectoryForFiles(filePath, fileFilterMask);
 		if (filePathList == null) return null;
 		if (filePathList.size() == 0) return null;
 
@@ -780,12 +933,12 @@ public class Util
 	public static List<String> fileSearchDirectoryOnObsoleteFiles(String filePath, String fileFilterMask)
 	{
 		// Get list of files that matches the file filter mask
-		List<String> filePathList = Util.fileSearchDirectory(filePath, fileFilterMask);
+		List<String> filePathList = FileUtil.fileSearchDirectoryForFiles(filePath, fileFilterMask);
 		if (filePathList == null) return null;
 		if (filePathList.size() == 0) return null;
 
 		// Get the most recent file that matches the file filter mask
-		String mostRecentFilePath = Util.fileSearchDirectoryOnMostRecentFile(filePath, fileFilterMask);
+		String mostRecentFilePath = FileUtil.fileSearchDirectoryOnMostRecentFile(filePath, fileFilterMask);
 		if (mostRecentFilePath == null) return null;
 		if (mostRecentFilePath.length() == 0) return null;
 
@@ -801,5 +954,46 @@ public class Util
 
 		// Return
 		return filePathList;
+	}
+
+	/**
+	 * Remove all files in a directory.
+	 * 
+	 * @param directoryPath
+	 *            The path of the directory to be considered.
+	 * 
+	 * @return Returns <TT>true</TT> if the file could be removed, otherwise
+	 *         <TT>false</TT>.
+	 */
+	public static boolean fileCleanDirectory(String directoryPath)
+	{
+		// Check parameters
+		if (directoryPath == null || directoryPath.length() == 0) return false;
+		if (FileUtil.fileDirectoryExists(directoryPath) == false) return false;
+
+		// Create FILE objects
+		File directory = new File(directoryPath);
+		if (directory.isDirectory() == false) return false;
+
+		// Search for files in the directory and delete them
+		try
+		{
+			List<String> filesToDelete = FileUtil.fileSearchDirectoryForFiles(directoryPath, "*");
+			if (filesToDelete == null) return false;
+			if (filesToDelete.size() == 0) return true;
+
+			if (FileUtil.fileDelete(filesToDelete) > 0)
+			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+		catch (Exception e)
+		{
+			return false;
+		}
 	}
 }

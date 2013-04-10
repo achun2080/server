@@ -12,7 +12,7 @@ import java.util.Locale;
 import fmagic.basic.Context;
 import fmagic.basic.FileLocationManager;
 import fmagic.basic.ManagerInterface;
-import fmagic.basic.Util;
+import fmagic.basic.FileUtil;
 
 /**
  * This class implements the management of tests that are included in the
@@ -243,7 +243,7 @@ public class TestManager implements ManagerInterface
 		}
 		else
 		{
-			normalizedText = Util.normalizeNewLine(assertFormatter(assertText, additionalText));
+			normalizedText = FileUtil.normalizeNewLine(assertFormatter(assertText, additionalText));
 		}
 
 		// Write message to assert file
@@ -641,6 +641,39 @@ public class TestManager implements ManagerInterface
 	}
 
 	/**
+	 * Assert: Compare if <TT>long</TT> values are equal.
+	 * 
+	 * @param context
+	 *            Application context of the message.
+	 * 
+	 * @param additionalText
+	 *            Additional text of the message.
+	 * 
+	 * @param value1
+	 *            The first value.
+	 * 
+	 * @param value2
+	 *            The second value.
+	 */
+	public static void assertEquals(Context context, String additionalText, long value1, long value2)
+	{
+		if (value1 != value2)
+		{
+			context.getTestManager().setErrorFound();
+
+			String assertText = "Assertion failed: Comparing long values (equals)";
+			assertText += "\n--> Long value 1: '" + String.valueOf(value1) + "'";
+			assertText += "\n--> Long value 2: '" + String.valueOf(value2) + "'";
+
+			TestManager.assertPrintError(context, assertText, additionalText);
+		}
+		else
+		{
+			TestManager.assertProgress(context);
+		}
+	}
+
+	/**
 	 * Assert: Check if a <TT>boolean</TT> value is <TT>true</TT>.
 	 * 
 	 * @param context
@@ -789,4 +822,36 @@ public class TestManager implements ManagerInterface
 		}
 	}
 
+	/**
+	 * Assert: Compare if an <TT>long</TT> value 1 is greater than value 2.
+	 * 
+	 * @param context
+	 *            Application context of the message.
+	 * 
+	 * @param additionalText
+	 *            Additional text of the message.
+	 * 
+	 * @param value1
+	 *            The first value.
+	 * 
+	 * @param value2
+	 *            The second value.
+	 */
+	public static void assertGreaterThan(Context context, String additionalText, long value1, long value2)
+	{
+		if (!(value1 > value2))
+		{
+			context.getTestManager().setErrorFound();
+
+			String assertText = "Assertion failed:  Compare if value 1 is greater than a value 2";
+			assertText += "\n--> Long value 1: '" + String.valueOf(value1) + "'";
+			assertText += "\n--> Long value 2: '" + String.valueOf(value2) + "'";
+
+			TestManager.assertPrintError(context, assertText, additionalText);
+		}
+		else
+		{
+			TestManager.assertProgress(context);
+		}
+	}
 }

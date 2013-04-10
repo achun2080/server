@@ -298,7 +298,7 @@ public class ResourceContainerMedia extends ResourceContainer
 				if (partsOfLogicalPath[i] == null || partsOfLogicalPath[i].length() == 0) continue;
 
 				if (normalizedPath.length() > 0) normalizedPath += "/";
-				normalizedPath += Util.fitToFileNameCompatibility(partsOfLogicalPath[i]);
+				normalizedPath += FileUtil.fitToFileNameCompatibility(partsOfLogicalPath[i]);
 			}
 
 			return normalizedPath;
@@ -390,7 +390,7 @@ public class ResourceContainerMedia extends ResourceContainer
 	 */
 	public String getMediaRegularFilePath(Context context)
 	{
-		String mediaFilePath = context.getMediaManager().mediaFileGetRootFilePath(context) + FileLocationManager.getPathElementDelimiterString() + Util.fitToFileNameCompatibility(context.getApplicationName()) + FileLocationManager.getPathElementDelimiterString() + this.getLogicalPath(context);
+		String mediaFilePath = context.getMediaManager().mediaFileGetRootFilePath(context) + FileLocationManager.getPathElementDelimiterString() + FileUtil.fitToFileNameCompatibility(context.getApplicationName()) + FileLocationManager.getPathElementDelimiterString() + this.getLogicalPath(context);
 		return mediaFilePath;
 	}
 
@@ -416,7 +416,7 @@ public class ResourceContainerMedia extends ResourceContainer
 			normalizedIdentifier = "0".concat(normalizedIdentifier);
 		}
 
-		normalizedIdentifier = Util.fitToFileNameCompatibility(normalizedIdentifier);
+		normalizedIdentifier = FileUtil.fitToFileNameCompatibility(normalizedIdentifier);
 
 		return normalizedIdentifier;
 	}
@@ -445,7 +445,7 @@ public class ResourceContainerMedia extends ResourceContainer
 
 		mediaFileNameMask = FileLocationManager.replacePlacholder(context, mediaFileNameMask);
 
-		if (this.getAliasName() != null) mediaFileNameMask = mediaFileNameMask.replace("${alias}", Util.fitToFileNameCompatibility(this.getAliasName()));
+		if (this.getAliasName() != null) mediaFileNameMask = mediaFileNameMask.replace("${alias}", FileUtil.fitToFileNameCompatibility(this.getAliasName()));
 		mediaFileNameMask = mediaFileNameMask.replace("${identifier}", this.fitIdentifierToFileName(dataIdentifier));
 		mediaFileNameMask = mediaFileNameMask.replace("${encodingkey}", "*");
 		mediaFileNameMask = mediaFileNameMask.replace("${hashvalue}", "*");
@@ -532,7 +532,7 @@ public class ResourceContainerMedia extends ResourceContainer
 	{
 		String mediaFileNameMask = this.getMediaFileNameMask(context, dataIdentifier);
 		String mediaFilePath = this.getMediaRegularFilePath(context);
-		return Util.fileSearchDirectoryOnMostRecentFile(mediaFilePath, mediaFileNameMask);
+		return FileUtil.fileSearchDirectoryOnMostRecentFile(mediaFilePath, mediaFileNameMask);
 	}
 
 	/**
@@ -555,7 +555,7 @@ public class ResourceContainerMedia extends ResourceContainer
 	{
 		String mediaFileNameMask = this.getMediaFileNameMask(context, dataIdentifier);
 		String mediaFilePath = this.getMediaRegularFilePath(context);
-		return Util.fileSearchDirectory(mediaFilePath, mediaFileNameMask);
+		return FileUtil.fileSearchDirectoryForFiles(mediaFilePath, mediaFileNameMask);
 	}
 
 	/**
@@ -632,7 +632,7 @@ public class ResourceContainerMedia extends ResourceContainer
 
 		mediaFileName = FileLocationManager.replacePlacholder(context, mediaFileName);
 
-		if (this.getAliasName() != null) mediaFileName = mediaFileName.replace("${alias}", Util.fitToFileNameCompatibility(this.getAliasName()));
+		if (this.getAliasName() != null) mediaFileName = mediaFileName.replace("${alias}", FileUtil.fitToFileNameCompatibility(this.getAliasName()));
 		mediaFileName = mediaFileName.replace("${identifier}", this.fitIdentifierToFileName(dataIdentifier));
 		mediaFileName = mediaFileName.replace("${encodingkey}", this.getServerEncodingKeyAsString(context));
 		if (hashValue != null) mediaFileName = mediaFileName.replace("${hashvalue}", hashValue.trim());
@@ -661,7 +661,7 @@ public class ResourceContainerMedia extends ResourceContainer
 		if (mediaFilePath == null || mediaFilePath.length() == 0) return 0;
 
 		// Get file name
-		String fileName = Util.fileGetFileNamePart(mediaFilePath);
+		String fileName = FileUtil.fileGetFileNamePart(mediaFilePath);
 		if (fileName == null || fileName.length() == 0) return 0;
 
 		// Analyze file name
@@ -706,7 +706,7 @@ public class ResourceContainerMedia extends ResourceContainer
 		if (mediaFilePath == null || mediaFilePath.length() == 0) return null;
 
 		// Get file name
-		String fileName = Util.fileGetFileNamePart(mediaFilePath);
+		String fileName = FileUtil.fileGetFileNamePart(mediaFilePath);
 		if (fileName == null || fileName.length() == 0) return null;
 
 		// Analyze file name

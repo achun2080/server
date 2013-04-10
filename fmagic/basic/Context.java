@@ -152,10 +152,10 @@ public abstract class Context implements Cloneable, ManagerInterface
 			ApplicationManager applicationManager, TestManager testManager,
 			boolean runningInTestMode, String testCaseName)
 	{
-		this.codeName = Util.fitToFileNameCompatibility(codeName);
-		this.applicationName = Util.fitToFileNameCompatibility(applicationName);
+		this.codeName = FileUtil.fitToFileNameCompatibility(codeName);
+		this.applicationName = FileUtil.fitToFileNameCompatibility(applicationName);
 		this.applicationVersion = applicationVersion;
-		this.originName = Util.fitToFileNameCompatibility(originName);
+		this.originName = FileUtil.fitToFileNameCompatibility(originName);
 		this.applicationManager = applicationManager;
 
 		this.notificationManager = new NotificationManager();
@@ -182,7 +182,7 @@ public abstract class Context implements Cloneable, ManagerInterface
 			}
 			else
 			{
-				this.testCaseName = Util.fitToFileNameCompatibility(testCaseName);
+				this.testCaseName = FileUtil.fitToFileNameCompatibility(testCaseName);
 			}
 
 			this.contextType = Context.ContextTypeEnum.TEST;

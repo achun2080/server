@@ -1,7 +1,5 @@
 package fmagic.basic;
 
-import java.util.List;
-
 /**
  * This class contains all data needed to manage and show media content.
  * 
@@ -16,7 +14,7 @@ public class MediaContainer
 	final private Context context;
 	final private ResourceContainerMedia resourceContainerMedia;
 	final private String dataIdentifier;
-	
+
 	// File data
 	private String originalMediaFilePath = null;
 	private String workingMediaFilePath = null;
@@ -95,12 +93,12 @@ public class MediaContainer
 		if (this.workingMediaFilePath == null || this.workingMediaFilePath.length() == 0) return null;
 
 		// Read working file
-		return Util.fileReadToByteArray(this.workingMediaFilePath);
+		return FileUtil.fileReadToByteArray(this.workingMediaFilePath);
 	}
 
 	/**
-	 * Read media data and returns them as an UTF8 string,
-	 * suitable to be used for server/client communication.
+	 * Read media data and returns them as an UTF8 string, suitable to be used
+	 * for server/client communication.
 	 * <p>
 	 * Please notice: There is a workflow to consider regarding the media
 	 * container. First you have to bind a media, using <TT>bindMedia()</TT>,
@@ -121,7 +119,7 @@ public class MediaContainer
 		if (this.workingMediaFilePath == null || this.workingMediaFilePath.length() == 0) return null;
 
 		// Read working file
-		return Util.fileReadToString(this.workingMediaFilePath);
+		return FileUtil.fileReadToString(this.workingMediaFilePath);
 	}
 
 	/**
@@ -147,15 +145,15 @@ public class MediaContainer
 		this.boundMark = false;
 
 		// Delete pending working file
-		if (this.workingMediaFilePath != null && this.workingMediaFilePath.length() > 0) 
+		if (this.workingMediaFilePath != null && this.workingMediaFilePath.length() > 0)
 		{
-			Util.fileDelete(this.workingMediaFilePath);
+			FileUtil.fileDelete(this.workingMediaFilePath);
 		}
-		
-		/// Clear variables
+
+		// / Clear variables
 		this.originalMediaFilePath = null;
 		this.workingMediaFilePath = null;
-		
+
 		// Return
 		return true;
 	}
@@ -186,7 +184,7 @@ public class MediaContainer
 		{
 			outputString += "\nBounded: '" + "FALSE" + "'";
 		}
-		
+
 		outputString += "\nData identifier: '" + dataIdentifier + "'";
 		outputString += "\nOriginal media file: '" + originalMediaFilePath + "'";
 		outputString += "\nWorking media file: '" + workingMediaFilePath + "'";
@@ -196,5 +194,21 @@ public class MediaContainer
 
 		// Return
 		return outputString;
+	}
+
+	/**
+	 * Getter
+	 */
+	public String getOriginalMediaFilePath()
+	{
+		return originalMediaFilePath;
+	}
+
+	/**
+	 * Getter
+	 */
+	public String getWorkingMediaFilePath()
+	{
+		return workingMediaFilePath;
 	}
 }

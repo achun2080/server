@@ -8,6 +8,7 @@ import fmagic.application.seniorcitizen.client.ClientSeniorCitizen;
 import fmagic.application.seniorcitizen.server.ServerSeniorCitizen;
 import fmagic.basic.Context;
 import fmagic.basic.EncodingHandler;
+import fmagic.basic.FileUtil;
 import fmagic.client.ClientManager;
 import fmagic.server.ServerManager;
 
@@ -35,20 +36,30 @@ public class ApplicationTest
 		/*
 		 * Start Application server
 		 */
-		ServerManager server = null;
+		ServerManager serverAp1 = null;
+		ServerManager serverAp2 = null;
+		ServerManager serverAp3 = null;
 
 		try
 		{
-			// Instantiate server
-			server = ServerSeniorCitizen.getTestInstance("ap1", 8090, 1000000, "mediatest");
+			// Instantiate server AP1
+			serverAp1 = ServerSeniorCitizen.getTestInstance("ap1", 8090, 1000000, "mediatest");
+			if (serverAp1 == null) System.exit(-1);
+			serverAp1.startApplication();
+			ApplicationTest.mediaTest(serverAp1, serverAp1.getContext());
 
-			// Start server and testing
-			if (server != null)
-			{
-				server.startApplication();
+			// Instantiate server AP2
+			serverAp2 = ServerSeniorCitizen.getTestInstance("ap2", 8091, 1000000, "mediatest");
+			if (serverAp2 == null) System.exit(-1);
+			serverAp2.startApplication();
+			ApplicationTest.mediaTest(serverAp2, serverAp2.getContext());
 
-				ApplicationTest.mediaTest(server, server.getContext());
-			}
+			// Instantiate server AP3
+			serverAp3 = ServerSeniorCitizen.getTestInstance("ap3", 8092, 1000000, "mediatest");
+			if (serverAp3 == null) System.exit(-1);
+			serverAp3.startApplication();
+			ApplicationTest.mediaTest(serverAp3, serverAp3.getContext());
+
 		}
 		catch (Exception e)
 		{
@@ -56,38 +67,17 @@ public class ApplicationTest
 		}
 
 		/*
-		 * Start client
+		 *  Shutdown Application server
 		 */
-		ClientManager client = null;
-
 		try
 		{
-			if (server != null)
-			{
-				// Instantiate client
-				client = ClientSeniorCitizen.getTestInstance("cl1", "mediatest");
-
-				// Start client and testing
-				if (client != null)
-				{
-					// Start client
-					client.startApplication();
-					client.setSocketConnectionParameter("localhost", 8090, 1000000);
-
-					// Stop client
-					client.stopApplication();
-				}
-			}
+			serverAp1.stopApplication();
+			serverAp2.stopApplication();
+			serverAp3.stopApplication();
 		}
 		catch (Exception e)
 		{
 			e.printStackTrace();
-		}
-
-		// Shutdown Application server
-		if (server != null)
-		{
-			server.stopApplication();
 		}
 	}
 
@@ -99,30 +89,132 @@ public class ApplicationTest
 		// Run test
 		if (server != null && context != null)
 		{
-			ServerTestMedia testMedia;
+			/*
+			 * Test specific media resource item (not concurrent)
+			 */
 
-			testMedia = new ServerTestMedia(server, server.getContext());
-			new Thread(testMedia).start();
+			// Room
+			ServerTestMedia testMediaSingle = new ServerTestMedia(server, server.getContext(), false);
+			testMediaSingle.setParameterResourceGroup("Apartment");
+			testMediaSingle.setParameterResourceName("Room");
+			testMediaSingle.setParameterDataIdentifierTestUpload("1234");
+			testMediaSingle.setParameterDataIdentifierTestObsolete("1235");
+			testMediaSingle.setParameterTestCycleNumber(1);
+			testMediaSingle.setParameterTestCycleDataIdentifierFrom(1);
+			testMediaSingle.setParameterTestCycleDataIdentifierToo(40);
+			testMediaSingle.testAll();
+			testMediaSingle.doSetup();
 
-			// testMedia = new ServerTestMedia(server, server.getContext(),
-			// "Apartment", "Floor");
-			// new Thread(testMedia).start();
-			//
-			// testMedia = new ServerTestMedia(server, server.getContext(),
-			// "Apartment", "Bedroom");
-			// new Thread(testMedia).start();
-			//
-			// testMedia = new ServerTestMedia(server, server.getContext(),
-			// "Apartment", "Kitchen");
-			// new Thread(testMedia).start();
-			//
-			// testMedia = new ServerTestMedia(server, server.getContext(),
-			// "Apartment", "Bathroom");
-			// new Thread(testMedia).start();
-			//
-			// testMedia = new ServerTestMedia(server, server.getContext(),
-			// "Apartment", "Room");
-			// new Thread(testMedia).start();
+			/*
+			 * Test concurrent access to files of a specific media resource item
+			 */
+
+			ServerTestMedia testMediaConcurrent;
+
+			// Room 1
+			testMediaConcurrent = new ServerTestMedia(server, server.getContext(), true);
+			testMediaConcurrent.setParameterResourceGroup("Apartment");
+			testMediaConcurrent.setParameterResourceName("Room");
+			testMediaConcurrent.setParameterDataIdentifierTestUpload("2345");
+			testMediaConcurrent.setParameterDataIdentifierTestObsolete("2346");
+			testMediaConcurrent.setParameterTestCycleNumber(5);
+			testMediaConcurrent.setParameterTestCycleDataIdentifierFrom(1);
+			testMediaConcurrent.setParameterTestCycleDataIdentifierToo(40);
+			new Thread(testMediaConcurrent).start();
+
+			// Room 2
+			testMediaConcurrent = new ServerTestMedia(server, server.getContext(), true);
+			testMediaConcurrent.setParameterResourceGroup("Apartment");
+			testMediaConcurrent.setParameterResourceName("Room");
+			testMediaConcurrent.setParameterDataIdentifierTestUpload("2347");
+			testMediaConcurrent.setParameterDataIdentifierTestObsolete("2348");
+			testMediaConcurrent.setParameterTestCycleNumber(5);
+			testMediaConcurrent.setParameterTestCycleDataIdentifierFrom(1);
+			testMediaConcurrent.setParameterTestCycleDataIdentifierToo(40);
+			new Thread(testMediaConcurrent).start();
+
+			// Room 3
+			testMediaConcurrent = new ServerTestMedia(server, server.getContext(), true);
+			testMediaConcurrent.setParameterResourceGroup("Apartment");
+			testMediaConcurrent.setParameterResourceName("Room");
+			testMediaConcurrent.setParameterDataIdentifierTestUpload("2349");
+			testMediaConcurrent.setParameterDataIdentifierTestObsolete("2350");
+			testMediaConcurrent.setParameterTestCycleNumber(5);
+			testMediaConcurrent.setParameterTestCycleDataIdentifierFrom(1);
+			testMediaConcurrent.setParameterTestCycleDataIdentifierToo(40);
+			new Thread(testMediaConcurrent).start();
+
+			/*
+			 * Add other concurrent media resource items
+			 */
+
+			// Floor
+			testMediaConcurrent = new ServerTestMedia(server, server.getContext(), false);
+			testMediaConcurrent.setParameterResourceGroup("Apartment");
+			testMediaConcurrent.setParameterResourceName("Floor");
+			testMediaConcurrent.testAll();
+			testMediaConcurrent.doSetup();
+
+			testMediaConcurrent = new ServerTestMedia(server, server.getContext(), true);
+			testMediaConcurrent.setParameterResourceGroup("Apartment");
+			testMediaConcurrent.setParameterResourceName("Floor");
+			testMediaConcurrent.setParameterDataIdentifierTestUpload("1236");
+			testMediaConcurrent.setParameterDataIdentifierTestObsolete("1237");
+			testMediaConcurrent.setParameterTestCycleNumber(5);
+			testMediaConcurrent.setParameterTestCycleDataIdentifierFrom(1);
+			testMediaConcurrent.setParameterTestCycleDataIdentifierToo(10);
+			new Thread(testMediaConcurrent).start();
+
+			// Bedroom
+			testMediaConcurrent = new ServerTestMedia(server, server.getContext(), false);
+			testMediaConcurrent.setParameterResourceGroup("Apartment");
+			testMediaConcurrent.setParameterResourceName("Bedroom");
+			testMediaConcurrent.testAll();
+			testMediaConcurrent.doSetup();
+
+			testMediaConcurrent = new ServerTestMedia(server, server.getContext(), true);
+			testMediaConcurrent.setParameterResourceGroup("Apartment");
+			testMediaConcurrent.setParameterResourceName("Bedroom");
+			testMediaConcurrent.setParameterDataIdentifierTestUpload("1238");
+			testMediaConcurrent.setParameterDataIdentifierTestObsolete("1239");
+			testMediaConcurrent.setParameterTestCycleNumber(5);
+			testMediaConcurrent.setParameterTestCycleDataIdentifierFrom(1);
+			testMediaConcurrent.setParameterTestCycleDataIdentifierToo(2);
+			new Thread(testMediaConcurrent).start();
+
+			// Kitchen
+			testMediaConcurrent = new ServerTestMedia(server, server.getContext(), false);
+			testMediaConcurrent.setParameterResourceGroup("Apartment");
+			testMediaConcurrent.setParameterResourceName("Kitchen");
+			testMediaConcurrent.testAll();
+			testMediaConcurrent.doSetup();
+
+			testMediaConcurrent = new ServerTestMedia(server, server.getContext(), true);
+			testMediaConcurrent.setParameterResourceGroup("Apartment");
+			testMediaConcurrent.setParameterResourceName("Kitchen");
+			testMediaConcurrent.setParameterDataIdentifierTestUpload("1240");
+			testMediaConcurrent.setParameterDataIdentifierTestObsolete("1241");
+			testMediaConcurrent.setParameterTestCycleNumber(5);
+			testMediaConcurrent.setParameterTestCycleDataIdentifierFrom(1);
+			testMediaConcurrent.setParameterTestCycleDataIdentifierToo(10000);
+			new Thread(testMediaConcurrent).start();
+
+			// Bathroom
+			testMediaConcurrent = new ServerTestMedia(server, server.getContext(), false);
+			testMediaConcurrent.setParameterResourceGroup("Apartment");
+			testMediaConcurrent.setParameterResourceName("Bathroom");
+			testMediaConcurrent.testAll();
+			testMediaConcurrent.doSetup();
+
+			testMediaConcurrent = new ServerTestMedia(server, server.getContext(), true);
+			testMediaConcurrent.setParameterResourceGroup("Apartment");
+			testMediaConcurrent.setParameterResourceName("Bathroom");
+			testMediaConcurrent.setParameterDataIdentifierTestUpload("1242");
+			testMediaConcurrent.setParameterDataIdentifierTestObsolete("1243");
+			testMediaConcurrent.setParameterTestCycleNumber(5);
+			testMediaConcurrent.setParameterTestCycleDataIdentifierFrom(500);
+			testMediaConcurrent.setParameterTestCycleDataIdentifierToo(1000);
+			new Thread(testMediaConcurrent).start();
 		}
 	}
 

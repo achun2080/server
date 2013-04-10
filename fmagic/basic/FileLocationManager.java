@@ -63,7 +63,7 @@ public class FileLocationManager
 	private static final String mediaDeletedSubPath = "deleted";
 
 	private static final String testLoggingSubPath = "test/${testcasename}/fmagic.logging";
-	private static final String testLoggingSubSubPath = "${application}-${origin}-${testticket}";
+	private static final String testLoggingSubSubPath = "${application}-${origin}-${codename}-${testticket}";
 	private static final String testLoggingLogFileName = "LOGGING-${application}-${origin}-${codename}-[${thread}].log";
 	private static final String testLoggingAssertFileName = "ASSERT-${application}-${origin}-${codename}-[${thread}].log";
 

@@ -856,7 +856,7 @@ public class MediaManager implements ManagerInterface
 				{
 					for (int i = 0; i < partsOfMediaLogicalPathValue.length; i++)
 					{
-						String normalizedMediaLogicalPathValue = Util.fitToFileNameCompatibility(partsOfMediaLogicalPathValue[i]);
+						String normalizedMediaLogicalPathValue = FileUtil.fitToFileNameCompatibility(partsOfMediaLogicalPathValue[i]);
 
 						if (!normalizedMediaLogicalPathValue.equals(partsOfMediaLogicalPathValue[i]))
 						{
@@ -1150,7 +1150,7 @@ public class MediaManager implements ManagerInterface
 		/*
 		 *  Get file type of media file
 		 */
-		String fileType = Util.fileGetFileTypePart(sourceFilePath);
+		String fileType = FileUtil.fileGetFileTypePart(sourceFilePath);
 
 		if (fileType == null || fileType.length() == 0)
 		{
@@ -1171,7 +1171,7 @@ public class MediaManager implements ManagerInterface
 		String pendingFilePath = mediaResourceContainer.getMediaPendingFilePath(context) + FileLocationManager.getPathElementDelimiterString() + mediaResourceContainer.getMediaPendingFileName(context, fileType);
 
 		// Copy media file to pending directory
-		if (Util.fileCopy(sourceFilePath, pendingFilePath) == false)
+		if (FileUtil.fileCopy(sourceFilePath, pendingFilePath) == false)
 		{
 			String errorString = "--> Error on coping media file.";
 			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
@@ -1235,7 +1235,7 @@ public class MediaManager implements ManagerInterface
 			errorString += "\n--> File name analyzed: '" + sourceFilePath + "'";
 			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnProcessingFile"), errorString, null);
 
-			Util.fileDelete(pendingFilePath);
+			FileUtil.fileDelete(pendingFilePath);
 
 			return null;
 		}
@@ -1243,7 +1243,7 @@ public class MediaManager implements ManagerInterface
 		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "DECRYPT: Hash value [" + hashValueSourceFile + "] on media file '" + sourceFilePath + "'");
 
 		// Get hash value of destination file (computed)
-		String hashValueDestinationFile = Util.fileGetHashValue(destinationFilePath);
+		String hashValueDestinationFile = FileUtil.fileGetHashValue(destinationFilePath);
 
 		if (hashValueDestinationFile == null)
 		{
@@ -1273,7 +1273,7 @@ public class MediaManager implements ManagerInterface
 		}
 		
 		// Delete pending file, because destinationfilePath is the result file
-		if (Util.fileDelete(pendingFilePath) == false)
+		if (FileUtil.fileDelete(pendingFilePath) == false)
 		{
 			String errorString = "--> Error on deleting media file from 'pending' directory.";
 			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
@@ -1344,7 +1344,7 @@ public class MediaManager implements ManagerInterface
 		}
 
 		// Check if file exists
-		if (Util.fileExists(uploadFileNamePath) == false)
+		if (FileUtil.fileExists(uploadFileNamePath) == false)
 		{
 			String errorString = "--> File to be uploaded doesn't exist or is not accessable.";
 			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
@@ -1355,7 +1355,7 @@ public class MediaManager implements ManagerInterface
 		}
 
 		// Checks if file type is set
-		String fileType = Util.fileGetFileTypePart(uploadFileNamePath);
+		String fileType = FileUtil.fileGetFileTypePart(uploadFileNamePath);
 
 		if (fileType == null || fileType.length() == 0)
 		{
@@ -1424,7 +1424,7 @@ public class MediaManager implements ManagerInterface
 		 */
 		String pendingFileName = mediaResourceContainer.getMediaPendingFilePath(context) + FileLocationManager.getPathElementDelimiterString() + mediaResourceContainer.getMediaPendingFileName(context, fileType);
 
-		if (Util.fileCopy(uploadFileNamePath, pendingFileName) == false)
+		if (FileUtil.fileCopy(uploadFileNamePath, pendingFileName) == false)
 		{
 			String errorString = "--> Error on copying media file (to pending directory).";
 			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
@@ -1439,7 +1439,7 @@ public class MediaManager implements ManagerInterface
 		/*
 		 * Get hash value of the original file
 		 */
-		String hashValue = Util.fileGetHashValue(pendingFileName);
+		String hashValue = FileUtil.fileGetHashValue(pendingFileName);
 
 		if (hashValue == null)
 		{
@@ -1478,7 +1478,7 @@ public class MediaManager implements ManagerInterface
 			if (!encryptedPendingFileName.equals(pendingFileName))
 			{
 				// Delete file
-				Util.fileDelete(pendingFileName);
+				FileUtil.fileDelete(pendingFileName);
 
 				// Logging
 				context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "UPLOAD: Media file encrypted on server side: '" + encryptedPendingFileName + "'");
@@ -1495,9 +1495,9 @@ public class MediaManager implements ManagerInterface
 		String destinationFileName = mediaResourceContainer.getMediaRealFileName(context, dataIdentifier, hashValue, fileType);
 
 		// Copy only if the destination file doesn't exist yet.
-		if (Util.fileExists(destinationFileName) == false)
+		if (FileUtil.fileExists(destinationFileName) == false)
 		{
-			if (Util.fileCopy(sourceFileName, destinationFileName) == false)
+			if (FileUtil.fileCopy(sourceFileName, destinationFileName) == false)
 			{
 				String errorString = "--> Error on copying a media file from 'pending' directory to its 'regular' directory.";
 				errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
@@ -1514,9 +1514,9 @@ public class MediaManager implements ManagerInterface
 
 		// Change the 'modified date', in order to set the current file as
 		// up-to-date.
-		if (Util.fileExists(destinationFileName) == true)
+		if (FileUtil.fileExists(destinationFileName) == true)
 		{
-			if (Util.fileSetLastModified(destinationFileName) == false)
+			if (FileUtil.fileSetLastModifiedRetry(destinationFileName, new Date()) == false)
 			{
 				String errorString = "--> Error on setting 'last modified' date to a media file.";
 				errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
@@ -1533,7 +1533,7 @@ public class MediaManager implements ManagerInterface
 		/*
 		 * Delete pending media file
 		 */
-		if (Util.fileDelete(sourceFileName) == false)
+		if (FileUtil.fileDelete(sourceFileName) == false)
 		{
 			String errorString = "--> Error on deleting media file from 'pending' directory.";
 			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
