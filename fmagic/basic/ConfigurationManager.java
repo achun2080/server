@@ -397,11 +397,11 @@ public class ConfigurationManager implements ManagerInterface
 
 					if (context.isRunningInTestMode())
 					{
-						fileName = TestManager.getTestConfigurationFilePath(context) + FileLocationManager.getPathElementDelimiterString() + value.substring(2, value.length() - 1);
+						fileName = FileLocationManager.compileFilePath(TestManager.getTestConfigurationFilePath(context), value.substring(2, value.length() - 1));
 					}
 					else
 					{
-						fileName = FileLocationManager.getRootPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getConfigurationSubPath() + FileLocationManager.getPathElementDelimiterString() + value.substring(2, value.length() - 1);
+						fileName = FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getConfigurationSubPath(), value.substring(2, value.length() - 1));
 					}
 
 					// Logging
@@ -726,7 +726,7 @@ public class ConfigurationManager implements ManagerInterface
 	 */
 	private String getConfigurationFilePath(Context context)
 	{
-		return FileLocationManager.getRootPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getConfigurationSubPath();
+		return FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getConfigurationSubPath());
 	}
 
 	/**
@@ -764,7 +764,7 @@ public class ConfigurationManager implements ManagerInterface
 	 */
 	private String getConfigurationTemplateFilePath(Context context)
 	{
-		return FileLocationManager.getRootPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getConfigurationTemplateSubPath() + FileLocationManager.getPathElementDelimiterString();
+		return FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getConfigurationTemplateSubPath());
 	}
 
 	/**
@@ -821,11 +821,11 @@ public class ConfigurationManager implements ManagerInterface
 		// environment.
 		if (context.isRunningInTestMode())
 		{
-			fileName = TestManager.getTestConfigurationFilePath(context) + FileLocationManager.getPathElementDelimiterString() + this.getConfigurationFileName(context);
+			fileName = FileLocationManager.compileFilePath(TestManager.getTestConfigurationFilePath(context), this.getConfigurationFileName(context));
 		}
 		else
 		{
-			fileName = this.getConfigurationFilePath(context) + FileLocationManager.getPathElementDelimiterString() + this.getConfigurationFileName(context);
+			fileName = FileLocationManager.compileFilePath(this.getConfigurationFilePath(context), this.getConfigurationFileName(context));
 		}
 
 		try
@@ -849,11 +849,11 @@ public class ConfigurationManager implements ManagerInterface
 		// environment.
 		if (context.isRunningInTestMode())
 		{
-			fileName = TestManager.getTestConfigurationFilePath(context) + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getConfigurationDefaultFileName();
+			fileName = FileLocationManager.compileFilePath(TestManager.getTestConfigurationFilePath(context), FileLocationManager.getConfigurationDefaultFileName());
 		}
 		else
 		{
-			fileName = FileLocationManager.getRootPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getConfigurationDefaultSubPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getConfigurationDefaultFileName();
+			fileName = FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getConfigurationDefaultSubPath(), FileLocationManager.getConfigurationDefaultFileName());
 		}
 
 		try
@@ -932,7 +932,7 @@ public class ConfigurationManager implements ManagerInterface
 		try
 		{
 			// Create template text
-			fileName = this.getConfigurationTemplateFilePath(context) + FileLocationManager.getPathElementDelimiterString() + this.getConfigurationTemplateFileName(context, application, origin);
+			fileName = FileLocationManager.compileFilePath(this.getConfigurationTemplateFilePath(context), this.getConfigurationTemplateFileName(context, application, origin));
 
 			String typeCriteria[] = { "Configuration" };
 			String applicationCriteria[] = { "Basic", "Common", application };

@@ -2,11 +2,7 @@ package fmagic.application.seniorcitizen.server;
 
 import fmagic.basic.ApplicationManager;
 import fmagic.basic.Context;
-import fmagic.basic.LicenseManager;
-import fmagic.basic.ResourceContainer;
 import fmagic.basic.ManagerInterface;
-import fmagic.basic.ResourceManager;
-import fmagic.basic.RightManager;
 import fmagic.server.ServerManager;
 
 /**
@@ -42,13 +38,18 @@ public class ServerSeniorCitizen extends ServerManager implements
 	 *            Is to be set to the name of the test case, if the application
 	 *            is running in test mode, or <TT>null</TT> if the application
 	 *            is running in productive mode.
+	 * 
+	 * @param testSessionName
+	 *            Is to be set to the name of the test session, if the application
+	 *            is running in test mode, or <TT>null</TT> if the application
+	 *            is running in productive mode.
 	 */
 	private ServerSeniorCitizen(String codeName, int serverSocketPort,
 			int timeoutTimeInMilliseconds, boolean runningInTestMode,
-			String testCaseName)
+			String testCaseName, String testSessionName)
 	{
 		// Invoke super class
-		super(ApplicationManager.ApplicationIdentifierEnum.SeniorCitizen, ServerSeniorCitizen.serverVersionSeniorCitizen, codeName, serverSocketPort, timeoutTimeInMilliseconds, runningInTestMode, testCaseName);
+		super(ApplicationManager.ApplicationIdentifierEnum.SeniorCitizen, ServerSeniorCitizen.serverVersionSeniorCitizen, codeName, serverSocketPort, timeoutTimeInMilliseconds, runningInTestMode, testCaseName, testSessionName);
 	}
 
 	@Override
@@ -238,10 +239,10 @@ public class ServerSeniorCitizen extends ServerManager implements
 	 *         couldn't be created. In this case please see the log files or the
 	 *         console for further information.
 	 */
-	public static ServerSeniorCitizen getTestInstance(String codeName, int serverSocketPort, int timeoutTimeInMilliseconds, String testCaseName)
+	public static ServerSeniorCitizen getTestInstance(String codeName, int serverSocketPort, int timeoutTimeInMilliseconds, String testCaseName, String testSessionName)
 	{
 		// Instance will always be build because it is a regular constructor
-		ServerSeniorCitizen instance = new ServerSeniorCitizen(codeName, serverSocketPort, serverSocketPort, true, testCaseName);
+		ServerSeniorCitizen instance = new ServerSeniorCitizen(codeName, serverSocketPort, serverSocketPort, true, testCaseName, testSessionName);
 
 		// If there was an error during building the application, the factory
 		// method returns wit NULL
@@ -274,7 +275,7 @@ public class ServerSeniorCitizen extends ServerManager implements
 	public static ServerSeniorCitizen getProductiveInstance(String codeName, int serverSocketPort, int timeoutTimeInMilliseconds)
 	{
 		// Instance will always be build because it is a regular constructor
-		ServerSeniorCitizen instance = new ServerSeniorCitizen(codeName, serverSocketPort, serverSocketPort, false, null);
+		ServerSeniorCitizen instance = new ServerSeniorCitizen(codeName, serverSocketPort, serverSocketPort, false, null, null);
 
 		// If there was an error during building the application, the factory
 		// method returns wit NULL

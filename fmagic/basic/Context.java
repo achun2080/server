@@ -94,7 +94,7 @@ public abstract class Context implements Cloneable, ManagerInterface
 	private ResourceContainer contextResourceContainer = null;
 
 	// Test mode
-	private final String ticketNumberOfTest;
+	private final String testSessionName;
 	private final boolean runningInTestMode;
 	private final String testCaseName;
 
@@ -146,11 +146,16 @@ public abstract class Context implements Cloneable, ManagerInterface
 	 *            Is to be set to the name of the test case, if the application
 	 *            is running in test mode, or <TT>null</TT> if the application
 	 *            is running in productive mode.
+	 * 
+	 * @param testSessionName
+	 *            Is to be set to the name of the test session, if the application
+	 *            is running in test mode, or <TT>null</TT> if the application
+	 *            is running in productive mode.
 	 */
 	public Context(String codeName, String applicationName,
 			int applicationVersion, String originName,
 			ApplicationManager applicationManager, TestManager testManager,
-			boolean runningInTestMode, String testCaseName)
+			boolean runningInTestMode, String testCaseName, String testSessionName)
 	{
 		this.codeName = FileUtil.fitToFileNameCompatibility(codeName);
 		this.applicationName = FileUtil.fitToFileNameCompatibility(applicationName);
@@ -187,15 +192,23 @@ public abstract class Context implements Cloneable, ManagerInterface
 
 			this.contextType = Context.ContextTypeEnum.TEST;
 
-			Date messageDate = new Date();
-			SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd-HHmmss-SSS", Locale.getDefault());
-			this.ticketNumberOfTest = simpleDateFormat.format(messageDate);
+
+			if (testSessionName == null || testSessionName.length() == 0)
+			{
+				Date messageDate = new Date();
+				SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd-HHmmss-SSS", Locale.getDefault());
+				this.testSessionName = simpleDateFormat.format(messageDate);
+			}
+			else
+			{
+				this.testSessionName = FileUtil.fitToFileNameCompatibility(testSessionName);
+			}
 		}
 		else
 		{
 			this.runningInTestMode = false;
 			this.testCaseName = null;
-			this.ticketNumberOfTest = null;
+			this.testSessionName = null;
 		}
 
 		// Get a provisional resource container because the resource files are
@@ -854,9 +867,9 @@ public abstract class Context implements Cloneable, ManagerInterface
 	/**
 	 * Getter
 	 */
-	public String getTicketNumberOfTest()
+	public String getTestSessionName()
 	{
-		return this.ticketNumberOfTest;
+		return this.testSessionName;
 	}
 
 	/**

@@ -159,15 +159,26 @@ public class CipherHandler
 			{
 				outputStream.write(bytes, 0, numBytes);
 			}
-			
+
 			outputStream.flush();
 			outputStream.close();
 			inputStream.close();
 		}
-		catch (Exception e)
+		catch (Exception e1)
 		{
 			String errorString = "--> Error on encrypting or decrypting a file.";
-			this.getContext().getNotificationManager().notifyError(this.getContext(), ResourceManager.notification(this.getContext(), "Cipher", "ErrorOnCiphering"), errorString, e);
+			this.getContext().getNotificationManager().notifyError(this.getContext(), ResourceManager.notification(this.getContext(), "Cipher", "ErrorOnCiphering"), errorString, e1);
+
+			try
+			{
+				outputStream.close();
+				inputStream.close();
+			}
+			catch (Exception e2)
+			{
+				// Be silent
+			}
+
 			return false;
 		}
 

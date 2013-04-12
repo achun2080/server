@@ -63,23 +63,74 @@ public class FileLocationManager
 	private static final String mediaDeletedSubPath = "deleted";
 
 	private static final String testLoggingSubPath = "test/${testcasename}/fmagic.logging";
-	private static final String testLoggingSubSubPath = "${application}-${origin}-${codename}-${testticket}";
+	private static final String testLoggingSubSubPath = "${application}-${testsession}";
 	private static final String testLoggingLogFileName = "LOGGING-${application}-${origin}-${codename}-[${thread}].log";
 	private static final String testLoggingAssertFileName = "ASSERT-${application}-${origin}-${codename}-[${thread}].log";
+	private static final String testLoggingErrorFileName = "ERROR-${application}-${origin}.log";
 
 	private static final String testResourceSubPath = "test/${testcasename}/fmagic.resource";
 	private static final String testStuffSubPath = "test/${testcasename}/fmagic.stuff";
 	private static final String testConfigurationSubPath = "test/${testcasename}/fmagic.configuration";
 	private static final String testLicenseSubPath = "test/${testcasename}/fmagic.license";
 
+	// File location counter
+	private static long fileLocationCounter = 0;
+
 	/**
 	 * Get the delimiter character that divides parts of path elements.
 	 * 
 	 * @return Returns always with <TT>|</TT>.
 	 */
-	public static String getPathElementDelimiterString()
+	private static String getPathElementDelimiterString()
 	{
 		return "/";
+	}
+
+	/**
+	 * Compile a file path containing the elements given by the parameter of the
+	 * method.
+	 * 
+	 * @param valueParameterList
+	 *            The elements of the file path, as a variable parameter list of
+	 *            <TT>String</TT> values.
+	 * 
+	 * @return Returns the compiled file path.
+	 */
+	public static String compileFilePath(String... valueParameterList)
+	{
+		// Initialize variables
+		String resultString = "";
+
+		// Check parameter
+		if (valueParameterList == null) return resultString;
+		if (valueParameterList.length == 0) return resultString;
+
+		// Compile file path
+		try
+		{
+			for (int i = 0; i < valueParameterList.length; i++)
+			{
+				if (resultString.length() > 0) resultString += FileLocationManager.getPathElementDelimiterString();
+				 resultString += valueParameterList[i];
+			}
+		}
+		catch (Exception e)
+		{
+			return "";
+		}
+
+		// Return
+		return resultString;
+	}
+
+	/**
+	 * Increment and get the new value of the global file location counter.
+	 * 
+	 * @return Returns the counter value.
+	 */
+	private static synchronized long getFileLocationCounter()
+	{
+		return ++(FileLocationManager.fileLocationCounter);
 	}
 
 	/**
@@ -123,6 +174,7 @@ public class FileLocationManager
 			Date messageDate = new Date();
 			simpleDateFormat = new SimpleDateFormat("yyyyMMdd-HHmmss-SSS", Locale.getDefault());
 			timestampString = simpleDateFormat.format(messageDate);
+			timestampString = timestampString + "-" + String.valueOf(FileLocationManager.getFileLocationCounter());
 
 			// Replace place holder in file name
 			resultString = resultString.replace("${codename}", context.getCodeName().toLowerCase());
@@ -133,7 +185,7 @@ public class FileLocationManager
 			resultString = resultString.replace("${context}", context.getContextResourceContainer().getAliasName().toLowerCase());
 			resultString = resultString.replace("${thread}", String.format("%04d", Thread.currentThread().getId()));
 			resultString = resultString.replace("${origin}", context.getOriginName().toLowerCase());
-			resultString = resultString.replace("${testticket}", context.getTicketNumberOfTest().toLowerCase());
+			resultString = resultString.replace("${testsession}", context.getTestSessionName().toLowerCase());
 			resultString = resultString.replace("${testcasename}", context.getTestCaseName().toLowerCase());
 
 			if (language != null && language.length() > 0)
@@ -507,6 +559,11 @@ public class FileLocationManager
 	public static String getTestLoggingAssertFileName()
 	{
 		return testLoggingAssertFileName;
+	}
+
+	public static String getTestLoggingErrorFileName()
+	{
+		return testLoggingErrorFileName;
 	}
 
 	public static String getTestResourceSubPath()

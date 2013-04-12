@@ -169,14 +169,12 @@ public class NotificationManager implements ManagerInterface
 
 		// Add code name
 		formattedString += " [" + codeName + "]";
-		
-		// Add free memory
-		formattedString += " {" + String.valueOf(Runtime.getRuntime().freeMemory()/(1024*1024)) + "}";
-		
-		
 
 		// Add thread identification
 		formattedString += " [" + String.format("%04d", Thread.currentThread().getId()) + "]";
+		
+		// Add free memory
+		formattedString += " {" + String.valueOf(Runtime.getRuntime().freeMemory()/(1024*1024)) + "}";
 
 		// Add message text
 		formattedString += " " + messageText + "";
@@ -755,7 +753,7 @@ public class NotificationManager implements ManagerInterface
 		{
 			// Gets file path of the ticket files
 			String pathDirectoryMessageDump = this.getLogfilePath(context, NotificationManager.LogfileTypeEnum.TICKET_LOG);
-			String pathFileNameMessageDump = this.getLogfilePath(context, NotificationManager.LogfileTypeEnum.TICKET_LOG) + FileLocationManager.getPathElementDelimiterString() + fileNameMessageDump;
+			String pathFileNameMessageDump = FileLocationManager.compileFilePath(this.getLogfilePath(context, NotificationManager.LogfileTypeEnum.TICKET_LOG), fileNameMessageDump);
 
 			// Create directory
 			File directory = new File(pathDirectoryMessageDump);
@@ -780,7 +778,7 @@ public class NotificationManager implements ManagerInterface
 		{
 			// Gets file path of the ticket files
 			String pathDirectoryDocumentationDump = this.getLogfilePath(context, NotificationManager.LogfileTypeEnum.TICKET_DOC);
-			String pathFileNameDocumentationDump = this.getLogfilePath(context, NotificationManager.LogfileTypeEnum.TICKET_DOC) + FileLocationManager.getPathElementDelimiterString() + fileNameDocumentationDump;
+			String pathFileNameDocumentationDump = FileLocationManager.compileFilePath(this.getLogfilePath(context, NotificationManager.LogfileTypeEnum.TICKET_DOC), fileNameDocumentationDump);
 
 			// Create directory
 			File directory = new File(pathDirectoryDocumentationDump);
@@ -893,31 +891,29 @@ public class NotificationManager implements ManagerInterface
 	{
 		String fileName = "";
 
-		String rootPath = FileLocationManager.getRootPath();
-
 		if (logfileType == NotificationManager.LogfileTypeEnum.DATE_CONTEXT)
 		{
-			fileName += rootPath + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getLogContextSubPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getLogContextSubSubPath();
+			fileName = FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getLogContextSubPath(), FileLocationManager.getLogContextSubSubPath());
 		}
 		else if (logfileType == NotificationManager.LogfileTypeEnum.APPLICATION_DATE)
 		{
-			fileName += rootPath + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getLogApplicationSubPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getLogApplicationSubSubPath();
+			fileName = FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getLogApplicationSubPath(), FileLocationManager.getLogApplicationSubSubPath());
 		}
 		else if (logfileType == NotificationManager.LogfileTypeEnum.TICKET_LOG)
 		{
-			fileName += rootPath + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getLogTicketSubPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getLogTicketSubSubPath();
+			fileName = FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getLogTicketSubPath(), FileLocationManager.getLogTicketSubSubPath());
 		}
 		else if (logfileType == NotificationManager.LogfileTypeEnum.TICKET_DOC)
 		{
-			fileName += rootPath + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getLogTicketSubPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getLogTicketSubSubPath();
+			fileName = FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getLogTicketSubPath(), FileLocationManager.getLogTicketSubSubPath());
 		}
 		else if (logfileType == NotificationManager.LogfileTypeEnum.TEST_LOGGING)
 		{
-			fileName += rootPath + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getTestLoggingSubPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getTestLoggingSubSubPath();
+			fileName = FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getTestLoggingSubPath(), FileLocationManager.getTestLoggingSubSubPath());
 		}
 		else
 		{
-			fileName += rootPath + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getLogFlatSubPath();
+			fileName = FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getLogFlatSubPath());
 		}
 
 		// Replace place holder
@@ -1078,7 +1074,7 @@ public class NotificationManager implements ManagerInterface
 					directory.mkdirs();
 
 					// Write to log file
-					output = new PrintWriter(new FileOutputStream(new File(pathName + FileLocationManager.getPathElementDelimiterString() + fileName), true));
+					output = new PrintWriter(new FileOutputStream(new File(pathName, fileName), true));
 					this.appendStringToLogFile(output, normalizedText);
 					output.close();
 
@@ -1099,7 +1095,7 @@ public class NotificationManager implements ManagerInterface
 				directory.mkdirs();
 
 				// Write to log file
-				output = new PrintWriter(new FileOutputStream(new File(pathName + FileLocationManager.getPathElementDelimiterString() + fileName), true));
+				output = new PrintWriter(new FileOutputStream(new File(pathName, fileName), true));
 				this.appendStringToLogFile(output, normalizedText);
 				output.close();
 
@@ -1116,7 +1112,7 @@ public class NotificationManager implements ManagerInterface
 				directory.mkdirs();
 
 				// Write to log file
-				output = new PrintWriter(new FileOutputStream(new File(pathName + FileLocationManager.getPathElementDelimiterString() + fileName), true));
+				output = new PrintWriter(new FileOutputStream(new File(pathName, fileName), true));
 				this.appendStringToLogFile(output, normalizedText);
 				output.close();
 
@@ -1133,7 +1129,7 @@ public class NotificationManager implements ManagerInterface
 				directory.mkdirs();
 
 				// Write to log file
-				output = new PrintWriter(new FileOutputStream(new File(pathName + FileLocationManager.getPathElementDelimiterString() + fileName), true));
+				output = new PrintWriter(new FileOutputStream(new File(pathName, fileName), true));
 				this.appendStringToLogFile(output, normalizedText);
 				output.close();
 

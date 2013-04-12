@@ -71,20 +71,25 @@ public abstract class ApplicationManager implements ManagerInterface
 	 *            Is to be set to the name of the test case, if the application
 	 *            is running in test mode, or <TT>null</TT> if the application
 	 *            is running in productive mode.
+	 * 
+	 * @param testSessionName
+	 *            Is to be set to the name of the test session, if the application
+	 *            is running in test mode, or <TT>null</TT> if the application
+	 *            is running in productive mode.
 	 */
 	protected ApplicationManager(
 			ApplicationManager.ApplicationIdentifierEnum applicationIdentifier,
 			int applicationVersion, String codeName, OriginEnum origin,
-			boolean runningInTestMode, String testCaseName)
+			boolean runningInTestMode, String testCaseName, String testSessionName)
 	{
 		// Create default context
 		if (origin.toString().equals(OriginEnum.Server.toString()))
 		{
-			this.context = new ServerContext(codeName, applicationIdentifier.toString(), applicationVersion, this, runningInTestMode, testCaseName);
+			this.context = new ServerContext(codeName, applicationIdentifier.toString(), applicationVersion, this, runningInTestMode, testCaseName, testSessionName);
 		}
 		else
 		{
-			this.context = new ClientContext(codeName, applicationIdentifier.toString(), applicationVersion, this, runningInTestMode, testCaseName);
+			this.context = new ClientContext(codeName, applicationIdentifier.toString(), applicationVersion, this, runningInTestMode, testCaseName, testSessionName);
 		}
 
 		// Adopt constructor data
@@ -254,7 +259,7 @@ public abstract class ApplicationManager implements ManagerInterface
 			// Read test resources. if the application is running in "test mode", the test resources are loaded additionally.
 			if (context.isRunningInTestMode())
 			{
-				String fileName = TestManager.getTestResourceFilePath(this.getContext()) + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getResourceFileName();
+				String fileName = FileLocationManager.compileFilePath(TestManager.getTestResourceFilePath(this.getContext()), FileLocationManager.getResourceFileName());
 				fileName = FileLocationManager.replacePlaceholder(this.getContext(), fileName, ApplicationManager.ApplicationIdentifierEnum.Test.toString(), null);
 				
 				if (this.getContext().getResourceManager().loadCommonResourceFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Test.toString(), this.applicationVersion, fileName) == false) isSuccessful = false;
@@ -372,7 +377,7 @@ public abstract class ApplicationManager implements ManagerInterface
 
 			if (this.supportedLanguages.get(this.mainLanguage) == null)
 			{
-				String errorString = "--> Main language '" + this.mainLanguage + "' not found in the list of supported languages.";
+				String errorString = "--> ApplicationMain language '" + this.mainLanguage + "' not found in the list of supported languages.";
 				errorString += "\n--> Supported languages: '" + supportedLanguagesString + "'";
 				errorString += "\n--> Please add the main language to the list of supported languages.";
 

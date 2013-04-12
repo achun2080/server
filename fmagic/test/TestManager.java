@@ -6,7 +6,9 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import fmagic.basic.Context;
@@ -81,6 +83,41 @@ public class TestManager implements ManagerInterface
 	}
 
 	/**
+	 * Start all treads of a thread list.
+	 * 
+	 * @param threadList
+	 *            The list of threads to consider.
+	 */
+	public static void threadListStart(List<Thread> threadList)
+	{
+		for (Thread thread : threadList)
+		{
+			thread.start();
+		}
+	}
+
+	/**
+	 * Wait for the end of all treads of a thread list.
+	 * 
+	 * @param threadList
+	 *            The list of threads to consider.
+	 */
+	public static void threadListJoin(List<Thread> threadList)
+	{
+		for (Thread thread : threadList)
+		{
+			try
+			{
+				thread.join();
+			}
+			catch (Exception exception)
+			{
+				// Be silent
+			}
+		}
+	}
+
+	/**
 	 * Get the absolute file path for the <TT>Resource</TT> directory of the
 	 * test environment, regarding a specific test case.
 	 * <p>
@@ -100,7 +137,7 @@ public class TestManager implements ManagerInterface
 	 */
 	public static String getTestResourceFilePath(Context context)
 	{
-		String filePath = FileLocationManager.getRootPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getTestResourceSubPath();
+		String filePath = FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getTestResourceSubPath());
 		filePath = FileLocationManager.replacePlacholder(context, filePath);
 
 		return filePath;
@@ -128,7 +165,7 @@ public class TestManager implements ManagerInterface
 	 */
 	public static String getTestStuffFilePath(Context context)
 	{
-		String filePath = FileLocationManager.getRootPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getTestStuffSubPath();
+		String filePath = FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getTestStuffSubPath());
 		filePath = FileLocationManager.replacePlacholder(context, filePath);
 
 		return filePath;
@@ -154,7 +191,7 @@ public class TestManager implements ManagerInterface
 	 */
 	public static String getTestConfigurationFilePath(Context context)
 	{
-		String filePath = FileLocationManager.getRootPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getTestConfigurationSubPath();
+		String filePath = FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getTestConfigurationSubPath());
 		filePath = FileLocationManager.replacePlacholder(context, filePath);
 
 		return filePath;
@@ -180,10 +217,35 @@ public class TestManager implements ManagerInterface
 	 */
 	public static String getTestLicenseFilePath(Context context)
 	{
-		String filePath = FileLocationManager.getRootPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getTestLicenseSubPath();
+		String filePath = FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getTestLicenseSubPath());
 		filePath = FileLocationManager.replacePlacholder(context, filePath);
 
 		return filePath;
+	}
+
+	/**
+	 * Clean all files in the test session directory, if the directory already
+	 * exists.
+	 * <p>
+	 * The file path of the test session directory is combined of the root path
+	 * of the development environment, and the sub path "test", and the name of
+	 * the test case, and the <TT>Logging</TT> sub path, and the name of the
+	 * test session.
+	 * <p>
+	 * For example, if the root path of the development environment is set to
+	 * "c:/fmagic" and the test case is named "mediatest", and the test session
+	 * is named with "basic" you will get:
+	 * <p>
+	 * <TT>c:/fmagic/test/mediatest/fmagic.logging/basic</TT>
+	 * 
+	 * @param context
+	 *            The application context.
+	 */
+	public static void cleanTestSessionDirectory(Context context)
+	{
+		String filePath = FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getTestLoggingSubPath(), FileLocationManager.getTestLoggingSubSubPath());
+		filePath = FileLocationManager.replacePlacholder(context, filePath);
+		FileUtil.fileCleanDirectory(filePath);
 	}
 
 	/**
@@ -197,7 +259,7 @@ public class TestManager implements ManagerInterface
 	 * 
 	 * @return Returns the formatted string.
 	 */
-	private String assertFormatter(String assertText, String additionalText)
+	private String serviceFormatter(String codeName, String assertText, String additionalText)
 	{
 		// Initialize variables
 		String formattedString = "\n\n";
@@ -206,6 +268,12 @@ public class TestManager implements ManagerInterface
 		Date messageDate = new Date();
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
 		formattedString += simpleDateFormat.format(messageDate);
+
+		// Add code name
+		formattedString += " [" + codeName + "]";
+
+		// Add thread identification
+		formattedString += " [" + String.format("%04d", Thread.currentThread().getId()) + "]";
 
 		// Add assertion headline
 		if (assertText == null) assertText = "";
@@ -234,6 +302,28 @@ public class TestManager implements ManagerInterface
 	 */
 	private void writeMessageToAssertfile(Context context, String assertText, String additionalText)
 	{
+		this.writeMessageToAssertFile(context, assertText, additionalText, true);
+	}
+
+	/**
+	 * Write an <TT>assert</TT> text to a test assertion file.
+	 * 
+	 * @param context
+	 *            Application context of the message.
+	 * 
+	 * @param assertText
+	 *            Headline text that describes the assertion.
+	 * 
+	 * @param formatterMark
+	 *            Set to <TT>true</TT> if the <TT>assert</TT> message has to be
+	 *            formatted with date, time and other information, otherwise set
+	 *            to <TT>false</TT>.
+	 * 
+	 * @param additionalText
+	 *            Additional text of the message.
+	 */
+	private void writeMessageToAssertFile(Context context, String assertText, String additionalText, boolean formatterMark)
+	{
 		// Normalize new line first
 		String normalizedText = null;
 
@@ -243,7 +333,14 @@ public class TestManager implements ManagerInterface
 		}
 		else
 		{
-			normalizedText = FileUtil.normalizeNewLine(assertFormatter(assertText, additionalText));
+			if (formatterMark == true)
+			{
+				normalizedText = serviceFormatter(context.getCodeName(), assertText, additionalText);
+			}
+			else
+			{
+				normalizedText = FileUtil.normalizeNewLine("\n" + assertText + "\n");
+			}
 		}
 
 		// Write message to assert file
@@ -255,7 +352,7 @@ public class TestManager implements ManagerInterface
 			PrintWriter output;
 
 			// Gets file path and file name
-			pathName = FileLocationManager.getRootPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getTestLoggingSubPath() + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getTestLoggingSubSubPath();
+			pathName = FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getTestLoggingSubPath(), FileLocationManager.getTestLoggingSubSubPath());
 			pathName = FileLocationManager.replacePlacholder(context, pathName);
 
 			fileName = FileLocationManager.getTestLoggingAssertFileName();
@@ -266,7 +363,59 @@ public class TestManager implements ManagerInterface
 			directory.mkdirs();
 
 			// Write to log file
-			output = new PrintWriter(new FileOutputStream(new File(pathName + FileLocationManager.getPathElementDelimiterString() + fileName), true));
+			output = new PrintWriter(new FileOutputStream(new File(pathName, fileName), true));
+			this.appendStringToLogFile(output, normalizedText);
+			output.close();
+		}
+		catch (Exception exception)
+		{
+			Writer writer = new StringWriter();
+			PrintWriter printWriter = new PrintWriter(writer);
+			exception.printStackTrace(printWriter);
+			String exceptionText = writer.toString();
+			System.out.println(exceptionText);
+		}
+	}
+
+	/**
+	 * Write an <TT>assert error</TT> text to a test <TT>assertion error</TT>
+	 * file.
+	 * 
+	 * @param context
+	 *            Application context of the message.
+	 * 
+	 * @param assertText
+	 *            Headline text that describes the assertion.
+	 * 
+	 * @param additionalText
+	 *            Additional text of the message.
+	 */
+	private void writeMessageToErrorFile(Context context, String assertText, String additionalText)
+	{
+		// Normalize new line first
+		String normalizedText = FileUtil.normalizeNewLine(serviceFormatter(context.getCodeName(), assertText, additionalText));
+
+		// Write message to assert file
+		try
+		{
+			String pathName;
+			String fileName;
+			File directory;
+			PrintWriter output;
+
+			// Gets file path and file name
+			pathName = FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getTestLoggingSubPath(), FileLocationManager.getTestLoggingSubSubPath());
+			pathName = FileLocationManager.replacePlacholder(context, pathName);
+
+			fileName = FileLocationManager.getTestLoggingErrorFileName();
+			fileName = FileLocationManager.replacePlacholder(context, fileName);
+
+			// Create directory
+			directory = new File(pathName);
+			directory.mkdirs();
+
+			// Write to log file
+			output = new PrintWriter(new FileOutputStream(new File(pathName, fileName), true));
 			this.appendStringToLogFile(output, normalizedText);
 			output.close();
 		}
@@ -317,10 +466,28 @@ public class TestManager implements ManagerInterface
 	 * @param additionalText
 	 *            Additional text of the message.
 	 */
-	public static void assertPrint(Context context, String assertText, String additionalText)
+	public static void servicePrintHeader(Context context, String assertText, String additionalText)
 	{
 		if (assertText == null) assertText = "";
 		context.getTestManager().writeMessageToAssertfile(context, assertText, additionalText);
+	}
+
+	/**
+	 * Assert: Print a sub line text to the assertion file.
+	 * 
+	 * @param context
+	 *            Application context of the message.
+	 * 
+	 * @param assertText
+	 *            Headline text that describes the assertion.
+	 * 
+	 * @param additionalText
+	 *            Additional text of the message.
+	 */
+	public static void servicePrintSubLine(Context context, String assertText)
+	{
+		if (assertText == null) assertText = "";
+		context.getTestManager().writeMessageToAssertFile(context, assertText, null, false);
 	}
 
 	/**
@@ -335,10 +502,12 @@ public class TestManager implements ManagerInterface
 	 * @param additionalText
 	 *            Additional text of the message.
 	 */
-	public static void assertPrintError(Context context, String assertText, String additionalText)
+	private static void servicePrintError(Context context, String assertText, String additionalText)
 	{
+		// Check parameter
 		if (assertText == null || assertText.length() == 0) assertText = "Assertion message";
 
+		// Create exception
 		try
 		{
 			throw new Exception();
@@ -353,11 +522,15 @@ public class TestManager implements ManagerInterface
 			if (stackTraceText != null && stackTraceText.length() > 0)
 			{
 				if (additionalText == null) additionalText = "";
-				additionalText += "\n\n" + stackTraceText;
+				additionalText += "\n" + stackTraceText;
 			}
 		}
 
+		// Print message to regular assert file
 		context.getTestManager().writeMessageToAssertfile(context, assertText, additionalText);
+
+		// Print message to error file
+		context.getTestManager().writeMessageToErrorFile(context, assertText, additionalText);
 	}
 
 	/**
@@ -372,7 +545,7 @@ public class TestManager implements ManagerInterface
 	 * @param exception
 	 *            Exception to be printed.
 	 */
-	public static void assertPrintException(Context context, String additionalText, Exception exception)
+	public static void servicePrintException(Context context, String additionalText, Exception exception)
 	{
 		if (exception == null) return;
 
@@ -400,7 +573,7 @@ public class TestManager implements ManagerInterface
 	 * @param context
 	 *            Application context of the message.
 	 */
-	public static void assertProgress(Context context)
+	public static void servicePrintProgress(Context context)
 	{
 		context.getTestManager().writeMessageToAssertfile(context, null, null);
 	}
@@ -431,11 +604,11 @@ public class TestManager implements ManagerInterface
 			assertText += "\n--> String value 1: '" + value1 + "'";
 			assertText += "\n--> String value 2: '" + value2 + "'";
 
-			TestManager.assertPrintError(context, assertText, additionalText);
+			TestManager.servicePrintError(context, assertText, additionalText);
 		}
 		else
 		{
-			TestManager.assertProgress(context);
+			TestManager.servicePrintProgress(context);
 		}
 	}
 
@@ -465,11 +638,11 @@ public class TestManager implements ManagerInterface
 			assertText += "\n--> String value 1: '" + value1 + "'";
 			assertText += "\n--> String value 2: '" + value2 + "'";
 
-			TestManager.assertPrintError(context, assertText, additionalText);
+			TestManager.servicePrintError(context, assertText, additionalText);
 		}
 		else
 		{
-			TestManager.assertProgress(context);
+			TestManager.servicePrintProgress(context);
 		}
 	}
 
@@ -498,11 +671,11 @@ public class TestManager implements ManagerInterface
 			assertText += "\n--> String value 1: '" + value1 + "'";
 			assertText += "\n--> String value 2: '" + value2 + "'";
 
-			TestManager.assertPrintError(context, assertText, additionalText);
+			TestManager.servicePrintError(context, assertText, additionalText);
 		}
 		else
 		{
-			TestManager.assertProgress(context);
+			TestManager.servicePrintProgress(context);
 		}
 	}
 
@@ -532,11 +705,11 @@ public class TestManager implements ManagerInterface
 			assertText += "\n--> String value 1:\n'" + value1 + "'\n";
 			assertText += "\n--> String value 2:\n'" + value2 + "'\n";
 
-			TestManager.assertPrintError(context, assertText, additionalText);
+			TestManager.servicePrintError(context, assertText, additionalText);
 		}
 		else
 		{
-			TestManager.assertProgress(context);
+			TestManager.servicePrintProgress(context);
 		}
 	}
 
@@ -566,11 +739,11 @@ public class TestManager implements ManagerInterface
 			assertText += "\n--> String value 1:\n'" + value1 + "'\n";
 			assertText += "\n--> String value 2:\n'" + value2 + "'\n";
 
-			TestManager.assertPrintError(context, assertText, additionalText);
+			TestManager.servicePrintError(context, assertText, additionalText);
 		}
 		else
 		{
-			TestManager.assertProgress(context);
+			TestManager.servicePrintProgress(context);
 		}
 	}
 
@@ -599,11 +772,11 @@ public class TestManager implements ManagerInterface
 			assertText += "\n--> Boolean value 1: '" + String.valueOf(value1) + "'";
 			assertText += "\n--> Boolean value 2: '" + String.valueOf(value2) + "'";
 
-			TestManager.assertPrintError(context, assertText, additionalText);
+			TestManager.servicePrintError(context, assertText, additionalText);
 		}
 		else
 		{
-			TestManager.assertProgress(context);
+			TestManager.servicePrintProgress(context);
 		}
 	}
 
@@ -632,11 +805,11 @@ public class TestManager implements ManagerInterface
 			assertText += "\n--> Integer value 1: '" + String.valueOf(value1) + "'";
 			assertText += "\n--> Integer value 2: '" + String.valueOf(value2) + "'";
 
-			TestManager.assertPrintError(context, assertText, additionalText);
+			TestManager.servicePrintError(context, assertText, additionalText);
 		}
 		else
 		{
-			TestManager.assertProgress(context);
+			TestManager.servicePrintProgress(context);
 		}
 	}
 
@@ -665,11 +838,11 @@ public class TestManager implements ManagerInterface
 			assertText += "\n--> Long value 1: '" + String.valueOf(value1) + "'";
 			assertText += "\n--> Long value 2: '" + String.valueOf(value2) + "'";
 
-			TestManager.assertPrintError(context, assertText, additionalText);
+			TestManager.servicePrintError(context, assertText, additionalText);
 		}
 		else
 		{
-			TestManager.assertProgress(context);
+			TestManager.servicePrintProgress(context);
 		}
 	}
 
@@ -694,11 +867,11 @@ public class TestManager implements ManagerInterface
 			String assertText = "Assertion failed: Check if a boolean value is TRUE";
 			assertText += "\n--> Boolean value: '" + String.valueOf(value) + "'";
 
-			TestManager.assertPrintError(context, assertText, additionalText);
+			TestManager.servicePrintError(context, assertText, additionalText);
 		}
 		else
 		{
-			TestManager.assertProgress(context);
+			TestManager.servicePrintProgress(context);
 		}
 	}
 
@@ -723,11 +896,11 @@ public class TestManager implements ManagerInterface
 			String assertText = "Assertion failed: Check if a boolean value is FALSE";
 			assertText += "\n--> Boolean value: '" + String.valueOf(value) + "'";
 
-			TestManager.assertPrintError(context, assertText, additionalText);
+			TestManager.servicePrintError(context, assertText, additionalText);
 		}
 		else
 		{
-			TestManager.assertProgress(context);
+			TestManager.servicePrintProgress(context);
 		}
 	}
 
@@ -752,11 +925,11 @@ public class TestManager implements ManagerInterface
 			String assertText = "Assertion failed: Check if a NULL value is set";
 			assertText += "\n--> Value: '" + object.toString() + "'";
 
-			TestManager.assertPrintError(context, assertText, additionalText);
+			TestManager.servicePrintError(context, assertText, additionalText);
 		}
 		else
 		{
-			TestManager.assertProgress(context);
+			TestManager.servicePrintProgress(context);
 		}
 	}
 
@@ -781,11 +954,11 @@ public class TestManager implements ManagerInterface
 			String assertText = "Assertion failed: Check if there is an Object instantiated";
 			assertText += "\n--> Value: '" + "NULL" + "'";
 
-			TestManager.assertPrintError(context, assertText, additionalText);
+			TestManager.servicePrintError(context, assertText, additionalText);
 		}
 		else
 		{
-			TestManager.assertProgress(context);
+			TestManager.servicePrintProgress(context);
 		}
 	}
 
@@ -814,11 +987,11 @@ public class TestManager implements ManagerInterface
 			assertText += "\n--> Integer value 1: '" + String.valueOf(value1) + "'";
 			assertText += "\n--> Integer value 2: '" + String.valueOf(value2) + "'";
 
-			TestManager.assertPrintError(context, assertText, additionalText);
+			TestManager.servicePrintError(context, assertText, additionalText);
 		}
 		else
 		{
-			TestManager.assertProgress(context);
+			TestManager.servicePrintProgress(context);
 		}
 	}
 
@@ -847,11 +1020,50 @@ public class TestManager implements ManagerInterface
 			assertText += "\n--> Long value 1: '" + String.valueOf(value1) + "'";
 			assertText += "\n--> Long value 2: '" + String.valueOf(value2) + "'";
 
-			TestManager.assertPrintError(context, assertText, additionalText);
+			TestManager.servicePrintError(context, assertText, additionalText);
 		}
 		else
 		{
-			TestManager.assertProgress(context);
+			TestManager.servicePrintProgress(context);
+		}
+	}
+
+	/**
+	 * Assert: Compare two files via checksum, if they are identical.
+	 * 
+	 * @param context
+	 *            Application context of the message.
+	 * 
+	 * @param additionalText
+	 *            Additional text of the message.
+	 * 
+	 * @param filePath1
+	 *            The first file.
+	 * 
+	 * @param filePath2
+	 *            The second file.
+	 */
+	public static void assertEqualsFile(Context context, String additionalText, String filePath1, String filePath2)
+	{
+		long checksumFile1 = FileUtil.fileGetChecksum(filePath1);
+		TestManager.assertGreaterThan(context, additionalText + "\n--> Error on computing checksum of file '" + filePath1 + "'", checksumFile1, 0);
+
+		long checksumFile2 = FileUtil.fileGetChecksum(filePath2);
+		TestManager.assertGreaterThan(context, additionalText + "\n--> Error on computing checksum of file '" + filePath2 + "'", checksumFile2, 0);
+
+		if (checksumFile1 != checksumFile2)
+		{
+			context.getTestManager().setErrorFound();
+
+			String assertText = "Assertion failed: Comparing two files on identity";
+			assertText += "\n--> File path 1: '" + filePath1 + "'";
+			assertText += "\n--> File path 2: '" + filePath2 + "'";
+
+			TestManager.servicePrintError(context, assertText, additionalText);
+		}
+		else
+		{
+			TestManager.servicePrintProgress(context);
 		}
 	}
 }

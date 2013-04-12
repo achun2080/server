@@ -164,17 +164,63 @@ public class FileUtil
 		{
 		}
 	}
-
+	
 	/**
-	 * Check if a file exists physically.
+	 * Check if a file exists physically and can be read.
+	 * <p>
+	 * In contrast to the similar method <TT>fileExists()</TT> the
+	 * function is executed a bunch of times, if it fails the first time. This
+	 * can happen if the file is touched by another process for a while, e. g.
+	 * because it is just copied.
 	 * 
 	 * @param filePath
-	 *            The full file path of the file.
+	 *            The file to consider.
+	 * 
+	 * @return Returns <TT>true</TT> if the file exists and is accessible,
+	 *         otherwise <TT>false</TT>.
+	 */
+	public static boolean fileExistsRetry(String filePath)
+	{
+		return FileUtil.fileExists(filePath, FileUtil.defaultNuOfRetrials, FileUtil.defaultIdleTimeBetweenRetrialsInMilliseconds);
+	}
+	
+	/**
+	 * Check if a file exists physically and can be read.
+	 * <p>
+	 * Please use the similar method <TT>fileExistsRetry()</TT> when
+	 * you want to executed the function a bunch of times, if it fails the first
+	 * time. This can happen if the file is touched by another process for a
+	 * while, e. g. because it is just copied.
+	 * 
+	 * @param filePath
+	 *            The file to consider.
 	 * 
 	 * @return Returns <TT>true</TT> if the file exists and is accessible,
 	 *         otherwise <TT>false</TT>.
 	 */
 	public static boolean fileExists(String filePath)
+	{
+		return FileUtil.fileExists(filePath, 0, 0);
+	}
+
+	/**
+	 * Check if a file exists physically and can be read.
+	 * 
+	 * @param filePath
+	 *            The file to consider.
+	 * 
+	 * @param nuOfRetrials
+	 *            The maximum number of trials, if the function false the first
+	 *            time.
+	 * 
+	 * @param idleTimeBetweenRetrialsInMilliseconds
+	 *            The idle time between trials, if the function false the first
+	 *            time.
+	 * 
+	 * @return Returns <TT>true</TT> if the file exists and is accessible,
+	 *         otherwise <TT>false</TT>.
+	 */
+	private static boolean fileExists(String filePath, int nuOfRetrials, int idleTimeBetweenRetrialsInMilliseconds)
 	{
 		if (filePath == null) return false;
 		if (filePath.length() == 0) return false;
@@ -183,11 +229,27 @@ public class FileUtil
 
 		try
 		{
+			// Create FILE objects
 			File file = new File(filePath);
 
+			// Check source file
+			if (file.isFile() == false) isAccessable = false;
+			
+			// Check file
 			if (file.exists() == false) isAccessable = false;
 			if (file.canRead() == false) isAccessable = false;
-			if (file.isFile() == false) isAccessable = false;
+			if (isAccessable == true) return true;
+			
+			for (int i = 0; i < nuOfRetrials; i++)
+			{
+				FileUtil.sleepMilliseconds(idleTimeBetweenRetrialsInMilliseconds);
+
+				isAccessable = true;
+				if (file.exists() == false) isAccessable = false;
+				if (file.canRead() == false) isAccessable = false;
+				if (isAccessable == true) break;
+			}
+			
 		}
 		catch (Exception e)
 		{
@@ -328,9 +390,36 @@ public class FileUtil
 		// Return
 		return fileList;
 	}
-
+	
 	/**
 	 * Copy a file.
+	 * <p>
+	 * In contrast to the similar method <TT>fileCopy()</TT> the
+	 * function is executed a bunch of times, if it fails the first time. This
+	 * can happen if the file is touched by another process for a while, e. g.
+	 * because it is just copied.
+	 * 
+	 * @param sourceFilePath
+	 *            The path of the file to be copied.
+	 * 
+	 * @param destinationFilePath
+	 *            The path of the destination file.
+	 * 
+	 * @return Returns <TT>true</TT> if the file could be copied, otherwise
+	 *         <TT>false</TT>.
+	 */
+	public static boolean fileCopyRetry(String sourceFilePath, String destinationFilePath)
+	{
+		return FileUtil.fileCopy(sourceFilePath, destinationFilePath, FileUtil.defaultNuOfRetrials, FileUtil.defaultIdleTimeBetweenRetrialsInMilliseconds);
+	}
+	
+	/**
+	 * Copy a file.
+	 * <p>
+	 * Please use the similar method <TT>fileCopyRetry()</TT> when
+	 * you want to executed the function a bunch of times, if it fails the first
+	 * time. This can happen if the file is touched by another process for a
+	 * while, e. g. because it is just copied.
 	 * 
 	 * @param sourceFilePath
 	 *            The path of the file to be copied.
@@ -343,19 +432,87 @@ public class FileUtil
 	 */
 	public static boolean fileCopy(String sourceFilePath, String destinationFilePath)
 	{
+		return FileUtil.fileCopy(sourceFilePath, destinationFilePath, 0, 0);
+	}
+
+	/**
+	 * Copy a file.
+	 * 
+	 * @param sourceFilePath
+	 *            The path of the file to be copied.
+	 * 
+	 * @param destinationFilePath
+	 *            The path of the destination file.
+	 * 
+	 * @param nuOfRetrials
+	 *            The maximum number of trials, if the function false the first
+	 *            time.
+	 * 
+	 * @param idleTimeBetweenRetrialsInMilliseconds
+	 *            The idle time between trials, if the function false the first
+	 *            time.
+	 * 
+	 * @return Returns <TT>true</TT> if the file could be copied, otherwise
+	 *         <TT>false</TT>.
+	 */
+	private static boolean fileCopy(String sourceFilePath, String destinationFilePath, int nuOfRetrials, int idleTimeBetweenRetrialsInMilliseconds)
+	{
 		// Check parameters
 		if (sourceFilePath == null || sourceFilePath.length() == 0) return false;
 		if (destinationFilePath == null || destinationFilePath.length() == 0) return false;
 		if (FileUtil.fileExists(sourceFilePath) == false) return false;
 
-		// Create FILE objects
-		File sourceFile = new File(sourceFilePath);
-		File destinationFile = new File(destinationFilePath);
+		// Copy file
+		boolean isSuccessful = false;
 
+		try
+		{
+			// Create FILE objects
+			File sourceFile = new File(sourceFilePath);
+			File destinationFile = new File(destinationFilePath);
+
+			// Check source file
+			if (sourceFile.isFile() == false) return false;
+
+			// Copy file
+			isSuccessful = FileUtil.fileCopyExecute(sourceFile, destinationFile);
+			if (isSuccessful == true) return true;
+
+			for (int i = 0; i < nuOfRetrials; i++)
+			{
+				FileUtil.sleepMilliseconds(idleTimeBetweenRetrialsInMilliseconds);
+
+				isSuccessful = FileUtil.fileCopyExecute(sourceFile, destinationFile);
+				if (isSuccessful == true) break;
+			}
+
+			return true;
+		}
+		catch (Exception e)
+		{
+			return false;
+		}
+	}
+
+	/**
+	 * Execute copying a file, in order to catch the exception and to retry it.
+	 * 
+	 * @param sourceFile
+	 *            The source file to be copied.
+	 * 
+	 * @param destinationFile
+	 *            The destination file.
+	 * 
+	 * @return Returns <TT>true</TT> if the file could be copied, otherwise
+	 *         <TT>false</TT>.
+	 */
+	private static boolean fileCopyExecute(File sourceFile, File destinationFile)
+	{
 		// Copy file
 		try
 		{
 			FileUtils.copyFile(sourceFile, destinationFile);
+			FileUtils.touch(destinationFile);
 			return true;
 		}
 		catch (Exception e)

@@ -30,12 +30,17 @@ public class ClientSeniorCitizen extends ClientManager
 	 *            Is to be set to the name of the test case, if the application
 	 *            is running in test mode, or <TT>null</TT> if the application
 	 *            is running in productive mode.
+	 * 
+	 * @param testSessionName
+	 *            Is to be set to the name of the test session, if the application
+	 *            is running in test mode, or <TT>null</TT> if the application
+	 *            is running in productive mode.
 	 */
 	private ClientSeniorCitizen(String codeName, boolean runningInTestMode,
-			String testCaseName)
+			String testCaseName, String testSessionName)
 	{
 		// Invoke super class
-		super(ApplicationManager.ApplicationIdentifierEnum.SeniorCitizen, ClientSeniorCitizen.clientVersionSeniorCitizen, codeName, runningInTestMode, testCaseName);
+		super(ApplicationManager.ApplicationIdentifierEnum.SeniorCitizen, ClientSeniorCitizen.clientVersionSeniorCitizen, codeName, runningInTestMode, testCaseName, testSessionName);
 	}
 
 	@Override
@@ -125,10 +130,10 @@ public class ClientSeniorCitizen extends ClientManager
 	 *         couldn't be created. In this case please see the log files or the
 	 *         console for further information.
 	 */
-	public static ClientSeniorCitizen getTestInstance(String codeName, String testCaseName)
+	public static ClientSeniorCitizen getTestInstance(String codeName, String testCaseName, String testSessionName)
 	{
 		// Instance will always be build because it is a regular constructor
-		ClientSeniorCitizen instance = new ClientSeniorCitizen(codeName, true, testCaseName);
+		ClientSeniorCitizen instance = new ClientSeniorCitizen(codeName, true, testCaseName, testSessionName);
 
 		// If there was an error during building the application, the factory
 		// method returns wit NULL
@@ -156,7 +161,7 @@ public class ClientSeniorCitizen extends ClientManager
 	public static ClientSeniorCitizen getProductiveInstance(String codeName)
 	{
 		// Instance will always be build because it is a regular constructor
-		ClientSeniorCitizen instance = new ClientSeniorCitizen(codeName, false, null);
+		ClientSeniorCitizen instance = new ClientSeniorCitizen(codeName, false, null, null);
 
 		// If there was an error during building the application, the factory
 		// method returns wit NULL

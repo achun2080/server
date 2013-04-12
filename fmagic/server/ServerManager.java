@@ -73,14 +73,19 @@ public abstract class ServerManager extends ApplicationManager
 	 *            Is to be set to the name of the test case, if the application
 	 *            is running in test mode, or <TT>null</TT> if the application
 	 *            is running in productive mode.
+	 * 
+	 * @param testSessionName
+	 *            Is to be set to the name of the test session, if the application
+	 *            is running in test mode, or <TT>null</TT> if the application
+	 *            is running in productive mode.
 	 */
 	protected ServerManager(
 			ApplicationManager.ApplicationIdentifierEnum applicationIdentifier,
 			int applicationVersion, String codeName, int serverSocketPort,
-			int timeoutTimeInMilliseconds, boolean runningInTestMode, String testCaseName)
+			int timeoutTimeInMilliseconds, boolean runningInTestMode, String testCaseName, String testSessionName)
 	{
 		// Instantiate super class
-		super(applicationIdentifier, applicationVersion, codeName, OriginEnum.Server, runningInTestMode, testCaseName);
+		super(applicationIdentifier, applicationVersion, codeName, OriginEnum.Server, runningInTestMode, testCaseName, testSessionName);
 
 		// Adopt constructor data
 		this.serverSocketPort = serverSocketPort;

@@ -8,7 +8,7 @@ import fmagic.client.ClientCommandCreateSession;
 import fmagic.client.ClientCommandHandshake;
 import fmagic.client.ClientManager;
 
-public class ClientTestConnection implements Runnable
+public class ClientTestContainerConnection implements Runnable
 {
 	private final Context context;
 	private final ClientManager client;
@@ -16,7 +16,7 @@ public class ClientTestConnection implements Runnable
 	/**
 	 * Constructor
 	 */
-	public ClientTestConnection(ClientManager client, Context context)
+	public ClientTestContainerConnection(ClientManager client, Context context)
 	{
 		this.client = client;
 		this.context = context.createSilentDumpContext(ResourceManager.context(context, "Media", "Processing"));

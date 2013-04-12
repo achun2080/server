@@ -39,12 +39,17 @@ public class ServerContext extends Context
 	 *            Is to be set to the name of the test case, if the application
 	 *            is running in test mode, or <TT>null</TT> if the application
 	 *            is running in productive mode.
+	 * 
+	 * @param testSessionName
+	 *            Is to be set to the name of the test session, if the application
+	 *            is running in test mode, or <TT>null</TT> if the application
+	 *            is running in productive mode.
 	 */
 	public ServerContext(String codeName, String applicationName,
 			int applicationVersion, ApplicationManager applicationManager,
-			boolean runningInTestMode, String testCaseName)
+			boolean runningInTestMode, String testCaseName, String testSessionName)
 	{
-		super(codeName, applicationName, applicationVersion, ResourceContainer.OriginEnum.Server.toString(), applicationManager, new TestManagerServer(), runningInTestMode, testCaseName);
+		super(codeName, applicationName, applicationVersion, ResourceContainer.OriginEnum.Server.toString(), applicationManager, new TestManagerServer(), runningInTestMode, testCaseName, testSessionName);
 	}
 
 	@Override

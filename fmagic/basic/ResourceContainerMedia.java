@@ -390,8 +390,7 @@ public class ResourceContainerMedia extends ResourceContainer
 	 */
 	public String getMediaRegularFilePath(Context context)
 	{
-		String mediaFilePath = context.getMediaManager().mediaFileGetRootFilePath(context) + FileLocationManager.getPathElementDelimiterString() + FileUtil.fitToFileNameCompatibility(context.getApplicationName()) + FileLocationManager.getPathElementDelimiterString() + this.getLogicalPath(context);
-		return mediaFilePath;
+		return FileLocationManager.compileFilePath(context.getMediaManager().mediaFileGetRootFilePath(context), FileUtil.fitToFileNameCompatibility(context.getApplicationName()), this.getLogicalPath(context));
 	}
 
 	/**
@@ -493,7 +492,7 @@ public class ResourceContainerMedia extends ResourceContainer
 	 */
 	public String getMediaPendingFilePath(Context context)
 	{
-		return this.getMediaRegularFilePath(context) + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getMediaPendingSubPath();
+		return FileLocationManager.compileFilePath(this.getMediaRegularFilePath(context), FileLocationManager.getMediaPendingSubPath());
 	}
 
 	/**
@@ -509,12 +508,13 @@ public class ResourceContainerMedia extends ResourceContainer
 	 */
 	public String getMediaDeletedFilePath(Context context)
 	{
-		return this.getMediaRegularFilePath(context) + FileLocationManager.getPathElementDelimiterString() + FileLocationManager.getMediaDeletedSubPath();
+		return FileLocationManager.compileFilePath(this.getMediaRegularFilePath(context), FileLocationManager.getMediaDeletedSubPath());
 	}
 
 	/**
-	 * Get the name of the most current existing media file of the local media repository,
-	 * regarding a specific media resource item and a specific data identifier.
+	 * Get the name of the most current existing media file of the local media
+	 * repository, regarding a specific media resource item and a specific data
+	 * identifier.
 	 * <p>
 	 * Example: <TT>seniorcitizen-room-00001234-*-*-*.*</TT>
 	 * 
@@ -524,8 +524,8 @@ public class ResourceContainerMedia extends ResourceContainer
 	 * @param dataIdentifier
 	 *            The data identifier to consider.
 	 * 
-	 * @return Returns the most current, existing media file, or <TT>null</TT> if an
-	 *         error occurred, or no file could be found.
+	 * @return Returns the most current, existing media file, or <TT>null</TT>
+	 *         if an error occurred, or no file could be found.
 	 * 
 	 */
 	public String getMediaRealFileName(Context context, String dataIdentifier)
@@ -638,11 +638,12 @@ public class ResourceContainerMedia extends ResourceContainer
 		if (hashValue != null) mediaFileName = mediaFileName.replace("${hashvalue}", hashValue.trim());
 		if (fileType != null) mediaFileName = mediaFileName.replace("${filetype}", fileType);
 
-		return this.getMediaRegularFilePath(context) + FileLocationManager.getPathElementDelimiterString() + mediaFileName;
+		return FileLocationManager.compileFilePath(this.getMediaRegularFilePath(context), mediaFileName);
 	}
 
 	/**
-	 * Get encoding key (server or client), by analyzing the file name of a real media file.
+	 * Get encoding key (server or client), by analyzing the file name of a real
+	 * media file.
 	 * <p>
 	 * Example: <TT>seniorcitizen-room-00001234-s00-a6gt8e.jpg</TT>
 	 * 
@@ -669,14 +670,14 @@ public class ResourceContainerMedia extends ResourceContainer
 		{
 			String fileNameParts[] = fileName.split("-");
 			if (fileNameParts == null || fileNameParts.length != 5) return 0;
-			
+
 			String encodingSetting = fileNameParts[3];
 			if (encodingSetting == null || encodingSetting.length() == 0) return 0;
-			
+
 			if (!(encodingSetting.startsWith("s") || encodingSetting.startsWith("c"))) return 0;
-			
+
 			int keyNumber = Integer.parseInt(encodingSetting.substring(1));
-			
+
 			return keyNumber;
 		}
 		catch (Exception e)
@@ -697,7 +698,8 @@ public class ResourceContainerMedia extends ResourceContainer
 	 * @param mediaFilePath
 	 *            The file path to analyze.
 	 * 
-	 * @return Returns the hash value of the file or <TT>null</TT>, if an error occurred.
+	 * @return Returns the hash value of the file or <TT>null</TT>, if an error
+	 *         occurred.
 	 * 
 	 */
 	public String getHashValueOfRealFileName(Context context, String mediaFilePath)
@@ -714,10 +716,10 @@ public class ResourceContainerMedia extends ResourceContainer
 		{
 			String fileNameParts[] = fileName.split("-");
 			if (fileNameParts == null || fileNameParts.length != 5) return null;
-			
+
 			String hashValue = fileNameParts[4];
 			if (hashValue == null || hashValue.length() == 0) return null;
-			
+
 			return hashValue;
 		}
 		catch (Exception e)

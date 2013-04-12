@@ -1102,7 +1102,7 @@ public class MediaManager implements ManagerInterface
 
 		// Encode media file
 		CipherHandler cipherHandler = new CipherHandler(context);
-		
+
 		if (cipherHandler.encrypt(keyValue, sourceFilePath, destinationFilePath) == false)
 		{
 			String errorString = "--> Error on encrypting media file.";
@@ -1112,7 +1112,7 @@ public class MediaManager implements ManagerInterface
 			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnProcessingFile"), errorString, null);
 			return null;
 		}
-		
+
 		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "ENCRYPT: Encrypt media file: '" + sourceFilePath + "' --> '" + destinationFilePath + "'");
 
 		// Return
@@ -1137,18 +1137,18 @@ public class MediaManager implements ManagerInterface
 	public String mediaFileOperationDecrypt(Context context, ResourceContainerMedia mediaResourceContainer, String sourceFilePath)
 	{
 		/*
-		 *  Validate parameter
+		 * Validate parameter
 		 */
 		if (mediaResourceContainer == null) return null;
 		if (sourceFilePath == null || sourceFilePath.length() == 0) return null;
 
 		/*
-		 *  Get server encoding key number of the real file
+		 * Get server encoding key number of the real file
 		 */
 		int keyNumber = mediaResourceContainer.getEncodingKeyOfRealFileName(context, sourceFilePath);
 
 		/*
-		 *  Get file type of media file
+		 * Get file type of media file
 		 */
 		String fileType = FileUtil.fileGetFileTypePart(sourceFilePath);
 
@@ -1160,15 +1160,15 @@ public class MediaManager implements ManagerInterface
 			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnProcessingFile"), errorString, null);
 			return null;
 		}
-		
+
 		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "DECRYPT: File type: '" + fileType + "'");
 
 		/*
-		 *  Copy media file to pending directory
+		 * Copy media file to pending directory
 		 */
-		
+
 		// Get file path of pending media file
-		String pendingFilePath = mediaResourceContainer.getMediaPendingFilePath(context) + FileLocationManager.getPathElementDelimiterString() + mediaResourceContainer.getMediaPendingFileName(context, fileType);
+		String pendingFilePath = FileLocationManager.compileFilePath(mediaResourceContainer.getMediaPendingFilePath(context), mediaResourceContainer.getMediaPendingFileName(context, fileType));
 
 		// Copy media file to pending directory
 		if (FileUtil.fileCopy(sourceFilePath, pendingFilePath) == false)
@@ -1180,18 +1180,18 @@ public class MediaManager implements ManagerInterface
 			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnProcessingFile"), errorString, null);
 			return null;
 		}
-		
+
 		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "DECRYPT: Media file copied: '" + sourceFilePath + "' --> '" + pendingFilePath + "'");
 
 		/*
-		 *  Stop process if the source file isn't encrypted
+		 * Stop process if the source file isn't encrypted
 		 */
 		if (keyNumber == 0) return pendingFilePath;
 
 		/*
-		 *  Decrypt media file
+		 * Decrypt media file
 		 */
-		
+
 		// Get key value (password)
 		String keyValue = this.serverMediaKeyList.get(keyNumber);
 
@@ -1206,8 +1206,21 @@ public class MediaManager implements ManagerInterface
 
 		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "DECRYPT: Key number for password: '" + keyNumber + "'");
 
-		// Get file path of working media file
-		String destinationFilePath = mediaResourceContainer.getMediaPendingFilePath(context) + FileLocationManager.getPathElementDelimiterString() + mediaResourceContainer.getMediaPendingFileName(context, fileType);
+		// Get new 'pending' file path as destination file path for the file to
+		// be decrypted
+		String destinationFilePath = FileLocationManager.compileFilePath(mediaResourceContainer.getMediaPendingFilePath(context), mediaResourceContainer.getMediaPendingFileName(context, fileType));
+
+		// Check if destination file exists and can be accessed (with Retry,
+		// because it can take a longer time to copy large files).
+		if (FileUtil.fileExistsRetry(pendingFilePath) == false)
+		{
+			String errorString = "--> Error on coping media file.";
+			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+			errorString += "\n--> Source file name: '" + sourceFilePath + "'";
+			errorString += "\n--> Destination file name: '" + pendingFilePath + "'";
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnProcessingFile"), errorString, null);
+			return null;
+		}
 
 		// Decrypt media file
 		CipherHandler cipherHandler = new CipherHandler(context);
@@ -1271,7 +1284,7 @@ public class MediaManager implements ManagerInterface
 			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnProcessingFile"), errorString, null);
 			return null;
 		}
-		
+
 		// Delete pending file, because destinationfilePath is the result file
 		if (FileUtil.fileDelete(pendingFilePath) == false)
 		{
@@ -1281,7 +1294,7 @@ public class MediaManager implements ManagerInterface
 			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
 			return null;
 		}
-		
+
 		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "DECRYPT: Pending media file deleted '" + pendingFilePath + "'");
 
 		// Return
@@ -1422,52 +1435,52 @@ public class MediaManager implements ManagerInterface
 		/*
 		 * Copy original file to the pending file directory
 		 */
-		String pendingFileName = mediaResourceContainer.getMediaPendingFilePath(context) + FileLocationManager.getPathElementDelimiterString() + mediaResourceContainer.getMediaPendingFileName(context, fileType);
+		String pendingFilePath = FileLocationManager.compileFilePath(mediaResourceContainer.getMediaPendingFilePath(context), mediaResourceContainer.getMediaPendingFileName(context, fileType));
 
-		if (FileUtil.fileCopy(uploadFileNamePath, pendingFileName) == false)
+		if (FileUtil.fileCopy(uploadFileNamePath, pendingFilePath) == false)
 		{
 			String errorString = "--> Error on copying media file (to pending directory).";
 			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
 			errorString += "\n--> Source file: '" + uploadFileNamePath + "'";
-			errorString += "\n--> Destination file: '" + pendingFileName + "'";
+			errorString += "\n--> Destination file: '" + pendingFilePath + "'";
 			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
 			return false;
 		}
 
-		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "UPLOAD: Media file copied: '" + uploadFileNamePath + "' --> '" + pendingFileName + "'");
+		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "UPLOAD: Media file copied: '" + uploadFileNamePath + "' --> '" + pendingFilePath + "'");
 
 		/*
 		 * Get hash value of the original file
 		 */
-		String hashValue = FileUtil.fileGetHashValue(pendingFileName);
+		String hashValue = FileUtil.fileGetHashValue(pendingFilePath);
 
 		if (hashValue == null)
 		{
 			String errorString = "--> Error on computing hash code of the media file.";
 			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
-			errorString += "\n--> File to be hashed: '" + pendingFileName + "'";
+			errorString += "\n--> File to be hashed: '" + pendingFilePath + "'";
 			errorString += "\n--> Original file to be uploaded: '" + uploadFileNamePath + "'";
 
 			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
 			return false;
 		}
 
-		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "UPLOAD: Media file hash value [" + hashValue + "] computed for: '" + pendingFileName + "'");
+		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "UPLOAD: Media file hash value [" + hashValue + "] computed for: '" + pendingFilePath + "'");
 
 		/*
 		 * Encrypt the file, if encoding is set
 		 */
 		if (this.isServerEncodingEnabled(context, mediaResourceContainer))
 		{
-			String encryptedPendingFileName = mediaResourceContainer.getMediaPendingFilePath(context) + FileLocationManager.getPathElementDelimiterString() + mediaResourceContainer.getMediaPendingFileName(context, fileType);
+			String encryptedPendingFileName = FileLocationManager.compileFilePath(mediaResourceContainer.getMediaPendingFilePath(context), mediaResourceContainer.getMediaPendingFileName(context, fileType));
 
-			encryptedPendingFileName = this.mediaFileOperationEncrypt(context, mediaResourceContainer, pendingFileName, encryptedPendingFileName);
+			encryptedPendingFileName = this.mediaFileOperationEncrypt(context, mediaResourceContainer, pendingFilePath, encryptedPendingFileName);
 
 			if (encryptedPendingFileName == null)
 			{
 				String errorString = "--> Error on encrypting media file (on server side).";
 				errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
-				errorString += "\n--> File to be encrypted: '" + pendingFileName + "'";
+				errorString += "\n--> File to be encrypted: '" + pendingFilePath + "'";
 				errorString += "\n--> Original file to be uploaded: '" + uploadFileNamePath + "'";
 
 				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
@@ -1475,33 +1488,44 @@ public class MediaManager implements ManagerInterface
 			}
 
 			// Delete old pending file
-			if (!encryptedPendingFileName.equals(pendingFileName))
+			if (!encryptedPendingFileName.equals(pendingFilePath))
 			{
 				// Delete file
-				FileUtil.fileDelete(pendingFileName);
+				FileUtil.fileDelete(pendingFilePath);
 
 				// Logging
 				context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "UPLOAD: Media file encrypted on server side: '" + encryptedPendingFileName + "'");
 			}
 
-			pendingFileName = encryptedPendingFileName;
+			pendingFilePath = encryptedPendingFileName;
+		}
+
+		// Check if pending file exists and can be accessed (with Retry,
+		// because it can take a longer time to copy large files).
+		if (FileUtil.fileExistsRetry(pendingFilePath) == false)
+		{
+			String errorString = "--> Error on searching for 'pending' media file.";
+			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+			errorString += "\n--> File searched for: '" + pendingFilePath + "'";
+			errorString += "\n--> Original file to be uploaded: '" + uploadFileNamePath + "'";
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnProcessingFile"), errorString, null);
+			return false;
 		}
 
 		/*
 		 * Move the temporary media file from the pending directory to the
 		 * regular media file directory
 		 */
-		String sourceFileName = pendingFileName;
 		String destinationFileName = mediaResourceContainer.getMediaRealFileName(context, dataIdentifier, hashValue, fileType);
 
 		// Copy only if the destination file doesn't exist yet.
 		if (FileUtil.fileExists(destinationFileName) == false)
 		{
-			if (FileUtil.fileCopy(sourceFileName, destinationFileName) == false)
+			if (FileUtil.fileCopyRetry(pendingFilePath, destinationFileName) == false)
 			{
 				String errorString = "--> Error on copying a media file from 'pending' directory to its 'regular' directory.";
 				errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
-				errorString += "\n--> Source file name: '" + sourceFileName + "'";
+				errorString += "\n--> Source file name: '" + pendingFilePath + "'";
 				errorString += "\n--> Destination file name: '" + destinationFileName + "'";
 				errorString += "\n--> Original file to be uploaded: '" + uploadFileNamePath + "'";
 
@@ -1509,12 +1533,11 @@ public class MediaManager implements ManagerInterface
 				return false;
 			}
 
-			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "UPLOAD: Media file copied from 'pending' directory to its 'regular' directory: '" + sourceFileName + "' --> '" + destinationFileName + "'");
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "UPLOAD: Media file copied from 'pending' directory to its 'regular' directory: '" + pendingFilePath + "' --> '" + destinationFileName + "'");
 		}
-
 		// Change the 'modified date', in order to set the current file as
 		// up-to-date.
-		if (FileUtil.fileExists(destinationFileName) == true)
+		else
 		{
 			if (FileUtil.fileSetLastModifiedRetry(destinationFileName, new Date()) == false)
 			{
@@ -1533,17 +1556,17 @@ public class MediaManager implements ManagerInterface
 		/*
 		 * Delete pending media file
 		 */
-		if (FileUtil.fileDelete(sourceFileName) == false)
+		if (FileUtil.fileDelete(pendingFilePath) == false)
 		{
 			String errorString = "--> Error on deleting media file from 'pending' directory.";
 			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
-			errorString += "\n--> Media file path: '" + sourceFileName + "'";
+			errorString += "\n--> Media file path: '" + pendingFilePath + "'";
 			errorString += "\n--> Original file to be uploaded: '" + uploadFileNamePath + "'";
 			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
 			return false;
 		}
 
-		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "UPLOAD: Media file deleted from 'pending' directory: '" + sourceFileName + "'");
+		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "UPLOAD: Media file deleted from 'pending' directory: '" + pendingFilePath + "'");
 
 		/*
 		 * Return
