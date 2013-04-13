@@ -3,7 +3,6 @@ package fmagic.test;
 import java.util.ArrayList;
 import java.util.List;
 
-import fmagic.application.seniorcitizen.server.ServerSeniorCitizen;
 import fmagic.basic.Context;
 import fmagic.server.ServerManager;
 
@@ -48,7 +47,7 @@ public class TestRunnerMedia extends TestRunner
 			serverAp3 = this.createApplicationServer("ap3");
 
 			// Clear test session directory
-			TestManager.cleanTestSessionDirectory(serverAp1.getContext());
+			if (serverAp1 != null) TestManager.cleanTestSessionDirectory(serverAp1.getContext());
 		}
 		catch (Exception e)
 		{
@@ -69,6 +68,12 @@ public class TestRunnerMedia extends TestRunner
 		{
 			e.printStackTrace();
 		}
+	}
+
+	@Override
+	public void executeSingleFunctionTest(ServerTestContainer serverTestContainer, String methodName)
+	{
+		this.doSingleFunctionTest(serverAp1.getContext(), serverTestContainer, methodName);
 	}
 
 	@Override
@@ -140,7 +145,7 @@ public class TestRunnerMedia extends TestRunner
 			testMediaSingle.setParameterResourceName("Room");
 			testMediaSingle.setParameterDataIdentifierTestUpload("1234");
 			testMediaSingle.setParameterDataIdentifierTestObsolete("1235");
-			testMediaSingle.setParameterTestCycleNumber(1);
+			testMediaSingle.setParameterTestCycleNumberOfFiles(100);
 			testMediaSingle.setParameterTestCycleDataIdentifierFrom(1);
 			testMediaSingle.setParameterTestCycleDataIdentifierToo(40);
 			testMediaSingle.executeComponentTest();
@@ -183,7 +188,7 @@ public class TestRunnerMedia extends TestRunner
 		ServerTestContainerMedia testMediaConcurrent;
 		List<Thread> threadList = new ArrayList<Thread>();
 
-		int nuOfTestCycles = 10;
+		int nuOfFiles = 1000;
 
 		try
 		{
@@ -193,7 +198,7 @@ public class TestRunnerMedia extends TestRunner
 			testMediaConcurrent.setParameterResourceName("Room");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("1234");
 			testMediaConcurrent.setParameterDataIdentifierTestObsolete("1235");
-			testMediaConcurrent.setParameterTestCycleNumber(nuOfTestCycles);
+			testMediaConcurrent.setParameterTestCycleNumberOfFiles(nuOfFiles);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierFrom(1);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierToo(40);
 			threadList.add(new Thread(testMediaConcurrent));
@@ -204,7 +209,7 @@ public class TestRunnerMedia extends TestRunner
 			testMediaConcurrent.setParameterResourceName("Room");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("1236");
 			testMediaConcurrent.setParameterDataIdentifierTestObsolete("1237");
-			testMediaConcurrent.setParameterTestCycleNumber(nuOfTestCycles);
+			testMediaConcurrent.setParameterTestCycleNumberOfFiles(nuOfFiles);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierFrom(1);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierToo(40);
 			threadList.add(new Thread(testMediaConcurrent));
@@ -215,7 +220,7 @@ public class TestRunnerMedia extends TestRunner
 			testMediaConcurrent.setParameterResourceName("Room");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("1238");
 			testMediaConcurrent.setParameterDataIdentifierTestObsolete("1239");
-			testMediaConcurrent.setParameterTestCycleNumber(nuOfTestCycles);
+			testMediaConcurrent.setParameterTestCycleNumberOfFiles(nuOfFiles);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierFrom(1);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierToo(40);
 			threadList.add(new Thread(testMediaConcurrent));
@@ -226,7 +231,7 @@ public class TestRunnerMedia extends TestRunner
 			testMediaConcurrent.setParameterResourceName("Room");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("1240");
 			testMediaConcurrent.setParameterDataIdentifierTestObsolete("1241");
-			testMediaConcurrent.setParameterTestCycleNumber(nuOfTestCycles);
+			testMediaConcurrent.setParameterTestCycleNumberOfFiles(nuOfFiles);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierFrom(1);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierToo(40);
 			threadList.add(new Thread(testMediaConcurrent));
@@ -237,7 +242,7 @@ public class TestRunnerMedia extends TestRunner
 			testMediaConcurrent.setParameterResourceName("Room");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("1242");
 			testMediaConcurrent.setParameterDataIdentifierTestObsolete("1243");
-			testMediaConcurrent.setParameterTestCycleNumber(nuOfTestCycles);
+			testMediaConcurrent.setParameterTestCycleNumberOfFiles(nuOfFiles);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierFrom(1);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierToo(40);
 			threadList.add(new Thread(testMediaConcurrent));
@@ -248,7 +253,7 @@ public class TestRunnerMedia extends TestRunner
 			testMediaConcurrent.setParameterResourceName("Room");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("1244");
 			testMediaConcurrent.setParameterDataIdentifierTestObsolete("1245");
-			testMediaConcurrent.setParameterTestCycleNumber(nuOfTestCycles);
+			testMediaConcurrent.setParameterTestCycleNumberOfFiles(nuOfFiles);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierFrom(1);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierToo(40);
 			threadList.add(new Thread(testMediaConcurrent));
@@ -273,7 +278,7 @@ public class TestRunnerMedia extends TestRunner
 		ServerTestContainerMedia testMediaConcurrent;
 		List<Thread> threadList = new ArrayList<Thread>();
 
-		int nuOfTestCycles = 10;
+		int nuOfFiles = 1000;
 
 		try
 		{
@@ -283,7 +288,7 @@ public class TestRunnerMedia extends TestRunner
 			testMediaConcurrent.setParameterResourceName("Room");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("2345");
 			testMediaConcurrent.setParameterDataIdentifierTestObsolete("2346");
-			testMediaConcurrent.setParameterTestCycleNumber(nuOfTestCycles);
+			testMediaConcurrent.setParameterTestCycleNumberOfFiles(nuOfFiles);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierFrom(1);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierToo(40);
 			threadList.add(new Thread(testMediaConcurrent));
@@ -294,7 +299,7 @@ public class TestRunnerMedia extends TestRunner
 			testMediaConcurrent.setParameterResourceName("Room");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("2347");
 			testMediaConcurrent.setParameterDataIdentifierTestObsolete("2348");
-			testMediaConcurrent.setParameterTestCycleNumber(nuOfTestCycles);
+			testMediaConcurrent.setParameterTestCycleNumberOfFiles(nuOfFiles);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierFrom(1);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierToo(40);
 			threadList.add(new Thread(testMediaConcurrent));
@@ -305,7 +310,7 @@ public class TestRunnerMedia extends TestRunner
 			testMediaConcurrent.setParameterResourceName("Room");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("2349");
 			testMediaConcurrent.setParameterDataIdentifierTestObsolete("2350");
-			testMediaConcurrent.setParameterTestCycleNumber(nuOfTestCycles);
+			testMediaConcurrent.setParameterTestCycleNumberOfFiles(nuOfFiles);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierFrom(1);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierToo(40);
 			threadList.add(new Thread(testMediaConcurrent));
@@ -316,7 +321,7 @@ public class TestRunnerMedia extends TestRunner
 			testMediaConcurrent.setParameterResourceName("Floor");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("1236");
 			testMediaConcurrent.setParameterDataIdentifierTestObsolete("1237");
-			testMediaConcurrent.setParameterTestCycleNumber(nuOfTestCycles);
+			testMediaConcurrent.setParameterTestCycleNumberOfFiles(nuOfFiles);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierFrom(1);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierToo(10);
 			threadList.add(new Thread(testMediaConcurrent));
@@ -327,7 +332,7 @@ public class TestRunnerMedia extends TestRunner
 			testMediaConcurrent.setParameterResourceName("Bedroom");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("1238");
 			testMediaConcurrent.setParameterDataIdentifierTestObsolete("1239");
-			testMediaConcurrent.setParameterTestCycleNumber(nuOfTestCycles);
+			testMediaConcurrent.setParameterTestCycleNumberOfFiles(nuOfFiles);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierFrom(1);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierToo(2);
 			threadList.add(new Thread(testMediaConcurrent));
@@ -338,7 +343,7 @@ public class TestRunnerMedia extends TestRunner
 			testMediaConcurrent.setParameterResourceName("Kitchen");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("1240");
 			testMediaConcurrent.setParameterDataIdentifierTestObsolete("1241");
-			testMediaConcurrent.setParameterTestCycleNumber(nuOfTestCycles);
+			testMediaConcurrent.setParameterTestCycleNumberOfFiles(nuOfFiles);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierFrom(1);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierToo(10000);
 			threadList.add(new Thread(testMediaConcurrent));
@@ -349,7 +354,7 @@ public class TestRunnerMedia extends TestRunner
 			testMediaConcurrent.setParameterResourceName("Bathroom");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("1242");
 			testMediaConcurrent.setParameterDataIdentifierTestObsolete("1243");
-			testMediaConcurrent.setParameterTestCycleNumber(nuOfTestCycles);
+			testMediaConcurrent.setParameterTestCycleNumberOfFiles(nuOfFiles);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierFrom(500);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierToo(1000);
 			threadList.add(new Thread(testMediaConcurrent));
@@ -373,7 +378,7 @@ public class TestRunnerMedia extends TestRunner
 	{
 		ServerTestContainerMedia testMediaConcurrent;
 
-		int nuOfTestCycles = 10;
+		int nuOfFiles = 1000;
 
 		try
 		{
@@ -383,7 +388,7 @@ public class TestRunnerMedia extends TestRunner
 			testMediaConcurrent.setParameterResourceName("Room");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("2345");
 			testMediaConcurrent.setParameterDataIdentifierTestObsolete("2346");
-			testMediaConcurrent.setParameterTestCycleNumber(nuOfTestCycles);
+			testMediaConcurrent.setParameterTestCycleNumberOfFiles(nuOfFiles);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierFrom(1);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierToo(40);
 			threadList.add(new Thread(testMediaConcurrent));
@@ -394,7 +399,7 @@ public class TestRunnerMedia extends TestRunner
 			testMediaConcurrent.setParameterResourceName("Room");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("2347");
 			testMediaConcurrent.setParameterDataIdentifierTestObsolete("2348");
-			testMediaConcurrent.setParameterTestCycleNumber(nuOfTestCycles);
+			testMediaConcurrent.setParameterTestCycleNumberOfFiles(nuOfFiles);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierFrom(1);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierToo(40);
 			threadList.add(new Thread(testMediaConcurrent));
@@ -405,7 +410,7 @@ public class TestRunnerMedia extends TestRunner
 			testMediaConcurrent.setParameterResourceName("Room");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("2349");
 			testMediaConcurrent.setParameterDataIdentifierTestObsolete("2350");
-			testMediaConcurrent.setParameterTestCycleNumber(nuOfTestCycles);
+			testMediaConcurrent.setParameterTestCycleNumberOfFiles(nuOfFiles);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierFrom(1);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierToo(40);
 			threadList.add(new Thread(testMediaConcurrent));
@@ -416,7 +421,7 @@ public class TestRunnerMedia extends TestRunner
 			testMediaConcurrent.setParameterResourceName("Floor");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("1236");
 			testMediaConcurrent.setParameterDataIdentifierTestObsolete("1237");
-			testMediaConcurrent.setParameterTestCycleNumber(nuOfTestCycles);
+			testMediaConcurrent.setParameterTestCycleNumberOfFiles(nuOfFiles);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierFrom(1);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierToo(10);
 			threadList.add(new Thread(testMediaConcurrent));
@@ -427,7 +432,7 @@ public class TestRunnerMedia extends TestRunner
 			testMediaConcurrent.setParameterResourceName("Bedroom");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("1238");
 			testMediaConcurrent.setParameterDataIdentifierTestObsolete("1239");
-			testMediaConcurrent.setParameterTestCycleNumber(nuOfTestCycles);
+			testMediaConcurrent.setParameterTestCycleNumberOfFiles(nuOfFiles);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierFrom(1);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierToo(2);
 			threadList.add(new Thread(testMediaConcurrent));
@@ -438,7 +443,7 @@ public class TestRunnerMedia extends TestRunner
 			testMediaConcurrent.setParameterResourceName("Kitchen");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("1240");
 			testMediaConcurrent.setParameterDataIdentifierTestObsolete("1241");
-			testMediaConcurrent.setParameterTestCycleNumber(nuOfTestCycles);
+			testMediaConcurrent.setParameterTestCycleNumberOfFiles(nuOfFiles);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierFrom(1);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierToo(10000);
 			threadList.add(new Thread(testMediaConcurrent));
@@ -449,7 +454,7 @@ public class TestRunnerMedia extends TestRunner
 			testMediaConcurrent.setParameterResourceName("Bathroom");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("1242");
 			testMediaConcurrent.setParameterDataIdentifierTestObsolete("1243");
-			testMediaConcurrent.setParameterTestCycleNumber(nuOfTestCycles);
+			testMediaConcurrent.setParameterTestCycleNumberOfFiles(nuOfFiles);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierFrom(500);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierToo(1000);
 			threadList.add(new Thread(testMediaConcurrent));

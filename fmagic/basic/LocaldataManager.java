@@ -536,7 +536,7 @@ public class LocaldataManager implements ManagerInterface
 	 */
 	private String getLocalDataFilePath(Context context)
 	{
-		return FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getLocaldataSubPath());
+		return FileLocationFunctions.compileFilePath(FileLocationFunctions.getRootPath(), FileLocationFunctions.getLocaldataSubPath());
 	}
 
 	/**
@@ -550,8 +550,8 @@ public class LocaldataManager implements ManagerInterface
 	 */
 	private String getLocaldataFileName(Context context)
 	{
-		String fileName = FileLocationManager.getLocaldataFileName();
-		fileName = FileLocationManager.replacePlacholder(context, fileName);
+		String fileName = FileLocationFunctions.getLocaldataFileName();
+		fileName = FileLocationFunctions.replacePlacholder(context, fileName);
 		return fileName;
 	}
 
@@ -564,7 +564,7 @@ public class LocaldataManager implements ManagerInterface
 	private void readPropertiesFile(Context context)
 	{
 		// Composes file name
-		String fileName = FileLocationManager.compileFilePath(getLocalDataFilePath(context), getLocaldataFileName(context));
+		String fileName = FileLocationFunctions.compileFilePath(getLocalDataFilePath(context), getLocaldataFileName(context));
 
 		try
 		{
@@ -588,7 +588,7 @@ public class LocaldataManager implements ManagerInterface
 		// Composes file name
 		String path = getLocalDataFilePath(context);
 		String fileName = getLocaldataFileName(context);
-		String fullFileName = FileLocationManager.compileFilePath(path, fileName);
+		String fullFileName = FileLocationFunctions.compileFilePath(path, fileName);
 
 		// Creates directory
 		File directory = new File(path);

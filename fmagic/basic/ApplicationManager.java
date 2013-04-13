@@ -259,8 +259,8 @@ public abstract class ApplicationManager implements ManagerInterface
 			// Read test resources. if the application is running in "test mode", the test resources are loaded additionally.
 			if (context.isRunningInTestMode())
 			{
-				String fileName = FileLocationManager.compileFilePath(TestManager.getTestResourceFilePath(this.getContext()), FileLocationManager.getResourceFileName());
-				fileName = FileLocationManager.replacePlaceholder(this.getContext(), fileName, ApplicationManager.ApplicationIdentifierEnum.Test.toString(), null);
+				String fileName = FileLocationFunctions.compileFilePath(TestManager.getTestResourceFilePath(this.getContext()), FileLocationFunctions.getResourceFileName());
+				fileName = FileLocationFunctions.replacePlaceholder(this.getContext(), fileName, ApplicationManager.ApplicationIdentifierEnum.Test.toString(), null);
 				
 				if (this.getContext().getResourceManager().loadCommonResourceFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Test.toString(), this.applicationVersion, fileName) == false) isSuccessful = false;
 			}
@@ -444,7 +444,7 @@ public abstract class ApplicationManager implements ManagerInterface
 
 			// Notify shutdown on console. Wait for 2 seconds to have the error
 			// messages as the last messages on console.
-			FileUtil.sleepSeconds(2);
+			FileUtilFunctions.sleepSeconds(2);
 			System.err.println(shutdownText);
 			System.err.println(dumpText);
 

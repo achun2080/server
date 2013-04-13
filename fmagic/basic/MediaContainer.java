@@ -34,6 +34,11 @@ public class MediaContainer
 		this.context = context;
 		this.resourceContainerMedia = resourceContainerMedia;
 		this.dataIdentifier = dataIdentifier;
+
+		if (resourceContainerMedia != null && dataIdentifier != null)
+		{
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "MEDIA CONTAINER: Instantiated for media container: '" + resourceContainerMedia.getRecourceIdentifier() + "' and data identifier '" + dataIdentifier + "'");
+		}
 	}
 
 	/**
@@ -60,9 +65,13 @@ public class MediaContainer
 		this.originalMediaFilePath = this.resourceContainerMedia.getMediaRealFileName(this.context, this.dataIdentifier);
 		if (this.originalMediaFilePath == null || this.originalMediaFilePath.length() == 0) return false;
 
+		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "MEDIA CONTAINER: Media was bound to original media file path: '" + this.originalMediaFilePath + "'");
+
 		// Copy or decrypt media file to a pending (temporary) file
 		this.workingMediaFilePath = this.context.getMediaManager().mediaFileOperationDecrypt(this.context, this.resourceContainerMedia, this.originalMediaFilePath);
 		if (this.workingMediaFilePath == null || this.workingMediaFilePath.length() == 0) return false;
+
+		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "MEDIA CONTAINER: Bounded media was copied/decrypted the the 'pending' directory: '" + this.workingMediaFilePath + "'");
 
 		// Set bind mark
 		this.boundMark = true;
@@ -93,7 +102,7 @@ public class MediaContainer
 		if (this.workingMediaFilePath == null || this.workingMediaFilePath.length() == 0) return null;
 
 		// Read working file
-		return FileUtil.fileReadToByteArray(this.workingMediaFilePath);
+		return FileUtilFunctions.fileReadToByteArray(this.workingMediaFilePath);
 	}
 
 	/**
@@ -119,7 +128,7 @@ public class MediaContainer
 		if (this.workingMediaFilePath == null || this.workingMediaFilePath.length() == 0) return null;
 
 		// Read working file
-		return FileUtil.fileReadToString(this.workingMediaFilePath);
+		return FileUtilFunctions.fileReadToString(this.workingMediaFilePath);
 	}
 
 	/**
@@ -147,7 +156,7 @@ public class MediaContainer
 		// Delete pending working file
 		if (this.workingMediaFilePath != null && this.workingMediaFilePath.length() > 0)
 		{
-			FileUtil.fileDelete(this.workingMediaFilePath);
+			FileUtilFunctions.fileDelete(this.workingMediaFilePath);
 		}
 
 		// / Clear variables

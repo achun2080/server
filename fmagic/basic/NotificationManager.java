@@ -753,7 +753,7 @@ public class NotificationManager implements ManagerInterface
 		{
 			// Gets file path of the ticket files
 			String pathDirectoryMessageDump = this.getLogfilePath(context, NotificationManager.LogfileTypeEnum.TICKET_LOG);
-			String pathFileNameMessageDump = FileLocationManager.compileFilePath(this.getLogfilePath(context, NotificationManager.LogfileTypeEnum.TICKET_LOG), fileNameMessageDump);
+			String pathFileNameMessageDump = FileLocationFunctions.compileFilePath(this.getLogfilePath(context, NotificationManager.LogfileTypeEnum.TICKET_LOG), fileNameMessageDump);
 
 			// Create directory
 			File directory = new File(pathDirectoryMessageDump);
@@ -761,7 +761,7 @@ public class NotificationManager implements ManagerInterface
 
 			// Write to log file
 			PrintWriter output = new PrintWriter(new FileOutputStream(new File(pathFileNameMessageDump), false));
-			output.append(FileUtil.normalizeNewLine(dumpMessageText));
+			output.append(FileUtilFunctions.normalizeNewLine(dumpMessageText));
 			output.close();
 		}
 		catch (Exception e)
@@ -778,7 +778,7 @@ public class NotificationManager implements ManagerInterface
 		{
 			// Gets file path of the ticket files
 			String pathDirectoryDocumentationDump = this.getLogfilePath(context, NotificationManager.LogfileTypeEnum.TICKET_DOC);
-			String pathFileNameDocumentationDump = FileLocationManager.compileFilePath(this.getLogfilePath(context, NotificationManager.LogfileTypeEnum.TICKET_DOC), fileNameDocumentationDump);
+			String pathFileNameDocumentationDump = FileLocationFunctions.compileFilePath(this.getLogfilePath(context, NotificationManager.LogfileTypeEnum.TICKET_DOC), fileNameDocumentationDump);
 
 			// Create directory
 			File directory = new File(pathDirectoryDocumentationDump);
@@ -786,7 +786,7 @@ public class NotificationManager implements ManagerInterface
 
 			// Write to log file
 			PrintWriter output = new PrintWriter(new FileOutputStream(new File(pathFileNameDocumentationDump), false));
-			output.append(FileUtil.normalizeNewLine(dumpDocumentationText));
+			output.append(FileUtilFunctions.normalizeNewLine(dumpDocumentationText));
 			output.close();
 		}
 		catch (Exception e)
@@ -893,31 +893,31 @@ public class NotificationManager implements ManagerInterface
 
 		if (logfileType == NotificationManager.LogfileTypeEnum.DATE_CONTEXT)
 		{
-			fileName = FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getLogContextSubPath(), FileLocationManager.getLogContextSubSubPath());
+			fileName = FileLocationFunctions.compileFilePath(FileLocationFunctions.getRootPath(), FileLocationFunctions.getLogContextSubPath(), FileLocationFunctions.getLogContextSubSubPath());
 		}
 		else if (logfileType == NotificationManager.LogfileTypeEnum.APPLICATION_DATE)
 		{
-			fileName = FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getLogApplicationSubPath(), FileLocationManager.getLogApplicationSubSubPath());
+			fileName = FileLocationFunctions.compileFilePath(FileLocationFunctions.getRootPath(), FileLocationFunctions.getLogApplicationSubPath(), FileLocationFunctions.getLogApplicationSubSubPath());
 		}
 		else if (logfileType == NotificationManager.LogfileTypeEnum.TICKET_LOG)
 		{
-			fileName = FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getLogTicketSubPath(), FileLocationManager.getLogTicketSubSubPath());
+			fileName = FileLocationFunctions.compileFilePath(FileLocationFunctions.getRootPath(), FileLocationFunctions.getLogTicketSubPath(), FileLocationFunctions.getLogTicketSubSubPath());
 		}
 		else if (logfileType == NotificationManager.LogfileTypeEnum.TICKET_DOC)
 		{
-			fileName = FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getLogTicketSubPath(), FileLocationManager.getLogTicketSubSubPath());
+			fileName = FileLocationFunctions.compileFilePath(FileLocationFunctions.getRootPath(), FileLocationFunctions.getLogTicketSubPath(), FileLocationFunctions.getLogTicketSubSubPath());
 		}
 		else if (logfileType == NotificationManager.LogfileTypeEnum.TEST_LOGGING)
 		{
-			fileName = FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getTestLoggingSubPath(), FileLocationManager.getTestLoggingSubSubPath());
+			fileName = FileLocationFunctions.compileFilePath(FileLocationFunctions.getRootPath(), FileLocationFunctions.getTestLoggingSubPath(), FileLocationFunctions.getTestLoggingSubSubPath());
 		}
 		else
 		{
-			fileName = FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getLogFlatSubPath());
+			fileName = FileLocationFunctions.compileFilePath(FileLocationFunctions.getRootPath(), FileLocationFunctions.getLogFlatSubPath());
 		}
 
 		// Replace place holder
-		fileName = FileLocationManager.replacePlacholder(context, fileName);
+		fileName = FileLocationFunctions.replacePlacholder(context, fileName);
 
 		// Return
 		return fileName;
@@ -955,15 +955,15 @@ public class NotificationManager implements ManagerInterface
 		// Get file name
 		if (logfileType == NotificationManager.LogfileTypeEnum.DATE_CONTEXT)
 		{
-			fileName = FileLocationManager.getLogContextFileName();
+			fileName = FileLocationFunctions.getLogContextFileName();
 		}
 		else if (logfileType == NotificationManager.LogfileTypeEnum.APPLICATION_DATE)
 		{
-			fileName = FileLocationManager.getLogApplicationFileName();
+			fileName = FileLocationFunctions.getLogApplicationFileName();
 		}
 		else if (logfileType == NotificationManager.LogfileTypeEnum.FLAT)
 		{
-			fileName = FileLocationManager.getLogFlatFileName();
+			fileName = FileLocationFunctions.getLogFlatFileName();
 		}
 		else if (logfileType == NotificationManager.LogfileTypeEnum.TICKET_LOG)
 		{
@@ -973,10 +973,10 @@ public class NotificationManager implements ManagerInterface
 			}
 			else
 			{
-				fileName = FileLocationManager.getLogTicketComposer();
+				fileName = FileLocationFunctions.getLogTicketComposer();
 			}
 
-			fileName += "-LOG" + FileLocationManager.getLogTicketFileType();
+			fileName += "-LOG" + FileLocationFunctions.getLogTicketFileType();
 		}
 		else if (logfileType == NotificationManager.LogfileTypeEnum.TICKET_DOC)
 		{
@@ -986,22 +986,22 @@ public class NotificationManager implements ManagerInterface
 			}
 			else
 			{
-				fileName = FileLocationManager.getLogTicketComposer();
+				fileName = FileLocationFunctions.getLogTicketComposer();
 			}
 
-			fileName += "-DOC" + FileLocationManager.getLogTicketFileType();
+			fileName += "-DOC" + FileLocationFunctions.getLogTicketFileType();
 		}
 		else if (logfileType == NotificationManager.LogfileTypeEnum.TEST_LOGGING)
 		{
-			fileName = FileLocationManager.getTestLoggingLogFileName();
+			fileName = FileLocationFunctions.getTestLoggingLogFileName();
 		}
 		else
 		{
-			fileName = FileLocationManager.getLogFlatFileName();
+			fileName = FileLocationFunctions.getLogFlatFileName();
 		}
 
 		// Replace place holder in file name
-		fileName = FileLocationManager.replacePlacholder(context, fileName);
+		fileName = FileLocationFunctions.replacePlacholder(context, fileName);
 
 		// Return
 		return fileName;
@@ -1044,7 +1044,7 @@ public class NotificationManager implements ManagerInterface
 	private void writeMessageToLogfile(Context context, String logText)
 	{
 		// Normalize new line first
-		String normalizedText = FileUtil.normalizeNewLine(logText);
+		String normalizedText = FileUtilFunctions.normalizeNewLine(logText);
 
 		// Write message to log file
 		try
@@ -1326,8 +1326,8 @@ public class NotificationManager implements ManagerInterface
 	 */
 	private String createErrorDumpTicketNumber(Context context)
 	{
-		String ticket = FileLocationManager.getLogTicketComposer();
-		ticket = FileLocationManager.replacePlacholder(context, ticket);
+		String ticket = FileLocationFunctions.getLogTicketComposer();
+		ticket = FileLocationFunctions.replacePlacholder(context, ticket);
 		return ticket;
 	}
 

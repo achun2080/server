@@ -40,9 +40,6 @@ public class ApplicationTest
 
 	/**
 	 * Execute all component tests on test runner list.
-	 * 
-	 * @param threadList
-	 *            The list of threads to consider.
 	 */
 	public void executeComponentTests()
 	{
@@ -56,9 +53,6 @@ public class ApplicationTest
 
 	/**
 	 * Execute all concurrent tests on test runner list.
-	 * 
-	 * @param threadList
-	 *            The list of threads to consider.
 	 */
 	public void executeConcurrentTests()
 	{
@@ -72,9 +66,6 @@ public class ApplicationTest
 
 	/**
 	 * Execute all stress tests on test runner list.
-	 * 
-	 * @param threadList
-	 *            The list of threads to consider.
 	 */
 	public void executeStressTests()
 	{
@@ -117,5 +108,4 @@ public class ApplicationTest
 			test.cleanup();
 		}
 	}
-
 }

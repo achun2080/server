@@ -12,9 +12,9 @@ import java.util.List;
 import java.util.Locale;
 
 import fmagic.basic.Context;
-import fmagic.basic.FileLocationManager;
+import fmagic.basic.FileLocationFunctions;
 import fmagic.basic.ManagerInterface;
-import fmagic.basic.FileUtil;
+import fmagic.basic.FileUtilFunctions;
 
 /**
  * This class implements the management of tests that are included in the
@@ -137,8 +137,8 @@ public class TestManager implements ManagerInterface
 	 */
 	public static String getTestResourceFilePath(Context context)
 	{
-		String filePath = FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getTestResourceSubPath());
-		filePath = FileLocationManager.replacePlacholder(context, filePath);
+		String filePath = FileLocationFunctions.compileFilePath(FileLocationFunctions.getRootPath(), FileLocationFunctions.getTestResourceSubPath());
+		filePath = FileLocationFunctions.replacePlacholder(context, filePath);
 
 		return filePath;
 	}
@@ -165,8 +165,8 @@ public class TestManager implements ManagerInterface
 	 */
 	public static String getTestStuffFilePath(Context context)
 	{
-		String filePath = FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getTestStuffSubPath());
-		filePath = FileLocationManager.replacePlacholder(context, filePath);
+		String filePath = FileLocationFunctions.compileFilePath(FileLocationFunctions.getRootPath(), FileLocationFunctions.getTestStuffSubPath());
+		filePath = FileLocationFunctions.replacePlacholder(context, filePath);
 
 		return filePath;
 	}
@@ -191,8 +191,8 @@ public class TestManager implements ManagerInterface
 	 */
 	public static String getTestConfigurationFilePath(Context context)
 	{
-		String filePath = FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getTestConfigurationSubPath());
-		filePath = FileLocationManager.replacePlacholder(context, filePath);
+		String filePath = FileLocationFunctions.compileFilePath(FileLocationFunctions.getRootPath(), FileLocationFunctions.getTestConfigurationSubPath());
+		filePath = FileLocationFunctions.replacePlacholder(context, filePath);
 
 		return filePath;
 	}
@@ -217,8 +217,8 @@ public class TestManager implements ManagerInterface
 	 */
 	public static String getTestLicenseFilePath(Context context)
 	{
-		String filePath = FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getTestLicenseSubPath());
-		filePath = FileLocationManager.replacePlacholder(context, filePath);
+		String filePath = FileLocationFunctions.compileFilePath(FileLocationFunctions.getRootPath(), FileLocationFunctions.getTestLicenseSubPath());
+		filePath = FileLocationFunctions.replacePlacholder(context, filePath);
 
 		return filePath;
 	}
@@ -243,9 +243,9 @@ public class TestManager implements ManagerInterface
 	 */
 	public static void cleanTestSessionDirectory(Context context)
 	{
-		String filePath = FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getTestLoggingSubPath(), FileLocationManager.getTestLoggingSubSubPath());
-		filePath = FileLocationManager.replacePlacholder(context, filePath);
-		FileUtil.fileCleanDirectory(filePath);
+		String filePath = FileLocationFunctions.compileFilePath(FileLocationFunctions.getRootPath(), FileLocationFunctions.getTestLoggingSubPath(), FileLocationFunctions.getTestLoggingSubSubPath());
+		filePath = FileLocationFunctions.replacePlacholder(context, filePath);
+		FileUtilFunctions.fileCleanDirectory(filePath);
 	}
 
 	/**
@@ -339,7 +339,7 @@ public class TestManager implements ManagerInterface
 			}
 			else
 			{
-				normalizedText = FileUtil.normalizeNewLine("\n" + assertText + "\n");
+				normalizedText = FileUtilFunctions.normalizeNewLine("\n" + assertText + "\n");
 			}
 		}
 
@@ -352,11 +352,11 @@ public class TestManager implements ManagerInterface
 			PrintWriter output;
 
 			// Gets file path and file name
-			pathName = FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getTestLoggingSubPath(), FileLocationManager.getTestLoggingSubSubPath());
-			pathName = FileLocationManager.replacePlacholder(context, pathName);
+			pathName = FileLocationFunctions.compileFilePath(FileLocationFunctions.getRootPath(), FileLocationFunctions.getTestLoggingSubPath(), FileLocationFunctions.getTestLoggingSubSubPath());
+			pathName = FileLocationFunctions.replacePlacholder(context, pathName);
 
-			fileName = FileLocationManager.getTestLoggingAssertFileName();
-			fileName = FileLocationManager.replacePlacholder(context, fileName);
+			fileName = FileLocationFunctions.getTestLoggingAssertFileName();
+			fileName = FileLocationFunctions.replacePlacholder(context, fileName);
 
 			// Create directory
 			directory = new File(pathName);
@@ -393,7 +393,7 @@ public class TestManager implements ManagerInterface
 	private void writeMessageToErrorFile(Context context, String assertText, String additionalText)
 	{
 		// Normalize new line first
-		String normalizedText = FileUtil.normalizeNewLine(serviceFormatter(context.getCodeName(), assertText, additionalText));
+		String normalizedText = FileUtilFunctions.normalizeNewLine(serviceFormatter(context.getCodeName(), assertText, additionalText));
 
 		// Write message to assert file
 		try
@@ -404,11 +404,11 @@ public class TestManager implements ManagerInterface
 			PrintWriter output;
 
 			// Gets file path and file name
-			pathName = FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getTestLoggingSubPath(), FileLocationManager.getTestLoggingSubSubPath());
-			pathName = FileLocationManager.replacePlacholder(context, pathName);
+			pathName = FileLocationFunctions.compileFilePath(FileLocationFunctions.getRootPath(), FileLocationFunctions.getTestLoggingSubPath(), FileLocationFunctions.getTestLoggingSubSubPath());
+			pathName = FileLocationFunctions.replacePlacholder(context, pathName);
 
-			fileName = FileLocationManager.getTestLoggingErrorFileName();
-			fileName = FileLocationManager.replacePlacholder(context, fileName);
+			fileName = FileLocationFunctions.getTestLoggingErrorFileName();
+			fileName = FileLocationFunctions.replacePlacholder(context, fileName);
 
 			// Create directory
 			directory = new File(pathName);
@@ -522,7 +522,7 @@ public class TestManager implements ManagerInterface
 			if (stackTraceText != null && stackTraceText.length() > 0)
 			{
 				if (additionalText == null) additionalText = "";
-				additionalText += "\n" + stackTraceText;
+				additionalText += "\n\n" + stackTraceText;
 			}
 		}
 
@@ -1045,10 +1045,10 @@ public class TestManager implements ManagerInterface
 	 */
 	public static void assertEqualsFile(Context context, String additionalText, String filePath1, String filePath2)
 	{
-		long checksumFile1 = FileUtil.fileGetChecksum(filePath1);
+		long checksumFile1 = FileUtilFunctions.fileGetChecksum(filePath1);
 		TestManager.assertGreaterThan(context, additionalText + "\n--> Error on computing checksum of file '" + filePath1 + "'", checksumFile1, 0);
 
-		long checksumFile2 = FileUtil.fileGetChecksum(filePath2);
+		long checksumFile2 = FileUtilFunctions.fileGetChecksum(filePath2);
 		TestManager.assertGreaterThan(context, additionalText + "\n--> Error on computing checksum of file '" + filePath2 + "'", checksumFile2, 0);
 
 		if (checksumFile1 != checksumFile2)

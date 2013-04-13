@@ -104,7 +104,7 @@ public class LabelManager implements ManagerInterface
 	 */
 	private String getResourceLabelFilePath(Context context)
 	{
-		return FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getResourceLabelSubPath());
+		return FileLocationFunctions.compileFilePath(FileLocationFunctions.getRootPath(), FileLocationFunctions.getResourceLabelSubPath());
 	}
 
 	/**
@@ -119,7 +119,7 @@ public class LabelManager implements ManagerInterface
 	 */
 	private String getTranslatedLabelFilePath(Context context)
 	{
-		return FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getResourceLabelTranslatedSubPath());
+		return FileLocationFunctions.compileFilePath(FileLocationFunctions.getRootPath(), FileLocationFunctions.getResourceLabelTranslatedSubPath());
 	}
 
 	/**
@@ -137,8 +137,8 @@ public class LabelManager implements ManagerInterface
 	 */
 	private String getResourceLabelFileName(Context context, String applicationName)
 	{
-		String fileName = FileLocationManager.getResourceLabelFileName();
-		fileName = FileLocationManager.replacePlaceholder(context, fileName, applicationName, null);
+		String fileName = FileLocationFunctions.getResourceLabelFileName();
+		fileName = FileLocationFunctions.replacePlaceholder(context, fileName, applicationName, null);
 		return fileName;
 	}
 
@@ -160,8 +160,8 @@ public class LabelManager implements ManagerInterface
 	 */
 	private String getTranslatedLabelFileName(Context context, String applicationName, String language)
 	{
-		String fileName = FileLocationManager.getResourceLabelTranslatedFileName();
-		fileName = FileLocationManager.replacePlaceholder(context, fileName, applicationName, language);
+		String fileName = FileLocationFunctions.getResourceLabelTranslatedFileName();
+		fileName = FileLocationFunctions.replacePlaceholder(context, fileName, applicationName, language);
 		return fileName;
 	}
 
@@ -185,7 +185,7 @@ public class LabelManager implements ManagerInterface
 		HashMap<String, String> organizationalProperties = new HashMap<String, String>();
 
 		// Set File name
-		String fileName = FileLocationManager.compileFilePath(this.getResourceLabelFilePath(context), this.getResourceLabelFileName(context, applicationIdentifier));
+		String fileName = FileLocationFunctions.compileFilePath(this.getResourceLabelFilePath(context), this.getResourceLabelFileName(context, applicationIdentifier));
 
 		// Invoke general function to read resource files
 		boolean isSuccessful = context.getResourceManager().loadResourceFile(context, applicationIdentifier, applicationVersion, fileName, null, false, organizationalProperties);
@@ -227,7 +227,7 @@ public class LabelManager implements ManagerInterface
 		HashMap<String, String> organizationalProperties = new HashMap<String, String>();
 
 		// Set File name
-		String fileName = FileLocationManager.compileFilePath(this.getTranslatedLabelFilePath(context), this.getTranslatedLabelFileName(context, applicationIdentifier, language));
+		String fileName = FileLocationFunctions.compileFilePath(this.getTranslatedLabelFilePath(context), this.getTranslatedLabelFileName(context, applicationIdentifier, language));
 
 		// Invoke general function to read resource files
 		boolean isSuccessful = context.getResourceManager().loadResourceFile(context, applicationIdentifier, applicationVersion, fileName, language, true, organizationalProperties);
@@ -488,7 +488,7 @@ public class LabelManager implements ManagerInterface
 	 */
 	private String getLabelTemplateFilePath(Context context)
 	{
-		return FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getResourceLabelTemplateSubPath());
+		return FileLocationFunctions.compileFilePath(FileLocationFunctions.getRootPath(), FileLocationFunctions.getResourceLabelTemplateSubPath());
 	}
 
 	/**
@@ -510,8 +510,8 @@ public class LabelManager implements ManagerInterface
 	{
 		try
 		{
-			String fileName = FileLocationManager.getResourceLabelTemplateFileName();
-			fileName = FileLocationManager.replacePlaceholder(context, fileName, application, language);
+			String fileName = FileLocationFunctions.getResourceLabelTemplateFileName();
+			fileName = FileLocationFunctions.replacePlaceholder(context, fileName, application, language);
 			return fileName;
 		}
 		catch (Exception e)
@@ -589,7 +589,7 @@ public class LabelManager implements ManagerInterface
 		{
 			String errorString = "--> Language confusion, language is not supported";
 			errorString += "\n--> Searched for language: '" + sourceLanguage + "'";
-			errorString += "\n--> Please look at the resource file of the application: '" + application + "' in the sub directory '" + FileLocationManager.getResourceSubPath() + "'";
+			errorString += "\n--> Please look at the resource file of the application: '" + application + "' in the sub directory '" + FileLocationFunctions.getResourceSubPath() + "'";
 			errorString += "\n--> Supported languages are: " + context.getApplicationManager().getSupportedLanguagesString();
 			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Label", "ErrorOnWritingTemplateFile"), errorString, null);
 			isError = true;
@@ -624,7 +624,7 @@ public class LabelManager implements ManagerInterface
 		try
 		{
 			// Get a list of all relevant resource identifier items
-			fileName = FileLocationManager.compileFilePath(this.getLabelTemplateFilePath(context), this.getLabelTemplateFileName(context, application, destinationLanguage));
+			fileName = FileLocationFunctions.compileFilePath(this.getLabelTemplateFilePath(context), this.getLabelTemplateFileName(context, application, destinationLanguage));
 
 			String typeCriteria[] = { "Label" };
 			String applicationCriteria[] = { application };
@@ -641,7 +641,7 @@ public class LabelManager implements ManagerInterface
 
 			if (commonAttributes != null && commonAttributes.length() > 0)
 			{
-				output.append(FileUtil.normalizeNewLine(commonAttributes));
+				output.append(FileUtilFunctions.normalizeNewLine(commonAttributes));
 			}
 
 			// Go through the list and get the manual for each resource item
@@ -687,7 +687,7 @@ public class LabelManager implements ManagerInterface
 					if (text == null) text = "";
 					manualText += identifier + ResourceManager.getAttributeDelimiterString() + label.getAttributeResourceIdentifier(context, number, destinationLanguage) + "=" + text.trim() + "\n\n";
 
-					resourceTemplateText += FileUtil.normalizeNewLine(manualText);
+					resourceTemplateText += FileUtilFunctions.normalizeNewLine(manualText);
 				}
 
 				output.append(resourceTemplateText);

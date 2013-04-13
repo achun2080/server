@@ -236,7 +236,7 @@ public class ResourceManager implements ManagerInterface
 	 */
 	private String getResourceFilePath(Context context)
 	{
-		return FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getResourceSubPath());
+		return FileLocationFunctions.compileFilePath(FileLocationFunctions.getRootPath(), FileLocationFunctions.getResourceSubPath());
 	}
 
 	/**
@@ -254,8 +254,8 @@ public class ResourceManager implements ManagerInterface
 	 */
 	private String getResourceFileName(Context context, String applicationName)
 	{
-		String fileName = FileLocationManager.getResourceFileName();
-		fileName = FileLocationManager.replacePlaceholder(context, fileName, applicationName, null);
+		String fileName = FileLocationFunctions.getResourceFileName();
+		fileName = FileLocationFunctions.replacePlaceholder(context, fileName, applicationName, null);
 		return fileName;
 	}
 
@@ -858,7 +858,7 @@ public class ResourceManager implements ManagerInterface
 		}
 
 		// Return
-		return FileUtil.normalizeNewLine(manualText);
+		return FileUtilFunctions.normalizeNewLine(manualText);
 	}
 
 	/**
@@ -1004,7 +1004,7 @@ public class ResourceManager implements ManagerInterface
 		}
 
 		// Return
-		return FileUtil.normalizeNewLine(manualText);
+		return FileUtilFunctions.normalizeNewLine(manualText);
 	}
 
 	/**
@@ -1151,7 +1151,7 @@ public class ResourceManager implements ManagerInterface
 		}
 
 		// Return
-		return FileUtil.normalizeNewLine(listText);
+		return FileUtilFunctions.normalizeNewLine(listText);
 	}
 
 	/**
@@ -1810,7 +1810,7 @@ public class ResourceManager implements ManagerInterface
 		}
 		else
 		{
-			fileName = FileLocationManager.compileFilePath(this.getResourceFilePath(context), getResourceFileName(context, applicationIdentifier));
+			fileName = FileLocationFunctions.compileFilePath(this.getResourceFilePath(context), getResourceFileName(context, applicationIdentifier));
 		}
 
 		// Invoke general function to read resource files

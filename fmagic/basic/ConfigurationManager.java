@@ -397,11 +397,11 @@ public class ConfigurationManager implements ManagerInterface
 
 					if (context.isRunningInTestMode())
 					{
-						fileName = FileLocationManager.compileFilePath(TestManager.getTestConfigurationFilePath(context), value.substring(2, value.length() - 1));
+						fileName = FileLocationFunctions.compileFilePath(TestManager.getTestConfigurationFilePath(context), value.substring(2, value.length() - 1));
 					}
 					else
 					{
-						fileName = FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getConfigurationSubPath(), value.substring(2, value.length() - 1));
+						fileName = FileLocationFunctions.compileFilePath(FileLocationFunctions.getRootPath(), FileLocationFunctions.getConfigurationSubPath(), value.substring(2, value.length() - 1));
 					}
 
 					// Logging
@@ -726,7 +726,7 @@ public class ConfigurationManager implements ManagerInterface
 	 */
 	private String getConfigurationFilePath(Context context)
 	{
-		return FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getConfigurationSubPath());
+		return FileLocationFunctions.compileFilePath(FileLocationFunctions.getRootPath(), FileLocationFunctions.getConfigurationSubPath());
 	}
 
 	/**
@@ -744,8 +744,8 @@ public class ConfigurationManager implements ManagerInterface
 	 */
 	private String getConfigurationFileName(Context context)
 	{
-		String fileName = FileLocationManager.getConfigurationFileName();
-		fileName = FileLocationManager.replacePlacholder(context, fileName);
+		String fileName = FileLocationFunctions.getConfigurationFileName();
+		fileName = FileLocationFunctions.replacePlacholder(context, fileName);
 		return fileName;
 	}
 
@@ -764,7 +764,7 @@ public class ConfigurationManager implements ManagerInterface
 	 */
 	private String getConfigurationTemplateFilePath(Context context)
 	{
-		return FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getConfigurationTemplateSubPath());
+		return FileLocationFunctions.compileFilePath(FileLocationFunctions.getRootPath(), FileLocationFunctions.getConfigurationTemplateSubPath());
 	}
 
 	/**
@@ -786,8 +786,8 @@ public class ConfigurationManager implements ManagerInterface
 	{
 		try
 		{
-			String fileName = FileLocationManager.getConfigurationTemplateFileName();
-			fileName = FileLocationManager.replacePlacholder(context, fileName);
+			String fileName = FileLocationFunctions.getConfigurationTemplateFileName();
+			fileName = FileLocationFunctions.replacePlacholder(context, fileName);
 			return fileName;
 		}
 		catch (Exception e)
@@ -821,11 +821,11 @@ public class ConfigurationManager implements ManagerInterface
 		// environment.
 		if (context.isRunningInTestMode())
 		{
-			fileName = FileLocationManager.compileFilePath(TestManager.getTestConfigurationFilePath(context), this.getConfigurationFileName(context));
+			fileName = FileLocationFunctions.compileFilePath(TestManager.getTestConfigurationFilePath(context), this.getConfigurationFileName(context));
 		}
 		else
 		{
-			fileName = FileLocationManager.compileFilePath(this.getConfigurationFilePath(context), this.getConfigurationFileName(context));
+			fileName = FileLocationFunctions.compileFilePath(this.getConfigurationFilePath(context), this.getConfigurationFileName(context));
 		}
 
 		try
@@ -849,11 +849,11 @@ public class ConfigurationManager implements ManagerInterface
 		// environment.
 		if (context.isRunningInTestMode())
 		{
-			fileName = FileLocationManager.compileFilePath(TestManager.getTestConfigurationFilePath(context), FileLocationManager.getConfigurationDefaultFileName());
+			fileName = FileLocationFunctions.compileFilePath(TestManager.getTestConfigurationFilePath(context), FileLocationFunctions.getConfigurationDefaultFileName());
 		}
 		else
 		{
-			fileName = FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getConfigurationDefaultSubPath(), FileLocationManager.getConfigurationDefaultFileName());
+			fileName = FileLocationFunctions.compileFilePath(FileLocationFunctions.getRootPath(), FileLocationFunctions.getConfigurationDefaultSubPath(), FileLocationFunctions.getConfigurationDefaultFileName());
 		}
 
 		try
@@ -932,7 +932,7 @@ public class ConfigurationManager implements ManagerInterface
 		try
 		{
 			// Create template text
-			fileName = FileLocationManager.compileFilePath(this.getConfigurationTemplateFilePath(context), this.getConfigurationTemplateFileName(context, application, origin));
+			fileName = FileLocationFunctions.compileFilePath(this.getConfigurationTemplateFilePath(context), this.getConfigurationTemplateFileName(context, application, origin));
 
 			String typeCriteria[] = { "Configuration" };
 			String applicationCriteria[] = { "Basic", "Common", application };

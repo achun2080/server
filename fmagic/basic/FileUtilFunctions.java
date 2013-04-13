@@ -16,9 +16,9 @@ import org.apache.commons.io.FileUtils;
  * 
  * @changed FW 19.12.2012 - Created
  */
-public class FileUtil
+public class FileUtilFunctions
 {
-	private static int defaultNuOfRetrials = 10;
+	private static int defaultNuOfRetrials = 20;
 	private static int defaultIdleTimeBetweenRetrialsInMilliseconds = 1000;
 
 	/**
@@ -164,12 +164,33 @@ public class FileUtil
 		{
 		}
 	}
-	
+
 	/**
 	 * Check if a file exists physically and can be read.
 	 * <p>
-	 * In contrast to the similar method <TT>fileExists()</TT> the
-	 * function is executed a bunch of times, if it fails the first time. This
+	 * In contrast to the similar method <TT>fileExists()</TT> the function is
+	 * executed a bunch of times, if it fails the first time. This can happen if
+	 * the file is touched by another process for a while, e. g. because it is
+	 * just copied.
+	 * 
+	 * @param filePath
+	 *            The file to consider.
+	 * 
+	 * @return Returns the number of attempts (at least 1) if the file exists
+	 *         and is accessible, otherwise <TT>0</TT> if an error occurred, or
+	 *         a value lower than <TT>0</TT> as the number of attempts that
+	 *         failed.
+	 */
+	public static int fileExistsRetry(String filePath)
+	{
+		return FileUtilFunctions.fileExists(filePath, FileUtilFunctions.defaultNuOfRetrials, FileUtilFunctions.defaultIdleTimeBetweenRetrialsInMilliseconds);
+	}
+
+	/**
+	 * Check if a file exists physically and can be read.
+	 * <p>
+	 * Please use the similar method <TT>fileExistsRetry()</TT> when you want to
+	 * executed the function a bunch of times, if it fails the first time. This
 	 * can happen if the file is touched by another process for a while, e. g.
 	 * because it is just copied.
 	 * 
@@ -179,28 +200,18 @@ public class FileUtil
 	 * @return Returns <TT>true</TT> if the file exists and is accessible,
 	 *         otherwise <TT>false</TT>.
 	 */
-	public static boolean fileExistsRetry(String filePath)
-	{
-		return FileUtil.fileExists(filePath, FileUtil.defaultNuOfRetrials, FileUtil.defaultIdleTimeBetweenRetrialsInMilliseconds);
-	}
-	
-	/**
-	 * Check if a file exists physically and can be read.
-	 * <p>
-	 * Please use the similar method <TT>fileExistsRetry()</TT> when
-	 * you want to executed the function a bunch of times, if it fails the first
-	 * time. This can happen if the file is touched by another process for a
-	 * while, e. g. because it is just copied.
-	 * 
-	 * @param filePath
-	 *            The file to consider.
-	 * 
-	 * @return Returns <TT>true</TT> if the file exists and is accessible,
-	 *         otherwise <TT>false</TT>.
-	 */
 	public static boolean fileExists(String filePath)
 	{
-		return FileUtil.fileExists(filePath, 0, 0);
+		int nuOfTrials = FileUtilFunctions.fileExists(filePath, 0, 0);
+
+		if (nuOfTrials <= 0)
+		{
+			return false;
+		}
+		else
+		{
+			return true;
+		}
 	}
 
 	/**
@@ -217,13 +228,18 @@ public class FileUtil
 	 *            The idle time between trials, if the function false the first
 	 *            time.
 	 * 
-	 * @return Returns <TT>true</TT> if the file exists and is accessible,
-	 *         otherwise <TT>false</TT>.
+	 * @return Returns the number of attempts (at least 1) if the file exists
+	 *         and is accessible, otherwise <TT>0</TT> if an error occurred, or
+	 *         a value lower than <TT>0</TT> as the number of attempts that
+	 *         failed.
 	 */
-	private static boolean fileExists(String filePath, int nuOfRetrials, int idleTimeBetweenRetrialsInMilliseconds)
+	private static int fileExists(String filePath, int nuOfRetrials, int idleTimeBetweenRetrialsInMilliseconds)
 	{
-		if (filePath == null) return false;
-		if (filePath.length() == 0) return false;
+		if (filePath == null) return 0;
+		if (filePath.length() == 0) return 0;
+
+		if (nuOfRetrials < 0) nuOfRetrials = 0;
+		if (nuOfRetrials > 60) nuOfRetrials = 60;
 
 		boolean isAccessable = true;
 
@@ -233,30 +249,32 @@ public class FileUtil
 			File file = new File(filePath);
 
 			// Check source file
-			if (file.isFile() == false) isAccessable = false;
-			
+			if (file.isFile() == false) return 0;
+
 			// Check file
 			if (file.exists() == false) isAccessable = false;
 			if (file.canRead() == false) isAccessable = false;
-			if (isAccessable == true) return true;
-			
+			if (isAccessable == true) return 1;
+
 			for (int i = 0; i < nuOfRetrials; i++)
 			{
-				FileUtil.sleepMilliseconds(idleTimeBetweenRetrialsInMilliseconds);
+				FileUtilFunctions.sleepMilliseconds(idleTimeBetweenRetrialsInMilliseconds);
+
+				file = new File(filePath);
 
 				isAccessable = true;
 				if (file.exists() == false) isAccessable = false;
 				if (file.canRead() == false) isAccessable = false;
-				if (isAccessable == true) break;
+				if (isAccessable == true) return i + 2;
 			}
-			
+
+			return -(nuOfRetrials + 1);
+
 		}
 		catch (Exception e)
 		{
-			isAccessable = false;
+			return 0;
 		}
-
-		return isAccessable;
 	}
 
 	/**
@@ -304,7 +322,7 @@ public class FileUtil
 	{
 		// Check parameters
 		if (filePath == null || filePath.length() == 0) return null;
-		if (FileUtil.fileExists(filePath) == false) return null;
+		if (FileUtilFunctions.fileExists(filePath) == false) return null;
 
 		// Compute hash value
 		String md5 = null;
@@ -347,7 +365,7 @@ public class FileUtil
 			public UtilFileFilter(File directory, String fileNameMask)
 			{
 				this.directory = directory;
-				this.fileNameMask = FileUtil.convertRegularWildcardsToRegexWildcards(fileNameMask);
+				this.fileNameMask = FileUtilFunctions.convertRegularWildcardsToRegexWildcards(fileNameMask);
 			}
 
 			public boolean accept(File currentDirectory, String currentFileName)
@@ -390,12 +408,138 @@ public class FileUtil
 		// Return
 		return fileList;
 	}
-	
+
+	/**
+	 * Search for files that are older than a specific number of days.
+	 * 
+	 * @param directoryPath
+	 *            The path of the files to be searched for.
+	 * 
+	 * @param fileFilterMask
+	 *            The file name mask to be searched for, including wildcards (*,
+	 *            ?).
+	 * 
+	 * @param daysToKeep
+	 *            All files that are older than this number of days (resp. 24
+	 *            hours, from <TT>now</TT>) are collected into the result file
+	 *            list. Please set at least <TT>1</TT> day to keep. If the
+	 *            parameter is set lower than 1 it is set to one day
+	 *            automatically.
+	 * 
+	 * @return Returns a list of files that are older than <TT>x</TT> days, or
+	 *         <TT>null</TT>, if an error occurred.
+	 */
+	public static List<String> fileSearchDirectoryOnExpiredFiles(String directoryPath, String fileFilterMask, int daysToKeep)
+	{
+		class UtilFileFilter implements FilenameFilter
+		{
+			File directory;
+			String fileNameMask;
+			int daysToKeep;
+
+			final long MINUTES_MILLIS = 1000 * 60;
+			final long MINUTES_PER_DAY = 1440;
+
+			public UtilFileFilter(File directory, String fileNameMask,
+					int daysToKeep)
+			{
+				this.directory = directory;
+				this.fileNameMask = FileUtilFunctions.convertRegularWildcardsToRegexWildcards(fileNameMask);
+				this.daysToKeep = daysToKeep;
+			}
+
+			public boolean accept(File currentDirectory, String currentFileName)
+			{
+				if (directory == null) return false;
+				if (fileNameMask == null) return false;
+
+				// Check directory
+				if (!currentDirectory.equals(this.directory)) return false;
+
+				// Check file name mask
+				if (!currentFileName.matches(fileNameMask)) return false;
+
+				// Check number of days
+				try
+				{
+					File file = new File(currentDirectory + "/" + currentFileName);
+
+					Date date1 = new Date();
+					Date date2 = new Date(file.lastModified());
+
+					long minutes1 = date1.getTime() / MINUTES_MILLIS;
+					long minutes2 = date2.getTime() / MINUTES_MILLIS;
+					if (Math.abs((minutes1 - minutes2)) <= (this.daysToKeep * MINUTES_PER_DAY)) return false;
+				}
+				catch (Exception e)
+				{
+					return false;
+				}
+
+				// Return
+				return true;
+			}
+		}
+
+		// Check parameters
+		if (directoryPath == null || directoryPath.length() == 0) return null;
+		if (fileFilterMask == null || fileFilterMask.length() == 0) return null;
+
+		if (daysToKeep < 1) daysToKeep = 1;
+
+		// Initialize variables
+		List<String> fileList = new ArrayList<String>();
+
+		// Search for files that matches
+		try
+		{
+			File directory = new File(directoryPath);
+			if (directory.isDirectory() == false) return null;
+
+			File[] files = directory.listFiles(new UtilFileFilter(directory, fileFilterMask, daysToKeep));
+
+			for (File file : files)
+			{
+				if (file.isFile()) fileList.add(file.getAbsolutePath());
+			}
+		}
+		catch (Exception e)
+		{
+			return null;
+		}
+
+		// Return
+		return fileList;
+	}
+
 	/**
 	 * Copy a file.
 	 * <p>
-	 * In contrast to the similar method <TT>fileCopy()</TT> the
-	 * function is executed a bunch of times, if it fails the first time. This
+	 * In contrast to the similar method <TT>fileCopy()</TT> the function is
+	 * executed a bunch of times, if it fails the first time. This can happen if
+	 * the file is touched by another process for a while, e. g. because it is
+	 * just copied.
+	 * 
+	 * @param sourceFilePath
+	 *            The path of the file to be copied.
+	 * 
+	 * @param destinationFilePath
+	 *            The path of the destination file.
+	 * 
+	 * @return Returns the number of attempts (at least 1) if the file could be
+	 *         copied, otherwise <TT>0</TT> if an error occurred, or a value
+	 *         lower than <TT>0</TT> as the number of attempts that failed.
+	 */
+	public static int fileCopyRetry(String sourceFilePath, String destinationFilePath)
+	{
+		return FileUtilFunctions.fileCopy(sourceFilePath, destinationFilePath, FileUtilFunctions.defaultNuOfRetrials, FileUtilFunctions.defaultIdleTimeBetweenRetrialsInMilliseconds);
+	}
+
+	/**
+	 * Copy a file.
+	 * <p>
+	 * Please use the similar method <TT>fileCopyRetry()</TT> when you want to
+	 * executed the function a bunch of times, if it fails the first time. This
 	 * can happen if the file is touched by another process for a while, e. g.
 	 * because it is just copied.
 	 * 
@@ -408,31 +552,18 @@ public class FileUtil
 	 * @return Returns <TT>true</TT> if the file could be copied, otherwise
 	 *         <TT>false</TT>.
 	 */
-	public static boolean fileCopyRetry(String sourceFilePath, String destinationFilePath)
-	{
-		return FileUtil.fileCopy(sourceFilePath, destinationFilePath, FileUtil.defaultNuOfRetrials, FileUtil.defaultIdleTimeBetweenRetrialsInMilliseconds);
-	}
-	
-	/**
-	 * Copy a file.
-	 * <p>
-	 * Please use the similar method <TT>fileCopyRetry()</TT> when
-	 * you want to executed the function a bunch of times, if it fails the first
-	 * time. This can happen if the file is touched by another process for a
-	 * while, e. g. because it is just copied.
-	 * 
-	 * @param sourceFilePath
-	 *            The path of the file to be copied.
-	 * 
-	 * @param destinationFilePath
-	 *            The path of the destination file.
-	 * 
-	 * @return Returns <TT>true</TT> if the file could be copied, otherwise
-	 *         <TT>false</TT>.
-	 */
 	public static boolean fileCopy(String sourceFilePath, String destinationFilePath)
 	{
-		return FileUtil.fileCopy(sourceFilePath, destinationFilePath, 0, 0);
+		int nuOfTrials = FileUtilFunctions.fileCopy(sourceFilePath, destinationFilePath, 0, 0);
+
+		if (nuOfTrials <= 0)
+		{
+			return false;
+		}
+		else
+		{
+			return true;
+		}
 	}
 
 	/**
@@ -452,15 +583,18 @@ public class FileUtil
 	 *            The idle time between trials, if the function false the first
 	 *            time.
 	 * 
-	 * @return Returns <TT>true</TT> if the file could be copied, otherwise
-	 *         <TT>false</TT>.
+	 * @return Returns the number of attempts (at least 1) if the file could be
+	 *         copied, otherwise <TT>0</TT> if an error occurred, or a value
+	 *         lower than <TT>0</TT> as the number of attempts that failed.
 	 */
-	private static boolean fileCopy(String sourceFilePath, String destinationFilePath, int nuOfRetrials, int idleTimeBetweenRetrialsInMilliseconds)
+	private static int fileCopy(String sourceFilePath, String destinationFilePath, int nuOfRetrials, int idleTimeBetweenRetrialsInMilliseconds)
 	{
 		// Check parameters
-		if (sourceFilePath == null || sourceFilePath.length() == 0) return false;
-		if (destinationFilePath == null || destinationFilePath.length() == 0) return false;
-		if (FileUtil.fileExists(sourceFilePath) == false) return false;
+		if (sourceFilePath == null || sourceFilePath.length() == 0) return 0;
+		if (destinationFilePath == null || destinationFilePath.length() == 0) return 0;
+
+		if (nuOfRetrials < 0) nuOfRetrials = 0;
+		if (nuOfRetrials > 60) nuOfRetrials = 60;
 
 		// Copy file
 		boolean isSuccessful = false;
@@ -472,25 +606,28 @@ public class FileUtil
 			File destinationFile = new File(destinationFilePath);
 
 			// Check source file
-			if (sourceFile.isFile() == false) return false;
+			if (sourceFile.isFile() == false) return 0;
 
 			// Copy file
-			isSuccessful = FileUtil.fileCopyExecute(sourceFile, destinationFile);
-			if (isSuccessful == true) return true;
+			isSuccessful = FileUtilFunctions.fileCopyExecute(sourceFile, destinationFile);
+			if (isSuccessful == true) return 1;
 
 			for (int i = 0; i < nuOfRetrials; i++)
 			{
-				FileUtil.sleepMilliseconds(idleTimeBetweenRetrialsInMilliseconds);
+				FileUtilFunctions.sleepMilliseconds(idleTimeBetweenRetrialsInMilliseconds);
 
-				isSuccessful = FileUtil.fileCopyExecute(sourceFile, destinationFile);
-				if (isSuccessful == true) break;
+				sourceFile = new File(sourceFilePath);
+				destinationFile = new File(destinationFilePath);
+
+				isSuccessful = FileUtilFunctions.fileCopyExecute(sourceFile, destinationFile);
+				if (isSuccessful == true) return i + 2;
 			}
 
-			return true;
+			return -(nuOfRetrials + 1);
 		}
 		catch (Exception e)
 		{
-			return false;
+			return 0;
 		}
 	}
 
@@ -511,8 +648,7 @@ public class FileUtil
 		// Copy file
 		try
 		{
-			FileUtils.copyFile(sourceFile, destinationFile);
-			FileUtils.touch(destinationFile);
+			FileUtils.copyFile(sourceFile, destinationFile, false);
 			return true;
 		}
 		catch (Exception e)
@@ -538,8 +674,8 @@ public class FileUtil
 		// Check parameters
 		if (sourceFilePath == null || sourceFilePath.length() == 0) return false;
 		if (destinationFilePath == null || destinationFilePath.length() == 0) return false;
-		if (FileUtil.fileExists(sourceFilePath) == false) return false;
-		if (FileUtil.fileExists(destinationFilePath) == true) return false;
+		if (FileUtilFunctions.fileExists(sourceFilePath) == false) return false;
+		if (FileUtilFunctions.fileExists(destinationFilePath) == true) return false;
 
 		// Create FILE objects
 		File sourceFile = new File(sourceFilePath);
@@ -570,7 +706,7 @@ public class FileUtil
 	{
 		// Check parameters
 		if (filePath == null || filePath.length() == 0) return false;
-		if (FileUtil.fileExists(filePath) == false) return false;
+		if (FileUtilFunctions.fileExists(filePath) == false) return false;
 
 		// Create FILE objects
 		File file = new File(filePath);
@@ -612,7 +748,7 @@ public class FileUtil
 				File file = new File(filePath);
 
 				if (file.isFile() == false) continue;
-				if (FileUtil.fileExists(filePath) == false) continue;
+				if (FileUtilFunctions.fileExists(filePath) == false) continue;
 
 				try
 				{
@@ -726,7 +862,7 @@ public class FileUtil
 	{
 		// Check parameters
 		if (filePath == null || filePath.length() == 0) return null;
-		if (FileUtil.fileExists(filePath) == false) return null;
+		if (FileUtilFunctions.fileExists(filePath) == false) return null;
 
 		// Create FILE objects
 		File file = new File(filePath);
@@ -755,7 +891,7 @@ public class FileUtil
 	{
 		// Check parameters
 		if (filePath == null || filePath.length() == 0) return null;
-		if (FileUtil.fileExists(filePath) == false) return null;
+		if (FileUtilFunctions.fileExists(filePath) == false) return null;
 
 		// Create FILE objects
 		File file = new File(filePath);
@@ -794,11 +930,11 @@ public class FileUtil
 		{
 			for (String filePath1 : files)
 			{
-				if (FileUtil.fileExists(filePath1) == false) continue;
+				if (FileUtilFunctions.fileExists(filePath1) == false) continue;
 
 				for (String filePath2 : files)
 				{
-					if (FileUtil.fileExists(filePath2) == false) continue;
+					if (FileUtilFunctions.fileExists(filePath2) == false) continue;
 					if (filePath1.equals(filePath2)) continue;
 
 					File file1 = new File(filePath1);
@@ -829,14 +965,14 @@ public class FileUtil
 				{
 					if (firstFileMark == false)
 					{
-						if (FileUtil.fileExists(filePath) == true)
+						if (FileUtilFunctions.fileExists(filePath) == true)
 						{
 							firstFileMark = true;
 						}
 					}
 					else
 					{
-						if (FileUtil.fileExists(filePath) == true)
+						if (FileUtilFunctions.fileExists(filePath) == true)
 						{
 							File file = new File(filePath);
 							file.delete();
@@ -870,12 +1006,14 @@ public class FileUtil
 	 * @param modifiedDate
 	 *            The modified date to set.
 	 * 
-	 * @return Returns <TT>true</TT> if the modified date could be changed,
-	 *         otherwise <TT>false</TT>.
+	 * @return Returns the number of attempts (at least 1) if the modified date
+	 *         could be changed, otherwise <TT>0</TT> if an error occurred, or a
+	 *         value lower than <TT>0</TT> as the number of attempts that
+	 *         failed.
 	 */
-	public static boolean fileSetLastModifiedRetry(String filePath, Date modifiedDate)
+	public static int fileSetLastModifiedRetry(String filePath, Date modifiedDate)
 	{
-		return FileUtil.fileSetLastModified(filePath, modifiedDate, FileUtil.defaultNuOfRetrials, FileUtil.defaultIdleTimeBetweenRetrialsInMilliseconds);
+		return FileUtilFunctions.fileSetLastModified(filePath, modifiedDate, FileUtilFunctions.defaultNuOfRetrials, FileUtilFunctions.defaultIdleTimeBetweenRetrialsInMilliseconds);
 	}
 
 	/**
@@ -897,7 +1035,16 @@ public class FileUtil
 	 */
 	public static boolean fileSetLastModified(String filePath, Date modifiedDate)
 	{
-		return FileUtil.fileSetLastModified(filePath, modifiedDate, 0, 0);
+		int nuOfTrials = FileUtilFunctions.fileSetLastModified(filePath, modifiedDate, 0, 0);
+
+		if (nuOfTrials <= 0)
+		{
+			return false;
+		}
+		else
+		{
+			return true;
+		}
 	}
 
 	/**
@@ -917,48 +1064,50 @@ public class FileUtil
 	 *            The idle time between trials, if the function false the first
 	 *            time.
 	 * 
-	 * @return Returns <TT>true</TT> if the modified date could be changed,
-	 *         otherwise <TT>false</TT>.
+	 * @return Returns the number of attempts (at least 1) if the modified date
+	 *         could be changed, otherwise <TT>0</TT> if an error occurred, or a
+	 *         value lower than <TT>0</TT> as the number of attempts that
+	 *         failed.
 	 */
-	private static boolean fileSetLastModified(String filePath, Date modifiedDate, int nuOfRetrials, int idleTimeBetweenRetrialsInMilliseconds)
+	private static int fileSetLastModified(String filePath, Date modifiedDate, int nuOfRetrials, int idleTimeBetweenRetrialsInMilliseconds)
 	{
 		// Check parameters
-		if (filePath == null || filePath.length() == 0) return false;
-		if (FileUtil.fileExists(filePath) == false) return false;
-		if (modifiedDate == null) return false;
+		if (filePath == null || filePath.length() == 0) return 0;
+		if (FileUtilFunctions.fileExists(filePath) == false) return 0;
+		if (modifiedDate == null) return 0;
 
 		if (nuOfRetrials < 0) nuOfRetrials = 0;
-		if (nuOfRetrials > 10) nuOfRetrials = 10;
+		if (nuOfRetrials > 60) nuOfRetrials = 60;
 
 		if (idleTimeBetweenRetrialsInMilliseconds < 0) idleTimeBetweenRetrialsInMilliseconds = 0;
 		if (idleTimeBetweenRetrialsInMilliseconds > 1000) idleTimeBetweenRetrialsInMilliseconds = 1000;
-
-		// Create FILE objects
-		File file = new File(filePath);
 
 		// Set the modified date
 		boolean isSuccessful = false;
 
 		try
 		{
+			File file = new File(filePath);
+
 			isSuccessful = file.setLastModified(modifiedDate.getTime());
-			if (isSuccessful == true) return true;
+			if (isSuccessful == true) return 1;
 
 			for (int i = 0; i < nuOfRetrials; i++)
 			{
-				FileUtil.sleepMilliseconds(idleTimeBetweenRetrialsInMilliseconds);
+				FileUtilFunctions.sleepMilliseconds(idleTimeBetweenRetrialsInMilliseconds);
+
+				file = new File(filePath);
 
 				isSuccessful = file.setLastModified(modifiedDate.getTime());
-				if (isSuccessful == true) break;
+				if (isSuccessful == true) return i + 2;
 			}
+
+			return -(nuOfRetrials + 1);
 		}
 		catch (Exception e)
 		{
-			return false;
+			return 0;
 		}
-
-		// Return
-		return isSuccessful;
 	}
 
 	/**
@@ -975,7 +1124,7 @@ public class FileUtil
 	{
 		// Check parameters
 		if (filePath == null || filePath.length() == 0) return false;
-		if (FileUtil.fileExists(filePath) == false) return false;
+		if (FileUtilFunctions.fileExists(filePath) == false) return false;
 
 		// Create FILE objects
 		File file = new File(filePath);
@@ -1004,7 +1153,7 @@ public class FileUtil
 	{
 		// Check parameters
 		if (filePath == null || filePath.length() == 0) return 0L;
-		if (FileUtil.fileExists(filePath) == false) return 0L;
+		if (FileUtilFunctions.fileExists(filePath) == false) return 0L;
 
 		// Create FILE objects
 		File file = new File(filePath);
@@ -1038,7 +1187,7 @@ public class FileUtil
 	public static String fileSearchDirectoryOnMostRecentFile(String filePath, String fileFilterMask)
 	{
 		// Get list of files that matches the file filter mask
-		List<String> filePathList = FileUtil.fileSearchDirectoryForFiles(filePath, fileFilterMask);
+		List<String> filePathList = FileUtilFunctions.fileSearchDirectoryForFiles(filePath, fileFilterMask);
 		if (filePathList == null) return null;
 		if (filePathList.size() == 0) return null;
 
@@ -1090,12 +1239,12 @@ public class FileUtil
 	public static List<String> fileSearchDirectoryOnObsoleteFiles(String filePath, String fileFilterMask)
 	{
 		// Get list of files that matches the file filter mask
-		List<String> filePathList = FileUtil.fileSearchDirectoryForFiles(filePath, fileFilterMask);
+		List<String> filePathList = FileUtilFunctions.fileSearchDirectoryForFiles(filePath, fileFilterMask);
 		if (filePathList == null) return null;
 		if (filePathList.size() == 0) return null;
 
 		// Get the most recent file that matches the file filter mask
-		String mostRecentFilePath = FileUtil.fileSearchDirectoryOnMostRecentFile(filePath, fileFilterMask);
+		String mostRecentFilePath = FileUtilFunctions.fileSearchDirectoryOnMostRecentFile(filePath, fileFilterMask);
 		if (mostRecentFilePath == null) return null;
 		if (mostRecentFilePath.length() == 0) return null;
 
@@ -1126,7 +1275,7 @@ public class FileUtil
 	{
 		// Check parameters
 		if (directoryPath == null || directoryPath.length() == 0) return false;
-		if (FileUtil.fileDirectoryExists(directoryPath) == false) return false;
+		if (FileUtilFunctions.fileDirectoryExists(directoryPath) == false) return false;
 
 		// Create FILE objects
 		File directory = new File(directoryPath);
@@ -1135,11 +1284,11 @@ public class FileUtil
 		// Search for files in the directory and delete them
 		try
 		{
-			List<String> filesToDelete = FileUtil.fileSearchDirectoryForFiles(directoryPath, "*");
+			List<String> filesToDelete = FileUtilFunctions.fileSearchDirectoryForFiles(directoryPath, "*");
 			if (filesToDelete == null) return false;
 			if (filesToDelete.size() == 0) return true;
 
-			if (FileUtil.fileDelete(filesToDelete) > 0)
+			if (FileUtilFunctions.fileDelete(filesToDelete) > 0)
 			{
 				return true;
 			}

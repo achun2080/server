@@ -4,7 +4,7 @@ import fmagic.basic.Context;
 
 abstract public class ServerTestContainer implements Runnable
 {
-	private final Context context;
+	private Context context;
 	private final boolean concurrentAccess;
 
 	/**
@@ -14,6 +14,15 @@ abstract public class ServerTestContainer implements Runnable
 	{
 		this.context = context;
 		this.concurrentAccess = concurrentAccess;
+	}
+
+	/**
+	 * Constructor
+	 */
+	public ServerTestContainer()
+	{
+		this.context = null;
+		this.concurrentAccess = false;
 	}
 
 	/**
@@ -45,5 +54,13 @@ abstract public class ServerTestContainer implements Runnable
 	public Context getContext()
 	{
 		return context;
+	}
+
+	/**
+	 * Setter
+	 */
+	public void setContext(Context context)
+	{
+		this.context = context;
 	}
 }

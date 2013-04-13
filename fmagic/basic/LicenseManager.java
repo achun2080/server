@@ -161,7 +161,7 @@ public class LicenseManager implements ManagerInterface
 	 */
 	private String getLicenseFilePath(Context context)
 	{
-		return FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getLicenseSubPath());
+		return FileLocationFunctions.compileFilePath(FileLocationFunctions.getRootPath(), FileLocationFunctions.getLicenseSubPath());
 	}
 
 	/**
@@ -175,7 +175,7 @@ public class LicenseManager implements ManagerInterface
 	 */
 	private String getLicenseFileNameType(Context context)
 	{
-		return FileLocationManager.getLicenseFileNameType();
+		return FileLocationFunctions.getLicenseFileNameType();
 	}
 
 	/**
@@ -209,7 +209,7 @@ public class LicenseManager implements ManagerInterface
 			licenseFilePath = this.getLicenseFilePath(context);
 		}
 
-		if (FileUtil.fileDirectoryExists(licenseFilePath) == false)
+		if (FileUtilFunctions.fileDirectoryExists(licenseFilePath) == false)
 		{
 			String additionalText = "--> Error on parsing license file path";
 			additionalText += "\n--> License file path doesn't exist: '" + licenseFilePath + "'";
@@ -219,7 +219,7 @@ public class LicenseManager implements ManagerInterface
 
 		String licenseFileNameTypeMask = "*." + this.getLicenseFileNameType(context);
 
-		List<String> fileList = FileUtil.fileSearchDirectoryForFiles(licenseFilePath, licenseFileNameTypeMask);
+		List<String> fileList = FileUtilFunctions.fileSearchDirectoryForFiles(licenseFilePath, licenseFileNameTypeMask);
 
 		if (fileList == null)
 		{
@@ -1001,7 +1001,7 @@ public class LicenseManager implements ManagerInterface
 	 */
 	private String getLicenseTemplateFilePath(Context context)
 	{
-		return FileLocationManager.compileFilePath(FileLocationManager.getRootPath(), FileLocationManager.getLicenseTemplateSubPath());
+		return FileLocationFunctions.compileFilePath(FileLocationFunctions.getRootPath(), FileLocationFunctions.getLicenseTemplateSubPath());
 	}
 
 	/**
@@ -1023,8 +1023,8 @@ public class LicenseManager implements ManagerInterface
 	{
 		try
 		{
-			String fileName = FileLocationManager.getLicenseTemplateFileName();
-			fileName = FileLocationManager.replacePlaceholder(context, fileName, application, null);
+			String fileName = FileLocationFunctions.getLicenseTemplateFileName();
+			fileName = FileLocationFunctions.replacePlaceholder(context, fileName, application, null);
 			fileName = fileName.replace("${licensemodel}", licenseModel.toLowerCase());
 			return fileName;
 		}
@@ -1143,7 +1143,7 @@ public class LicenseManager implements ManagerInterface
 			if (licenseModelName == null || licenseModelName.length() == 0) return false;
 
 			// Compose file name
-			fileName = FileLocationManager.compileFilePath(this.getLicenseTemplateFilePath(context), this.getLicenseTemplateFileName(context, application, licenseModelName));
+			fileName = FileLocationFunctions.compileFilePath(this.getLicenseTemplateFilePath(context), this.getLicenseTemplateFileName(context, application, licenseModelName));
 
 			// Open file
 			output = new PrintWriter(new FileOutputStream(new File(fileName), false));
@@ -1154,7 +1154,7 @@ public class LicenseManager implements ManagerInterface
 
 			if (commonAttributes != null && commonAttributes.length() > 0)
 			{
-				output.append(FileUtil.normalizeNewLine(commonAttributes));
+				output.append(FileUtilFunctions.normalizeNewLine(commonAttributes));
 			}
 
 			// Get a list of all license items of the license model and go
@@ -1214,7 +1214,7 @@ public class LicenseManager implements ManagerInterface
 						licenseTemplateText += "\n";
 
 						// Print out to file
-						output.append(FileUtil.normalizeNewLine(licenseTemplateText));
+						output.append(FileUtilFunctions.normalizeNewLine(licenseTemplateText));
 					}
 				}
 			}

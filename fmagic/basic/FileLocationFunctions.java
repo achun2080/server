@@ -4,7 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-public class FileLocationManager
+public class FileLocationFunctions
 {
 	// Root path set for testing purposes only.
 	private static String rootPath = "E:/Gewerbe/Fmagic/Workspaces/fmagic/AppsServer/src";
@@ -110,7 +110,7 @@ public class FileLocationManager
 		{
 			for (int i = 0; i < valueParameterList.length; i++)
 			{
-				if (resultString.length() > 0) resultString += FileLocationManager.getPathElementDelimiterString();
+				if (resultString.length() > 0) resultString += FileLocationFunctions.getPathElementDelimiterString();
 				 resultString += valueParameterList[i];
 			}
 		}
@@ -130,7 +130,7 @@ public class FileLocationManager
 	 */
 	private static synchronized long getFileLocationCounter()
 	{
-		return ++(FileLocationManager.fileLocationCounter);
+		return ++(FileLocationFunctions.fileLocationCounter);
 	}
 
 	/**
@@ -174,7 +174,7 @@ public class FileLocationManager
 			Date messageDate = new Date();
 			simpleDateFormat = new SimpleDateFormat("yyyyMMdd-HHmmss-SSS", Locale.getDefault());
 			timestampString = simpleDateFormat.format(messageDate);
-			timestampString = timestampString + "-" + String.valueOf(FileLocationManager.getFileLocationCounter());
+			timestampString = timestampString + "-" + String.valueOf(FileLocationFunctions.getFileLocationCounter());
 
 			// Replace place holder in file name
 			resultString = resultString.replace("${codename}", context.getCodeName().toLowerCase());

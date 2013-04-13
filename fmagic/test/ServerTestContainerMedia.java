@@ -4,8 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import fmagic.basic.Context;
-import fmagic.basic.FileLocationManager;
-import fmagic.basic.FileUtil;
+import fmagic.basic.FileUtilFunctions;
 import fmagic.basic.MediaContainer;
 import fmagic.basic.ResourceContainer;
 import fmagic.basic.ResourceContainerMedia;
@@ -17,7 +16,7 @@ public class ServerTestContainerMedia extends ServerTestContainer
 	private String parameterResourceName = "Room";
 	private String parameterDataIdentifierTestUpload = "1234";
 	private String parameterDataIdentifierTestObsolete = "1235";
-	private int parameterTestCycleNumber = 1;
+	private int parameterTestCycleNumberOfFiles = 100;
 	private int parameterTestCycleDataIdentifierFrom = 1;
 	private int parameterTestCycleDataIdentifierToo = 10;
 
@@ -27,6 +26,14 @@ public class ServerTestContainerMedia extends ServerTestContainer
 	public ServerTestContainerMedia(Context context, boolean concurrentAccess)
 	{
 		super(context, concurrentAccess);
+	}
+
+	/**
+	 * Constructor
+	 */
+	public ServerTestContainerMedia()
+	{
+		super();
 	}
 
 	@Override
@@ -109,6 +116,7 @@ public class ServerTestContainerMedia extends ServerTestContainer
 			this.testMediaResource();
 			this.testUploadFile();
 			this.testObsoleteFile();
+			this.testExpiredPendingFiles();
 			this.testUploadCycleFiles();
 
 			// Cleanup
@@ -249,15 +257,26 @@ public class ServerTestContainerMedia extends ServerTestContainer
 			this.doRemoveAllFilesInPendingDirectory(this.parameterResourceGroup, this.parameterResourceName);
 		}
 
+		// Get file directory
+		ResourceContainer configuration = ResourceManager.configuration(this.getContext(), "MediaTest", "DirectoryToSearchForMediaFiles");
+		String uploadFilePath = this.getContext().getConfigurationManager().getProperty(this.getContext(), configuration, null, true);
+
+		String additionalText = "--> Tried to read the directory for the media files to process during test";
+		additionalText += "\n--> Please set the test configuration parameter '" + configuration.getRecourceIdentifier() + "' for the application '" + this.getContext().getCodeName() + "'";
+		TestManager.assertNotNull(this.getContext(), additionalText, uploadFilePath);
+
 		// Get file List
-		String uploadFilePath = FileLocationManager.compileFilePath(TestManager.getTestStuffFilePath(this.getContext()), "Images");
-		List<String> fileNameList = FileUtil.fileSearchDirectoryForFiles(uploadFilePath, "*.jpg");
+		List<String> fileList = FileUtilFunctions.fileSearchDirectoryForFiles(uploadFilePath, "*.jpg");
+
+		additionalText = "--> Tried to read media files in directory '" + uploadFilePath + "'";
+		TestManager.assertNotNull(this.getContext(), additionalText, fileList);
+		if (fileList != null) TestManager.assertGreaterThan(this.getContext(), additionalText, fileList.size(), 0);
 
 		// Try some uploads
 		for (int i = 0; i < 20; i++)
 		{
 			int index = (int) (Math.random() * 16);
-			this.doUploadFile(this.parameterResourceGroup, this.parameterResourceName, this.parameterDataIdentifierTestUpload, fileNameList.get(index));
+			this.doUploadFile(this.parameterResourceGroup, this.parameterResourceName, this.parameterDataIdentifierTestUpload, fileList.get(index));
 		}
 
 		// Check pending directory
@@ -287,8 +306,20 @@ public class ServerTestContainerMedia extends ServerTestContainer
 			String mediaFileNameMask = mediaResource.getMediaFileNameMask(this.getContext(), this.parameterDataIdentifierTestObsolete);
 			String mediaFilePath = mediaResource.getMediaRegularFilePath(this.getContext());
 
-			String uploadFilePath = FileLocationManager.compileFilePath(TestManager.getTestStuffFilePath(this.getContext()), "Images");
-			List<String> fileNameList = FileUtil.fileSearchDirectoryForFiles(uploadFilePath, "*.jpg");
+			// Get file directory
+			ResourceContainer configuration = ResourceManager.configuration(this.getContext(), "MediaTest", "DirectoryToSearchForMediaFiles");
+			String uploadFilePath = this.getContext().getConfigurationManager().getProperty(this.getContext(), configuration, null, true);
+
+			String additionalText = "--> Tried to read the directory for the media files to process during test";
+			additionalText += "\n--> Please set the test configuration parameter '" + configuration.getRecourceIdentifier() + "' for the application '" + this.getContext().getCodeName() + "'";
+			TestManager.assertNotNull(this.getContext(), additionalText, uploadFilePath);
+
+			// Get file List
+			List<String> fileList = FileUtilFunctions.fileSearchDirectoryForFiles(uploadFilePath, "*.jpg");
+
+			additionalText = "--> Tried to read media files in directory '" + uploadFilePath + "'";
+			TestManager.assertNotNull(this.getContext(), additionalText, fileList);
+			if (fileList != null) TestManager.assertGreaterThan(this.getContext(), additionalText, fileList.size(), 0);
 
 			// Override media files and count number of obsolete files
 			int nuOfObsoleteFiles = -1;
@@ -296,10 +327,10 @@ public class ServerTestContainerMedia extends ServerTestContainer
 			for (int i = 0; i < 10; i++)
 			{
 				// Override (upload) media file
-				this.doUploadFile(this.parameterResourceGroup, this.parameterResourceName, this.parameterDataIdentifierTestObsolete, fileNameList.get(i));
+				this.doUploadFile(this.parameterResourceGroup, this.parameterResourceName, this.parameterDataIdentifierTestObsolete, fileList.get(i));
 
 				// Get list of obsolete files
-				List<String> obsoleteFiles = FileUtil.fileSearchDirectoryOnObsoleteFiles(mediaFilePath, mediaFileNameMask);
+				List<String> obsoleteFiles = FileUtilFunctions.fileSearchDirectoryOnObsoleteFiles(mediaFilePath, mediaFileNameMask);
 				TestManager.assertNotNull(this.getContext(), null, obsoleteFiles);
 				TestManager.assertEquals(this.getContext(), null, obsoleteFiles.size(), nuOfObsoleteFiles + i + 1);
 
@@ -318,6 +349,24 @@ public class ServerTestContainerMedia extends ServerTestContainer
 	}
 
 	/**
+	 * Test: Expired pending files
+	 */
+	public void testExpiredPendingFiles()
+	{
+		TestManager.servicePrintHeader(this.getContext(), "===> testExpiredPendingFiles()", null);
+
+		if (this.isConcurrentAccess()) return;
+
+		try
+		{
+		}
+		catch (Exception e)
+		{
+			TestManager.servicePrintException(this.getContext(), "Unexpected Exception", e);
+		}
+	}
+
+	/**
 	 * Test: Stress Test Upload Files
 	 */
 	public void testUploadCycleFiles()
@@ -326,32 +375,44 @@ public class ServerTestContainerMedia extends ServerTestContainer
 
 		try
 		{
-			String uploadFilePath = FileLocationManager.compileFilePath(TestManager.getTestStuffFilePath(this.getContext()), "Images");
-			List<String> directoryList = new ArrayList<String>();
-			directoryList.add(uploadFilePath);
+			// Get file directory
+			ResourceContainer configuration = ResourceManager.configuration(this.getContext(), "MediaTest", "DirectoryToSearchForMediaFiles");
+			String uploadFilePath = this.getContext().getConfigurationManager().getProperty(this.getContext(), configuration, null, true);
 
+			String additionalText = "--> Tried to read the directory for the media files to process during test";
+			additionalText += "\n--> Please set the test configuration parameter '" + configuration.getRecourceIdentifier() + "' for the application '" + this.getContext().getCodeName() + "'";
+			TestManager.assertNotNull(this.getContext(), additionalText, uploadFilePath);
+
+			// Get file List
+			List<String> fileList = FileUtilFunctions.fileSearchDirectoryForFiles(uploadFilePath, "*.jpg");
+
+			additionalText = "--> Tried to read media files in directory '" + uploadFilePath + "'";
+			TestManager.assertNotNull(this.getContext(), additionalText, fileList);
+			if (fileList != null) TestManager.assertGreaterThan(this.getContext(), additionalText, fileList.size(), 0);
+
+			// Get parameter
 			int dataIdentifierInteger = this.parameterTestCycleDataIdentifierFrom;
+			TestManager.assertGreaterThan(this.getContext(), null, dataIdentifierInteger, 0);
 
-			for (int testCounter = 1; testCounter <= this.parameterTestCycleNumber; testCounter++)
+			int nuOfFilesToTest = this.parameterTestCycleNumberOfFiles;
+			TestManager.assertGreaterThan(this.getContext(), null, nuOfFilesToTest, 0);
+			TestManager.servicePrintSubLine(this.getContext(), "Files to process: '" + String.valueOf(nuOfFilesToTest) + "'");
+
+			// Initialize
+			int fileListCounter = 0;
+
+			// Test cycle
+			for (int fileTestCounter = 1; fileTestCounter <= nuOfFilesToTest; fileTestCounter++)
 			{
-				String cycleText = "Test cycle " + String.valueOf(testCounter) + " of " + String.valueOf(this.parameterTestCycleNumber);
-				TestManager.servicePrintSubLine(this.getContext(), cycleText);
+				// Get next file path from list
+				String filePath = fileList.get(fileListCounter++);
+				if (fileListCounter >= fileList.size()) fileListCounter = 0;
+				TestManager.assertNotNull(this.getContext(), null, filePath);
 
-				for (String filePath : directoryList)
-				{
-					List<String> fileList = FileUtil.fileSearchDirectoryForFiles(filePath, "*.jpg");
-
-					if (fileList != null)
-					{
-						for (String fileName : fileList)
-						{
-							// Upload file
-							if (dataIdentifierInteger > this.parameterTestCycleDataIdentifierToo) dataIdentifierInteger = this.parameterTestCycleDataIdentifierFrom;
-							this.doUploadFile(this.parameterResourceGroup, this.parameterResourceName, String.valueOf(dataIdentifierInteger), fileName);
-							dataIdentifierInteger++;
-						}
-					}
-				}
+				// Upload file
+				if (dataIdentifierInteger > this.parameterTestCycleDataIdentifierToo) dataIdentifierInteger = this.parameterTestCycleDataIdentifierFrom;
+				this.doUploadFile(this.parameterResourceGroup, this.parameterResourceName, String.valueOf(dataIdentifierInteger), filePath);
+				dataIdentifierInteger++;
 			}
 
 			// Check pending directory
@@ -433,11 +494,11 @@ public class ServerTestContainerMedia extends ServerTestContainer
 			ResourceContainerMedia mediaResource = ResourceManager.media(this.getContext(), group, name);
 			String mediaFileNameMask = mediaResource.getMediaFileNameMask(this.getContext(), dataIdentifierString);
 			String mediaFilePath = mediaResource.getMediaRegularFilePath(this.getContext());
-			List<String> mediaFiles = FileUtil.fileSearchDirectoryForFiles(mediaFilePath, mediaFileNameMask);
+			List<String> mediaFiles = FileUtilFunctions.fileSearchDirectoryForFiles(mediaFilePath, mediaFileNameMask);
 
 			if (mediaFiles != null && mediaFiles.size() > 0)
 			{
-				int nuOfDeletedFiles = FileUtil.fileDelete(mediaFiles);
+				int nuOfDeletedFiles = FileUtilFunctions.fileDelete(mediaFiles);
 				TestManager.assertEquals(this.getContext(), null, mediaFiles.size(), nuOfDeletedFiles);
 			}
 		}
@@ -459,7 +520,7 @@ public class ServerTestContainerMedia extends ServerTestContainer
 			String pendingDirectory = mediaResource.getMediaPendingFilePath(this.getContext());
 			TestManager.assertNotNull(this.getContext(), null, pendingDirectory);
 
-			boolean isSuccessful = FileUtil.fileCleanDirectory(pendingDirectory);
+			boolean isSuccessful = FileUtilFunctions.fileCleanDirectory(pendingDirectory);
 			TestManager.assertTrue(this.getContext(), "--> Error on cleaning 'pending' directory '" + pendingDirectory + "'", isSuccessful);
 		}
 		catch (Exception e)
@@ -480,7 +541,7 @@ public class ServerTestContainerMedia extends ServerTestContainer
 			String regularDirectory = mediaResource.getMediaRegularFilePath(this.getContext());
 			TestManager.assertNotNull(this.getContext(), null, regularDirectory);
 
-			boolean isSuccessful = FileUtil.fileCleanDirectory(regularDirectory);
+			boolean isSuccessful = FileUtilFunctions.fileCleanDirectory(regularDirectory);
 			TestManager.assertTrue(this.getContext(), "--> Error on cleaning 'regular' directory '" + regularDirectory + "'", isSuccessful);
 		}
 		catch (Exception e)
@@ -501,7 +562,7 @@ public class ServerTestContainerMedia extends ServerTestContainer
 			String deletedDirectory = mediaResource.getMediaDeletedFilePath(this.getContext());
 			TestManager.assertNotNull(this.getContext(), null, deletedDirectory);
 
-			boolean isSuccessful = FileUtil.fileCleanDirectory(deletedDirectory);
+			boolean isSuccessful = FileUtilFunctions.fileCleanDirectory(deletedDirectory);
 			TestManager.assertTrue(this.getContext(), "--> Error on cleaning 'deleted' directory '" + deletedDirectory + "'", isSuccessful);
 		}
 		catch (Exception e)
@@ -522,7 +583,7 @@ public class ServerTestContainerMedia extends ServerTestContainer
 			String pendingDirectory = mediaResource.getMediaPendingFilePath(this.getContext());
 			TestManager.assertNotNull(this.getContext(), null, pendingDirectory);
 
-			List<String> filelist = FileUtil.fileSearchDirectoryForFiles(pendingDirectory, "*");
+			List<String> filelist = FileUtilFunctions.fileSearchDirectoryForFiles(pendingDirectory, "*");
 			TestManager.assertNotNull(this.getContext(), null, filelist);
 			TestManager.assertEquals(this.getContext(), "--> Files found in 'pending' directory '" + pendingDirectory + "'", filelist.size(), 0);
 		}
@@ -567,9 +628,9 @@ public class ServerTestContainerMedia extends ServerTestContainer
 	/**
 	 * Setter
 	 */
-	public void setParameterTestCycleNumber(int parameterTestCycleNumber)
+	public void setParameterTestCycleNumberOfFiles(int parameterTestCycleNumberOfFiles)
 	{
-		this.parameterTestCycleNumber = parameterTestCycleNumber;
+		this.parameterTestCycleNumberOfFiles = parameterTestCycleNumberOfFiles;
 	}
 
 	/**

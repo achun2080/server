@@ -298,7 +298,7 @@ public class ResourceContainerMedia extends ResourceContainer
 				if (partsOfLogicalPath[i] == null || partsOfLogicalPath[i].length() == 0) continue;
 
 				if (normalizedPath.length() > 0) normalizedPath += "/";
-				normalizedPath += FileUtil.fitToFileNameCompatibility(partsOfLogicalPath[i]);
+				normalizedPath += FileUtilFunctions.fitToFileNameCompatibility(partsOfLogicalPath[i]);
 			}
 
 			return normalizedPath;
@@ -390,7 +390,7 @@ public class ResourceContainerMedia extends ResourceContainer
 	 */
 	public String getMediaRegularFilePath(Context context)
 	{
-		return FileLocationManager.compileFilePath(context.getMediaManager().mediaFileGetRootFilePath(context), FileUtil.fitToFileNameCompatibility(context.getApplicationName()), this.getLogicalPath(context));
+		return FileLocationFunctions.compileFilePath(context.getMediaManager().mediaFileGetRootFilePath(context), FileUtilFunctions.fitToFileNameCompatibility(context.getApplicationName()), this.getLogicalPath(context));
 	}
 
 	/**
@@ -415,7 +415,7 @@ public class ResourceContainerMedia extends ResourceContainer
 			normalizedIdentifier = "0".concat(normalizedIdentifier);
 		}
 
-		normalizedIdentifier = FileUtil.fitToFileNameCompatibility(normalizedIdentifier);
+		normalizedIdentifier = FileUtilFunctions.fitToFileNameCompatibility(normalizedIdentifier);
 
 		return normalizedIdentifier;
 	}
@@ -440,11 +440,11 @@ public class ResourceContainerMedia extends ResourceContainer
 	 */
 	public String getMediaFileNameMask(Context context, String dataIdentifier)
 	{
-		String mediaFileNameMask = FileLocationManager.getMediaFileName();
+		String mediaFileNameMask = FileLocationFunctions.getMediaFileName();
 
-		mediaFileNameMask = FileLocationManager.replacePlacholder(context, mediaFileNameMask);
+		mediaFileNameMask = FileLocationFunctions.replacePlacholder(context, mediaFileNameMask);
 
-		if (this.getAliasName() != null) mediaFileNameMask = mediaFileNameMask.replace("${alias}", FileUtil.fitToFileNameCompatibility(this.getAliasName()));
+		if (this.getAliasName() != null) mediaFileNameMask = mediaFileNameMask.replace("${alias}", FileUtilFunctions.fitToFileNameCompatibility(this.getAliasName()));
 		mediaFileNameMask = mediaFileNameMask.replace("${identifier}", this.fitIdentifierToFileName(dataIdentifier));
 		mediaFileNameMask = mediaFileNameMask.replace("${encodingkey}", "*");
 		mediaFileNameMask = mediaFileNameMask.replace("${hashvalue}", "*");
@@ -470,9 +470,9 @@ public class ResourceContainerMedia extends ResourceContainer
 	 */
 	public String getMediaPendingFileName(Context context, String fileType)
 	{
-		String mediaTempFileName = FileLocationManager.getMediaPendingFileName();
+		String mediaTempFileName = FileLocationFunctions.getMediaPendingFileName();
 
-		mediaTempFileName = FileLocationManager.replacePlacholder(context, mediaTempFileName);
+		mediaTempFileName = FileLocationFunctions.replacePlacholder(context, mediaTempFileName);
 
 		if (fileType != null) mediaTempFileName = mediaTempFileName.replace("${filetype}", fileType);
 
@@ -492,7 +492,7 @@ public class ResourceContainerMedia extends ResourceContainer
 	 */
 	public String getMediaPendingFilePath(Context context)
 	{
-		return FileLocationManager.compileFilePath(this.getMediaRegularFilePath(context), FileLocationManager.getMediaPendingSubPath());
+		return FileLocationFunctions.compileFilePath(this.getMediaRegularFilePath(context), FileLocationFunctions.getMediaPendingSubPath());
 	}
 
 	/**
@@ -508,7 +508,7 @@ public class ResourceContainerMedia extends ResourceContainer
 	 */
 	public String getMediaDeletedFilePath(Context context)
 	{
-		return FileLocationManager.compileFilePath(this.getMediaRegularFilePath(context), FileLocationManager.getMediaDeletedSubPath());
+		return FileLocationFunctions.compileFilePath(this.getMediaRegularFilePath(context), FileLocationFunctions.getMediaDeletedSubPath());
 	}
 
 	/**
@@ -532,7 +532,7 @@ public class ResourceContainerMedia extends ResourceContainer
 	{
 		String mediaFileNameMask = this.getMediaFileNameMask(context, dataIdentifier);
 		String mediaFilePath = this.getMediaRegularFilePath(context);
-		return FileUtil.fileSearchDirectoryOnMostRecentFile(mediaFilePath, mediaFileNameMask);
+		return FileUtilFunctions.fileSearchDirectoryOnMostRecentFile(mediaFilePath, mediaFileNameMask);
 	}
 
 	/**
@@ -555,7 +555,7 @@ public class ResourceContainerMedia extends ResourceContainer
 	{
 		String mediaFileNameMask = this.getMediaFileNameMask(context, dataIdentifier);
 		String mediaFilePath = this.getMediaRegularFilePath(context);
-		return FileUtil.fileSearchDirectoryForFiles(mediaFilePath, mediaFileNameMask);
+		return FileUtilFunctions.fileSearchDirectoryForFiles(mediaFilePath, mediaFileNameMask);
 	}
 
 	/**
@@ -628,17 +628,17 @@ public class ResourceContainerMedia extends ResourceContainer
 	 */
 	public String getMediaRealFileName(Context context, String dataIdentifier, String hashValue, String fileType)
 	{
-		String mediaFileName = FileLocationManager.getMediaFileName();
+		String mediaFileName = FileLocationFunctions.getMediaFileName();
 
-		mediaFileName = FileLocationManager.replacePlacholder(context, mediaFileName);
+		mediaFileName = FileLocationFunctions.replacePlacholder(context, mediaFileName);
 
-		if (this.getAliasName() != null) mediaFileName = mediaFileName.replace("${alias}", FileUtil.fitToFileNameCompatibility(this.getAliasName()));
+		if (this.getAliasName() != null) mediaFileName = mediaFileName.replace("${alias}", FileUtilFunctions.fitToFileNameCompatibility(this.getAliasName()));
 		mediaFileName = mediaFileName.replace("${identifier}", this.fitIdentifierToFileName(dataIdentifier));
 		mediaFileName = mediaFileName.replace("${encodingkey}", this.getServerEncodingKeyAsString(context));
 		if (hashValue != null) mediaFileName = mediaFileName.replace("${hashvalue}", hashValue.trim());
 		if (fileType != null) mediaFileName = mediaFileName.replace("${filetype}", fileType);
 
-		return FileLocationManager.compileFilePath(this.getMediaRegularFilePath(context), mediaFileName);
+		return FileLocationFunctions.compileFilePath(this.getMediaRegularFilePath(context), mediaFileName);
 	}
 
 	/**
@@ -662,7 +662,7 @@ public class ResourceContainerMedia extends ResourceContainer
 		if (mediaFilePath == null || mediaFilePath.length() == 0) return 0;
 
 		// Get file name
-		String fileName = FileUtil.fileGetFileNamePart(mediaFilePath);
+		String fileName = FileUtilFunctions.fileGetFileNamePart(mediaFilePath);
 		if (fileName == null || fileName.length() == 0) return 0;
 
 		// Analyze file name
@@ -708,7 +708,7 @@ public class ResourceContainerMedia extends ResourceContainer
 		if (mediaFilePath == null || mediaFilePath.length() == 0) return null;
 
 		// Get file name
-		String fileName = FileUtil.fileGetFileNamePart(mediaFilePath);
+		String fileName = FileUtilFunctions.fileGetFileNamePart(mediaFilePath);
 		if (fileName == null || fileName.length() == 0) return null;
 
 		// Analyze file name

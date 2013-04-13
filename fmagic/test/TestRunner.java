@@ -1,10 +1,12 @@
 package fmagic.test;
 
+import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import fmagic.application.seniorcitizen.server.ServerSeniorCitizen;
+import fmagic.basic.Context;
 import fmagic.server.ServerManager;
 
 /**
@@ -43,7 +45,42 @@ abstract public class TestRunner
 	 * Cleanup test environment.
 	 */
 	abstract public void cleanup();
+	
+	/**
+	 * Execute function tests on single function (method).
+	 */
 
+	/**
+	 * Single Function Test
+	 */
+	protected void doSingleFunctionTest(Context context, ServerTestContainer testContainer, String methodName)
+	{
+		// Validate parameter
+		if (context == null) return;
+		if (testContainer == null) return;
+		if (methodName == null) return;
+		
+		// Set context to test container
+		testContainer.setContext(context);
+		
+		// Invoke method via reflection
+		try
+		{
+			// Get method by reflection and invoke it
+			Method method = testContainer.getClass().getMethod(methodName,  new Class[] {});
+			method.invoke(testContainer, new Object[] {});
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Execute a single function test.
+	 */
+	abstract public void executeSingleFunctionTest(ServerTestContainer serverTestContainer, String methodName);
+	
 	/**
 	 * Execute component tests.
 	 */

@@ -15,7 +15,7 @@ import fmagic.basic.ApplicationServer;
 import fmagic.basic.NotificationManager;
 import fmagic.basic.ResourceManager;
 import fmagic.basic.SessionContainer;
-import fmagic.basic.FileUtil;
+import fmagic.basic.FileUtilFunctions;
 import fmagic.basic.ResourceContainer.OriginEnum;
 
 /**
@@ -202,7 +202,7 @@ public abstract class ServerManager extends ApplicationManager
 		}
 
 		// Wait till end of thread
-		FileUtil.waitForThreadTerminating(this.applicationServer, 60);
+		FileUtilFunctions.waitForThreadTerminating(this.applicationServer, 60);
 
 		// Release WATCHDOG
 		this.releaseWatchdog();
