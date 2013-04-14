@@ -226,7 +226,7 @@ public class ResourceContainer implements Cloneable
 	 * @param identifier
 	 *            The identifier of the resource.
 	 */
-	ResourceContainer(String identifier)
+	public ResourceContainer(String identifier)
 	{
 		// Check parameter
 		if (identifier == null) return;

@@ -1,14 +1,10 @@
 package fmagic.test;
 
 import java.security.KeyPair;
-import java.util.List;
 
 import org.apache.commons.codec.binary.Base64;
 
 import fmagic.basic.EncodingHandler;
-import fmagic.basic.FileUtilFunctions;
-import fmagic.basic.ResourceContainerMedia;
-import fmagic.basic.ResourceManager;
 
 public class ApplicationMain
 {
@@ -19,7 +15,7 @@ public class ApplicationMain
 	public static void main(String[] args)
 	{
 		TestRunnerMedia testRunner = new TestRunnerMedia("aaaaaaaaaa");
-		
+
 		testRunner.setup();
 
 		ServerTestContainerMedia testContainer = new ServerTestContainerMedia();
@@ -31,7 +27,11 @@ public class ApplicationMain
 		testContainer.setParameterTestCycleDataIdentifierFrom(1);
 		testContainer.setParameterTestCycleDataIdentifierToo(40);
 
-		testRunner.executeSingleFunctionTest(testContainer, "testExpiredPendingFiles");
+//		testRunner.executeComponentTest();
+//		testRunner.executeSingleFunctionTest(testContainer, "testExpiredPendingFiles");
+//		testRunner.executeSingleFunctionTest(testContainer, "testExpiredDeletedFiles");
+//		testRunner.executeSingleFunctionTest(testContainer, "testExpiredObsoleteFiles");
+		testRunner.executeSingleFunctionTest(testContainer, "testCleaningAll");
 
 		testRunner.cleanup();
 

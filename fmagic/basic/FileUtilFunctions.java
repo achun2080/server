@@ -18,8 +18,87 @@ import org.apache.commons.io.FileUtils;
  */
 public class FileUtilFunctions
 {
+	//
 	private static int defaultNuOfRetrials = 20;
 	private static int defaultIdleTimeBetweenRetrialsInMilliseconds = 1000;
+
+	private final static long SECOND_MILLISECONDS = 1000 * 60;
+	private final static long MINUTE_MILLISECONDS = 1000 * 60;
+	private final static long HOUR_MILLISECONDS = 1000 * 60 * 60;
+	private final static long DAY_MILLISECONDS = 1000 * 60 * 60 * 24;
+	private final static long MINUTES_PER_DAY = 1440;
+
+	/**
+	 * Get a random value between a range in <TT>integer</TT> format.
+	 * 
+	 * @param from
+	 *            The value the value can start.
+	 * 
+	 * @param too
+	 *            The value the value has to stop.
+	 * 
+	 * @return Returns the normalized string.
+	 */
+	public static int generalGetRandomValue(int from, int too)
+	{
+		// Validate parameter
+		if (from == too) return from;
+
+		if (from < too)
+		{
+			int temp = from;
+			from = too;
+			too = temp;
+		}
+
+		int range = too - from;
+
+		// Compute
+		int index = (int) (Math.random() * range);
+		index = index + from;
+
+		// Return
+		return index;
+	}
+
+	/**
+	 * Add some days, hours, minutes and seconds to a date value.
+	 * 
+	 * @param dateValue
+	 *            The date value modify.
+	 * 
+	 * @param days
+	 *            The number of days to add, positive or negative or <TT>0</TT>.
+	 * 
+	 * @param hours
+	 *            The number of hours to add, positive or negative or <TT>0</TT>
+	 *            .
+	 * 
+	 * @param minutes
+	 *            The number of minutes to add, positive or negative or
+	 *            <TT>0</TT>.
+	 * 
+	 * @param seconds
+	 *            The number of seconds to add, positive or negative or
+	 *            <TT>0</TT>.
+	 * 
+	 * @return Returns the modified data value, or <TT>null</TT> if an error
+	 *         occurred.
+	 */
+	public static Date generalAddTimeDiff(Date dateValue, int days, int hours, int minutes, int seconds)
+	{
+		// Validate parameter
+		if (dateValue == null) return null;
+
+		// Get time value
+		long timeValue = dateValue.getTime();
+
+		// Compute
+		timeValue = timeValue + (days * FileUtilFunctions.DAY_MILLISECONDS) + (hours * FileUtilFunctions.HOUR_MILLISECONDS) + (minutes * FileUtilFunctions.MINUTE_MILLISECONDS) + (seconds * FileUtilFunctions.SECOND_MILLISECONDS);
+
+		// Return
+		return new Date(timeValue);
+	}
 
 	/**
 	 * Normalize new line to the system standards.
@@ -420,8 +499,8 @@ public class FileUtilFunctions
 	 *            ?).
 	 * 
 	 * @param daysToKeep
-	 *            All files that are older than this number of days (resp. 24
-	 *            hours, from <TT>now</TT>) are collected into the result file
+	 *            All files that are older than this number of days (resp. 1440
+	 *            minutes, from <TT>now</TT>) are collected into the result file
 	 *            list. Please set at least <TT>1</TT> day to keep. If the
 	 *            parameter is set lower than 1 it is set to one day
 	 *            automatically.
@@ -436,9 +515,6 @@ public class FileUtilFunctions
 			File directory;
 			String fileNameMask;
 			int daysToKeep;
-
-			final long MINUTES_MILLIS = 1000 * 60;
-			final long MINUTES_PER_DAY = 1440;
 
 			public UtilFileFilter(File directory, String fileNameMask,
 					int daysToKeep)
@@ -467,9 +543,9 @@ public class FileUtilFunctions
 					Date date1 = new Date();
 					Date date2 = new Date(file.lastModified());
 
-					long minutes1 = date1.getTime() / MINUTES_MILLIS;
-					long minutes2 = date2.getTime() / MINUTES_MILLIS;
-					if (Math.abs((minutes1 - minutes2)) <= (this.daysToKeep * MINUTES_PER_DAY)) return false;
+					long minutes1 = date1.getTime() / FileUtilFunctions.MINUTE_MILLISECONDS;
+					long minutes2 = date2.getTime() / FileUtilFunctions.MINUTE_MILLISECONDS;
+					if (Math.abs((minutes1 - minutes2)) <= (this.daysToKeep * FileUtilFunctions.MINUTES_PER_DAY)) return false;
 				}
 				catch (Exception e)
 				{
@@ -1233,22 +1309,35 @@ public class FileUtilFunctions
 	 *            The file name mask to be searched for, including wildcards (*,
 	 *            ?).
 	 * 
+	 * @param daysToKeep
+	 *            All files that are older than this number of days (resp. 1440
+	 *            minutes, from <TT>now</TT>) are collected into the result file
+	 *            list. Please set at least <TT>1</TT> day to keep. If the
+	 *            parameter is set lower than 1 it is set to one day
+	 *            automatically.
+	 * 
 	 * @return Returns the list of obsolete files, or <TT>null</TT> if an error
 	 *         occurred, or no files could be found.
 	 */
-	public static List<String> fileSearchDirectoryOnObsoleteFiles(String filePath, String fileFilterMask)
+	public static List<String> fileSearchDirectoryOnObsoleteFiles(String filePath, String fileFilterMask, int daysToKeep)
 	{
-		// Get list of files that matches the file filter mask
+		/*
+		 * Get list of files that matches the file filter mask
+		 */
+
 		List<String> filePathList = FileUtilFunctions.fileSearchDirectoryForFiles(filePath, fileFilterMask);
 		if (filePathList == null) return null;
 		if (filePathList.size() == 0) return null;
 
-		// Get the most recent file that matches the file filter mask
+		/*
+		 * Get the most recent file that matches the file filter mask and remove
+		 * it from the result list.
+		 */
+
 		String mostRecentFilePath = FileUtilFunctions.fileSearchDirectoryOnMostRecentFile(filePath, fileFilterMask);
 		if (mostRecentFilePath == null) return null;
 		if (mostRecentFilePath.length() == 0) return null;
 
-		// Remove the most recent file from the list of files
 		try
 		{
 			filePathList.remove(mostRecentFilePath);
@@ -1258,8 +1347,36 @@ public class FileUtilFunctions
 			return null;
 		}
 
-		// Return
-		return filePathList;
+		/*
+		 * Delete all files that are NOT older than x days.
+		 */
+
+		try
+		{
+			// Compose expired date
+			if (daysToKeep <= 1) daysToKeep = 1;
+			Date daysToKeepDate = FileUtilFunctions.generalAddTimeDiff(new Date(), -daysToKeep, 0, 0, 0);
+
+			// Go through the list
+			for (String currentFilePath : new ArrayList<String>(filePathList))
+			{
+				File file = new File(currentFilePath);
+
+				Date fileDate = new Date(file.lastModified());
+
+				if (fileDate.after(daysToKeepDate))
+				{
+					filePathList.remove(currentFilePath);
+				}
+			}
+
+			// Return
+			return filePathList;
+		}
+		catch (Exception e)
+		{
+			return null;
+		}
 	}
 
 	/**

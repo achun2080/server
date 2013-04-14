@@ -454,10 +454,10 @@ public class ResourceContainerMedia extends ResourceContainer
 	}
 
 	/**
-	 * Create a name for a temporary file to be used to save pending files, and
+	 * Create a name for a 'pending' file to be used to save pending files, and
 	 * returns the name.
 	 * <p>
-	 * Example: <TT>20130403-155909-625-seniorcitizen-ap1-[0001].png</TT>
+	 * Example: <TT>20130403-155909-625-123-seniorcitizen-ap1-[0001].png</TT>
 	 * 
 	 * @param context
 	 *            The context to use.
@@ -477,6 +477,34 @@ public class ResourceContainerMedia extends ResourceContainer
 		if (fileType != null) mediaTempFileName = mediaTempFileName.replace("${filetype}", fileType);
 
 		return mediaTempFileName;
+	}
+
+	/**
+	 * Create a name for a 'deleted' file to be used to save obsolete files, and
+	 * returns the name.
+	 * <p>
+	 * Example:
+	 * <TT>seniorcitizen-room-00001234-s00-24df3a-20130403-155909-625-123.jpg</TT>
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param fileType
+	 *            The file type to set.
+	 * 
+	 * @return Returns the file name created.
+	 * 
+	 */
+	public String getMediaDeletedFileName(Context context, String originalFileName, String fileType)
+	{
+		String mediaDeletedFileName = FileLocationFunctions.getMediaDeletedFileName();
+
+		mediaDeletedFileName = FileLocationFunctions.replacePlacholder(context, mediaDeletedFileName);
+
+		if (originalFileName != null) mediaDeletedFileName = mediaDeletedFileName.replace("${originalname}", originalFileName);
+		if (fileType != null) mediaDeletedFileName = mediaDeletedFileName.replace("${filetype}", fileType);
+
+		return mediaDeletedFileName;
 	}
 
 	/**
@@ -556,6 +584,69 @@ public class ResourceContainerMedia extends ResourceContainer
 		String mediaFileNameMask = this.getMediaFileNameMask(context, dataIdentifier);
 		String mediaFilePath = this.getMediaRegularFilePath(context);
 		return FileUtilFunctions.fileSearchDirectoryForFiles(mediaFilePath, mediaFileNameMask);
+	}
+
+	/**
+	 * Extract and get the data identifier of a real media file name.
+	 * <p>
+	 * Example: <TT>20130403-155909-625-seniorcitizen-ap1-[0001].png</TT>
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param filePath
+	 *            The file path to analyze.
+	 * 
+	 * @return Returns the extracted data identifier or <TT>null</TT> if an
+	 *         error occurred.
+	 * 
+	 */
+	public String getMediaPartDataIdentifier(Context context, String filePath)
+	{
+		return getMediaPartByPosition(context, filePath, 2);
+	}
+
+	/**
+	 * Extract and get a part of a real media file name.
+	 * <p>
+	 * Example: <TT>20130403-155909-625-seniorcitizen-ap1-[0001].png</TT>
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param filePath
+	 *            The file path to analyze.
+	 * 
+	 * @param position
+	 *            The position to extract.
+	 * 
+	 * @return Returns the extracted part or <TT>null</TT> if an error occurred.
+	 * 
+	 */
+	private String getMediaPartByPosition(Context context, String filePath, int position)
+	{
+		// Validate parameter
+		if (filePath == null || filePath.length() == 0) return null;
+		if (position < 0) return null;
+
+		try
+		{
+			// Extract the file name for the file path
+			String fileName = FileUtilFunctions.fileGetFileNamePart(filePath);
+			if (fileName == null || fileName.length() == 0) return null;
+
+			// Split the file name
+			String parts[] = fileName.split("-");
+			if (parts == null || parts.length == 0) return null;
+			if (parts.length < position) return null;
+
+			// Get the part
+			return parts[position];
+		}
+		catch (Exception e)
+		{
+			return null;
+		}
 	}
 
 	/**

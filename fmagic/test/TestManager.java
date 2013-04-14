@@ -6,15 +6,14 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 import fmagic.basic.Context;
 import fmagic.basic.FileLocationFunctions;
-import fmagic.basic.ManagerInterface;
 import fmagic.basic.FileUtilFunctions;
+import fmagic.basic.ManagerInterface;
 
 /**
  * This class implements the management of tests that are included in the
@@ -502,7 +501,7 @@ public class TestManager implements ManagerInterface
 	 * @param additionalText
 	 *            Additional text of the message.
 	 */
-	private static void servicePrintError(Context context, String assertText, String additionalText)
+	public static void servicePrintError(Context context, String assertText, String additionalText)
 	{
 		// Check parameter
 		if (assertText == null || assertText.length() == 0) assertText = "Assertion message";
@@ -601,6 +600,74 @@ public class TestManager implements ManagerInterface
 			context.getTestManager().setErrorFound();
 
 			String assertText = "Assertion failed: Comparing string (considering lower and upper cases)";
+			assertText += "\n--> String value 1: '" + value1 + "'";
+			assertText += "\n--> String value 2: '" + value2 + "'";
+
+			TestManager.servicePrintError(context, assertText, additionalText);
+		}
+		else
+		{
+			TestManager.servicePrintProgress(context);
+		}
+	}
+
+	/**
+	 * Assert: Compare if <TT>String</TT> values are <TT>NOT</TT>equal, with considering
+	 * lower and upper cases.
+	 * 
+	 * @param context
+	 *            Application context of the message.
+	 * 
+	 * @param additionalText
+	 *            Additional text of the message.
+	 * 
+	 * @param value1
+	 *            The first value.
+	 * 
+	 * @param value2
+	 *            The second value.
+	 */
+	public static void assertNotEquals(Context context, String additionalText, String value1, String value2)
+	{
+		if (value1.equals(value2))
+		{
+			context.getTestManager().setErrorFound();
+
+			String assertText = "Assertion failed: Comparing string on diversity (considering lower and upper cases)";
+			assertText += "\n--> String value 1: '" + value1 + "'";
+			assertText += "\n--> String value 2: '" + value2 + "'";
+
+			TestManager.servicePrintError(context, assertText, additionalText);
+		}
+		else
+		{
+			TestManager.servicePrintProgress(context);
+		}
+	}
+
+	/**
+	 * Assert: Compare if <TT>String</TT> values are <TT>NOT</TT>equal, ignoring lower and
+	 * upper cases.
+	 * 
+	 * @param context
+	 *            Application context of the message.
+	 * 
+	 * @param additionalText
+	 *            Additional text of the message.
+	 * 
+	 * @param value1
+	 *            The first value.
+	 * 
+	 * @param value2
+	 *            The second value.
+	 */
+	public static void assertNotEqualsIgnoreCase(Context context, String additionalText, String value1, String value2)
+	{
+		if (value1.equalsIgnoreCase(value2))
+		{
+			context.getTestManager().setErrorFound();
+
+			String assertText = "Assertion failed: Comparing string on diversity (ignoring lower and upper cases)";
 			assertText += "\n--> String value 1: '" + value1 + "'";
 			assertText += "\n--> String value 2: '" + value2 + "'";
 
@@ -814,6 +881,43 @@ public class TestManager implements ManagerInterface
 	}
 
 	/**
+	 * Assert: Check if a range <TT>from</TT>/<TT>too</TT> is met.
+	 * 
+	 * @param context
+	 *            Application context of the message.
+	 * 
+	 * @param additionalText
+	 *            Additional text of the message.
+	 * 
+	 * @param from
+	 *            The value the range starts.
+	 * 
+	 * @param too
+	 *            The value the range stops.
+	 * 
+	 * @param value
+	 *            The value to check.
+	 */
+	public static void assertEqualsRange(Context context, String additionalText, int from, int too, int value)
+	{
+		if (value < from || value > too)
+		{
+			context.getTestManager().setErrorFound();
+
+			String assertText = "Assertion failed: Comparing integer range from/too";
+			assertText += "\n--> Range from: '" + String.valueOf(from) + "'";
+			assertText += "\n--> Range too: '" + String.valueOf(too) + "'";
+			assertText += "\n--> Integer value: '" + String.valueOf(value) + "'";
+
+			TestManager.servicePrintError(context, assertText, additionalText);
+		}
+		else
+		{
+			TestManager.servicePrintProgress(context);
+		}
+	}
+
+	/**
 	 * Assert: Compare if <TT>long</TT> values are equal.
 	 * 
 	 * @param context
@@ -942,7 +1046,7 @@ public class TestManager implements ManagerInterface
 	 * @param additionalText
 	 *            Additional text of the message.
 	 * 
-	 * @param value
+	 * @param object
 	 *            The value to assert.
 	 */
 	public static void assertNotNull(Context context, String additionalText, Object object)
@@ -953,6 +1057,35 @@ public class TestManager implements ManagerInterface
 
 			String assertText = "Assertion failed: Check if there is an Object instantiated";
 			assertText += "\n--> Value: '" + "NULL" + "'";
+
+			TestManager.servicePrintError(context, assertText, additionalText);
+		}
+		else
+		{
+			TestManager.servicePrintProgress(context);
+		}
+	}
+
+	/**
+	 * Assert: Check if a string is not <TT>null</TT> and not <TT>Empty</TT>.
+	 * 
+	 * @param context
+	 *            Application context of the message.
+	 * 
+	 * @param additionalText
+	 *            Additional text of the message.
+	 * 
+	 * @param value
+	 *            The value to check.
+	 */
+	public static void assertNotEmpty(Context context, String additionalText, String value)
+	{
+		if (value == null || value.length() == 0)
+		{
+			context.getTestManager().setErrorFound();
+
+			String assertText = "Assertion failed: String is not NULL or EMPTY";
+			assertText += "\n--> String value: '" + value + "'";
 
 			TestManager.servicePrintError(context, assertText, additionalText);
 		}
@@ -984,6 +1117,39 @@ public class TestManager implements ManagerInterface
 			context.getTestManager().setErrorFound();
 
 			String assertText = "Assertion failed:  Compare if value 1 is greater than a value 2";
+			assertText += "\n--> Integer value 1: '" + String.valueOf(value1) + "'";
+			assertText += "\n--> Integer value 2: '" + String.valueOf(value2) + "'";
+
+			TestManager.servicePrintError(context, assertText, additionalText);
+		}
+		else
+		{
+			TestManager.servicePrintProgress(context);
+		}
+	}
+
+	/**
+	 * Assert: Compare if an <TT>integer</TT> value 1 is lower than value 2.
+	 * 
+	 * @param context
+	 *            Application context of the message.
+	 * 
+	 * @param additionalText
+	 *            Additional text of the message.
+	 * 
+	 * @param value1
+	 *            The first value.
+	 * 
+	 * @param value2
+	 *            The second value.
+	 */
+	public static void assertLowerThan(Context context, String additionalText, int value1, int value2)
+	{
+		if (!(value1 < value2))
+		{
+			context.getTestManager().setErrorFound();
+
+			String assertText = "Assertion failed:  Compare if value 1 is lower than a value 2";
 			assertText += "\n--> Integer value 1: '" + String.valueOf(value1) + "'";
 			assertText += "\n--> Integer value 2: '" + String.valueOf(value2) + "'";
 

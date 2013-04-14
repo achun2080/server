@@ -1,6 +1,7 @@
 package fmagic.test;
 
 import java.lang.reflect.Method;
+import java.net.ServerSocket;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -45,7 +46,7 @@ abstract public class TestRunner
 	 * Cleanup test environment.
 	 */
 	abstract public void cleanup();
-	
+
 	/**
 	 * Execute function tests on single function (method).
 	 */
@@ -59,15 +60,15 @@ abstract public class TestRunner
 		if (context == null) return;
 		if (testContainer == null) return;
 		if (methodName == null) return;
-		
+
 		// Set context to test container
 		testContainer.setContext(context);
-		
+
 		// Invoke method via reflection
 		try
 		{
 			// Get method by reflection and invoke it
-			Method method = testContainer.getClass().getMethod(methodName,  new Class[] {});
+			Method method = testContainer.getClass().getMethod(methodName, new Class[] {});
 			method.invoke(testContainer, new Object[] {});
 		}
 		catch (Exception e)
@@ -80,7 +81,7 @@ abstract public class TestRunner
 	 * Execute a single function test.
 	 */
 	abstract public void executeSingleFunctionTest(ServerTestContainer serverTestContainer, String methodName);
-	
+
 	/**
 	 * Execute component tests.
 	 */
@@ -132,7 +133,7 @@ abstract public class TestRunner
 			String codeName = this.getTestCaseName() + "_" + codeNamePostfix;
 
 			// Allocate port number
-			int port = allocatePortNumber();
+			int port = this.allocatePortNumber();
 
 			// Create instance
 			server = ServerSeniorCitizen.getTestInstance(codeName, port, 1000000, this.getTestCaseName(), this.getTestSessionName());
@@ -194,7 +195,10 @@ abstract public class TestRunner
 			{
 				if (TestRunner.usedServerPorts.contains(port)) continue;
 
+				if (this.isSocketUsed(port)) continue;
+
 				TestRunner.usedServerPorts.add(port);
+				
 				return port;
 			}
 		}
@@ -205,6 +209,47 @@ abstract public class TestRunner
 
 		// No port available yet
 		return 0;
+	}
+
+	/**
+	 * Check if a socket is currently used.
+	 * 
+	 * @param port
+	 *            The port to check.
+	 * 
+	 * @return Returns <TT>true</TT> if the socket is currently used, otherwise
+	 *         <TT>false</TT>.
+	 */
+	private boolean isSocketUsed(int port)
+	{
+		boolean portTaken = false;
+
+		ServerSocket socket = null;
+
+		try
+		{
+			socket = new ServerSocket(port);
+		}
+		catch (Exception e)
+		{
+			portTaken = true;
+		}
+		finally
+		{
+			if (socket != null)
+			{
+				try
+				{
+					socket.close();
+				}
+				catch (Exception e)
+				{
+					// Be silent
+				}
+			}
+		}
+
+		return portTaken;
 	}
 
 	/**

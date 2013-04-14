@@ -3,7 +3,9 @@ package fmagic.basic;
 import java.io.File;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * This class implements the management of media used by servers and clients.
@@ -42,35 +44,10 @@ public class MediaManager implements ManagerInterface
 	// Media root file path
 	String mediaRootFilePath = null;
 
-	// Configuration parameter: CleanPendingDaysToKeep
-	final private int CleanPendingDaysToKeep_MINIMUM = 0;
-	final private int CleanPendingDaysToKeep_MAXIMUM = 30;
-	final private int CleanPendingDaysToKeep_DEFAULT = 7;
-	private int cleanPendingDaysToKeep = CleanPendingDaysToKeep_DEFAULT;
-
-	// Configuration parameter: CleanPendingDirectoryQuota
-	final private int CleanPendingDirectoryQuota_MINIMUM = 0;
-	final private int CleanPendingDirectoryQuota_MAXIMUM = 5000;
-	final private int CleanPendingDirectoryQuota_DEFAULT = 1000;
-	private int cleanPendingDirectoryQuota = CleanPendingDirectoryQuota_DEFAULT;
-
-	// Configuration parameter: CleanDeletedDaysToKeep
-	final private int CleanDeletedDaysToKeep_MINIMUM = 0;
-	final private int CleanDeletedDaysToKeep_MAXIMUM = 365;
-	final private int CleanDeletedDaysToKeep_DEFAULT = 180;
-	private int cleanDeletedDaysToKeep = CleanDeletedDaysToKeep_DEFAULT;
-
-	// Configuration parameter: CleanDeletedDirectoryQuota
-	final private int CleanDeletedDirectoryQuota_MINIMUM = 0;
-	final private int CleanDeletedDirectoryQuota_MAXIMUM = 100000;
-	final private int CleanDeletedDirectoryQuota_DEFAULT = 5000;
-	private int cleanDeletedDirectoryQuota = CleanDeletedDirectoryQuota_DEFAULT;
-
-	// Configuration parameter: CleanObsoleteDaysToKeep
-	final private int CleanObsoleteDaysToKeep_MINIMUM = 1;
-	final private int CleanObsoleteDaysToKeep_MAXIMUM = 7;
-	final private int CleanObsoleteDaysToKeep_DEFAULT = 1;
-	private int cleanObsoleteDaysToKeep = CleanObsoleteDaysToKeep_DEFAULT;
+	// Configuration parameter
+	private int cleanPendingDaysToKeep = 0;
+	private int cleanDeletedDaysToKeep = 0;
+	private int cleanObsoleteDaysToKeep = 0;
 
 	/**
 	 * Constructor
@@ -376,6 +353,18 @@ public class MediaManager implements ManagerInterface
 	 */
 	private boolean readConfigurationCleaningConfigurationParameter(Context context)
 	{
+		final int CleanPendingDaysToKeep_MINIMUM = 0;
+		final int CleanPendingDaysToKeep_MAXIMUM = 30;
+		final int CleanPendingDaysToKeep_DEFAULT = 7;
+
+		final int CleanDeletedDaysToKeep_MINIMUM = 0;
+		final int CleanDeletedDaysToKeep_MAXIMUM = 365;
+		final int CleanDeletedDaysToKeep_DEFAULT = 180;
+
+		final int CleanObsoleteDaysToKeep_MINIMUM = 1;
+		final int CleanObsoleteDaysToKeep_MAXIMUM = 7;
+		final int CleanObsoleteDaysToKeep_DEFAULT = 1;
+
 		// Initialize
 		String errorText = "";
 		boolean isError = false;
@@ -397,22 +386,6 @@ public class MediaManager implements ManagerInterface
 			isError = true;
 		}
 
-		// Read parameter: CleanPendingDirectoryQuota
-		resourceContainer = ResourceManager.configuration(context, "Media", "CleanPendingDirectoryQuota");
-		this.cleanPendingDirectoryQuota = context.getConfigurationManager().getPropertyAsIntegerValue(context, resourceContainer, CleanPendingDirectoryQuota_DEFAULT, false);
-
-		if (this.cleanPendingDirectoryQuota < CleanPendingDirectoryQuota_MINIMUM)
-		{
-			errorText += "\n--> Current value '" + String.valueOf(this.cleanPendingDirectoryQuota) + "' set to the configuration property '" + resourceContainer.getRecourceIdentifier() + "' is lower than the allowed minimum value '" + String.valueOf(CleanPendingDirectoryQuota_MINIMUM) + "'.";
-			isError = true;
-		}
-
-		if (this.cleanPendingDirectoryQuota > CleanPendingDirectoryQuota_MAXIMUM)
-		{
-			errorText += "\n--> Current value '" + String.valueOf(this.cleanPendingDirectoryQuota) + "' set to the configuration property '" + resourceContainer.getRecourceIdentifier() + "' is greater than the allowed maximum value '" + String.valueOf(CleanPendingDirectoryQuota_MAXIMUM) + "'.";
-			isError = true;
-		}
-
 		// Read parameter: CleanDeletedDaysToKeep
 		resourceContainer = ResourceManager.configuration(context, "Media", "CleanDeletedDaysToKeep");
 		this.cleanDeletedDaysToKeep = context.getConfigurationManager().getPropertyAsIntegerValue(context, resourceContainer, CleanDeletedDaysToKeep_DEFAULT, false);
@@ -426,22 +399,6 @@ public class MediaManager implements ManagerInterface
 		if (this.cleanDeletedDaysToKeep > CleanDeletedDaysToKeep_MAXIMUM)
 		{
 			errorText += "\n--> Current value '" + String.valueOf(this.cleanDeletedDaysToKeep) + "' set to the configuration property '" + resourceContainer.getRecourceIdentifier() + "' is greater than the allowed maximum value '" + String.valueOf(CleanDeletedDaysToKeep_MAXIMUM) + "'.";
-			isError = true;
-		}
-
-		// Read parameter: CleanDeletedDirectoryQuota
-		resourceContainer = ResourceManager.configuration(context, "Media", "CleanDeletedDirectoryQuota");
-		this.cleanDeletedDirectoryQuota = context.getConfigurationManager().getPropertyAsIntegerValue(context, resourceContainer, CleanDeletedDirectoryQuota_DEFAULT, false);
-
-		if (this.cleanDeletedDirectoryQuota < CleanDeletedDirectoryQuota_MINIMUM)
-		{
-			errorText += "\n--> Current value '" + String.valueOf(this.cleanDeletedDirectoryQuota) + "' set to the configuration property '" + resourceContainer.getRecourceIdentifier() + "' is lower than the allowed minimum value '" + String.valueOf(CleanDeletedDirectoryQuota_MINIMUM) + "'.";
-			isError = true;
-		}
-
-		if (this.cleanDeletedDirectoryQuota > CleanDeletedDirectoryQuota_MAXIMUM)
-		{
-			errorText += "\n--> Current value '" + String.valueOf(this.cleanDeletedDirectoryQuota) + "' set to the configuration property '" + resourceContainer.getRecourceIdentifier() + "' is greater than the allowed maximum value '" + String.valueOf(CleanDeletedDirectoryQuota_MAXIMUM) + "'.";
 			isError = true;
 		}
 
@@ -1091,7 +1048,7 @@ public class MediaManager implements ManagerInterface
 	 * @return Returns the full path of the encoded pending file that was
 	 *         created, or <TT>null</TT> if an error occurred.
 	 */
-	public String mediaFileOperationEncrypt(Context context, ResourceContainerMedia mediaResourceContainer, String sourceFilePath, String destinationFilePath)
+	public String operationEncrypt(Context context, ResourceContainerMedia mediaResourceContainer, String sourceFilePath, String destinationFilePath)
 	{
 		// Check if server encoding is enabled
 		if (this.isServerEncodingEnabled(context, mediaResourceContainer) == false) return sourceFilePath;
@@ -1134,7 +1091,7 @@ public class MediaManager implements ManagerInterface
 	 * @return Returns the full path of the decoded pending file that was
 	 *         created, or <TT>null</TT> if an error occurred.
 	 */
-	public String mediaFileOperationDecrypt(Context context, ResourceContainerMedia mediaResourceContainer, String sourceFilePath)
+	public String operationDecrypt(Context context, ResourceContainerMedia mediaResourceContainer, String sourceFilePath)
 	{
 		/*
 		 * Validate parameter
@@ -1332,7 +1289,7 @@ public class MediaManager implements ManagerInterface
 	 * @return Returns <TT>true</TT> if the file could be stored, otherwise
 	 *         <TT>false</TT>.
 	 */
-	public boolean mediaFileOperationUpload(Context context, ResourceContainerMedia mediaResourceContainer, String uploadFileNamePath, String dataIdentifier)
+	public boolean operationUpload(Context context, ResourceContainerMedia mediaResourceContainer, String uploadFileNamePath, String dataIdentifier)
 	{
 		/*
 		 * Check variables and conditions
@@ -1486,7 +1443,7 @@ public class MediaManager implements ManagerInterface
 		{
 			String encryptedPendingFileName = FileLocationFunctions.compileFilePath(mediaResourceContainer.getMediaPendingFilePath(context), mediaResourceContainer.getMediaPendingFileName(context, fileType));
 
-			encryptedPendingFileName = this.mediaFileOperationEncrypt(context, mediaResourceContainer, pendingFilePath, encryptedPendingFileName);
+			encryptedPendingFileName = this.operationEncrypt(context, mediaResourceContainer, pendingFilePath, encryptedPendingFileName);
 
 			if (encryptedPendingFileName == null)
 			{
@@ -1639,34 +1596,263 @@ public class MediaManager implements ManagerInterface
 	 *            The media resource container to consider.
 	 * 
 	 * @param daysToKeep
-	 *            All files that are older than this number of days (resp. 24
-	 *            hours, from <TT>now</TT>) are collected into the result file
-	 *            list. Please set at least <TT>1</TT> day to keep. If the
-	 *            parameter is set lower than 1 it is set to one day
-	 *            automatically.
+	 *            All files that are older than this number of days (resp. 1440
+	 *            minutes, from <TT>now</TT>) are removed. Please set at least
+	 *            <TT>1</TT> day to keep. If the parameter is set lower than 1
+	 *            it is set to one day automatically.
 	 * 
-	 * @return Returns <TT>true</TT> if the files could be removed, otherwise
-	 *         <TT>false</TT>.
+	 * @return Returns the number of deleted files.
 	 */
-	public boolean mediaServiceCleanPendingDirectory(Context context, ResourceContainerMedia mediaResourceContainer, int daysToKeep)
+	public int cleanPendingDirectory(Context context, ResourceContainerMedia mediaResourceContainer, int daysToKeep)
 	{
 		// Validate parameter
-		if (mediaResourceContainer == null) return false;
-		
-		// Get 'pending' directory of the media resource
-		String directoryPath = mediaResourceContainer.getMediaPendingFilePath(context);
-		
-		// Get file list of expired files
-		List<String> files = FileUtilFunctions.fileSearchDirectoryOnExpiredFiles(directoryPath, "*", daysToKeep);
+		if (mediaResourceContainer == null) return 0;
 
-		if (files == null) return false;
-		if (files.size() == 0) return true;
-		
-		// Delete expired files
-		FileUtilFunctions.fileDelete(files);
-		
-		// Return
-		return true;
+		try
+		{
+			// Get 'pending' directory of the media resource
+			String directoryPath = mediaResourceContainer.getMediaPendingFilePath(context);
+
+			// Get file list of expired files
+			List<String> files = FileUtilFunctions.fileSearchDirectoryOnExpiredFiles(directoryPath, "*", daysToKeep);
+
+			if (files == null) return 0;
+			if (files.size() == 0) return 0;
+
+			// Delete expired files
+			return FileUtilFunctions.fileDelete(files);
+		}
+		catch (Exception e)
+		{
+			return 0;
+		}
+	}
+
+	/**
+	 * Remove all media files in the 'deleted' directory of a media resource
+	 * that are older than a specific number of days.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param mediaResourceContainer
+	 *            The media resource container to consider.
+	 * 
+	 * @param daysToKeep
+	 *            All files that are older than this number of days (resp. 1440
+	 *            minutes, from <TT>now</TT>) are removed. Please set at least
+	 *            <TT>1</TT> day to keep. If the parameter is set lower than 1
+	 *            it is set to one day automatically.
+	 * 
+	 * @return Returns the number of deleted files.
+	 */
+	public int cleanDeletedDirectory(Context context, ResourceContainerMedia mediaResourceContainer, int daysToKeep)
+	{
+		// Validate parameter
+		if (mediaResourceContainer == null) return 0;
+
+		try
+		{
+			// Get 'deleted' directory of the media resource
+			String directoryPath = mediaResourceContainer.getMediaDeletedFilePath(context);
+
+			// Get file list of expired files
+			List<String> files = FileUtilFunctions.fileSearchDirectoryOnExpiredFiles(directoryPath, "*", daysToKeep);
+
+			if (files == null) return 0;
+			if (files.size() == 0) return 0;
+
+			// Delete expired files
+			return FileUtilFunctions.fileDelete(files);
+		}
+		catch (Exception e)
+		{
+			return 0;
+		}
+	}
+
+	/**
+	 * Move all obsolete media files, regarding a media resource, that are older
+	 * than a specific number of days from the 'regular' media directory to the
+	 * 'deleted' directory.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param mediaResourceContainer
+	 *            The media resource container to consider.
+	 * 
+	 * @param daysToKeep
+	 *            All files that are older than this number of days (resp. 1440
+	 *            minutes, from <TT>now</TT>), and that are obsolete, are moved.
+	 *            Please set at least <TT>1</TT> day to keep. If the parameter
+	 *            is set lower than 1 it is set to one day automatically.
+	 * 
+	 * @return Returns the number of moved files.
+	 */
+	public int cleanRegularDirectory(Context context, ResourceContainerMedia mediaResourceContainer, int daysToKeep)
+	{
+		// Initialize
+		Set<String> usedDataIdentifiers = new HashSet<String>();
+		int nuOfMovedFiles = 0;
+
+		// Validate parameter
+		if (mediaResourceContainer == null) return 0;
+
+		// Get directories to consider
+		String regularMediaFilesDirectory = mediaResourceContainer.getMediaRegularFilePath(context);
+		String deletedMediaFilesDirectory = mediaResourceContainer.getMediaDeletedFilePath(context);
+
+		/*
+		 * Get List of all different data identifiers that are real used in the
+		 * 'regular' directory.
+		 */
+		try
+		{
+			// Get file list of all files
+			List<String> allFiles = FileUtilFunctions.fileSearchDirectoryForFiles(regularMediaFilesDirectory, "*");
+
+			if (allFiles == null) return 0;
+			if (allFiles.size() == 0) return 0;
+
+			// Go through the list and collect all data identifiers
+			for (String filePath : allFiles)
+			{
+				if (filePath == null || filePath.length() == 0) continue;
+
+				String dataIdentifier = mediaResourceContainer.getMediaPartDataIdentifier(context, filePath);
+				if (dataIdentifier == null || dataIdentifier.length() == 0) continue;
+
+				usedDataIdentifiers.add(dataIdentifier);
+			}
+
+			// Check list
+			if (usedDataIdentifiers.size() == 0) return 0;
+		}
+		catch (Exception e)
+		{
+			return 0;
+		}
+
+		/*
+		 * Move all obsolete files.
+		 */
+		try
+		{
+			// Go through the list of data identifiers and move obsolete files
+			for (String dataIdentifier : usedDataIdentifiers)
+			{
+				// Check value
+				if (dataIdentifier == null || dataIdentifier.length() == 0) continue;
+
+				// Get file filter mask of the specific data identifier
+				String fileFilterMask = mediaResourceContainer.getMediaFileNameMask(context, dataIdentifier);
+
+				// Get file list of obsolete files
+				List<String> obsoleteFiles = FileUtilFunctions.fileSearchDirectoryOnObsoleteFiles(regularMediaFilesDirectory, fileFilterMask, daysToKeep);
+				if (obsoleteFiles == null || obsoleteFiles.size() == 0) continue;
+
+				// Move files
+				for (String filePath : obsoleteFiles)
+				{
+					String originalFileName = FileUtilFunctions.fileGetFileNamePart(filePath);
+					if (originalFileName == null || originalFileName.length() == 0) continue;
+
+					String fileType = FileUtilFunctions.fileGetFileTypePart(filePath);
+					if (fileType == null || fileType.length() == 0) continue;
+
+					String deletedFilePath = FileLocationFunctions.compileFilePath(deletedMediaFilesDirectory, mediaResourceContainer.getMediaDeletedFileName(context, originalFileName, fileType));
+
+					if (FileUtilFunctions.fileMove(filePath, deletedFilePath) == true)
+					{
+						nuOfMovedFiles++;
+					}
+				}
+			}
+
+			// Return
+			return nuOfMovedFiles;
+		}
+		catch (Exception e)
+		{
+			return 0;
+		}
+	}
+
+	/**
+	 * Clean all media directories of a specific media resources.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param mediaResourceContainer
+	 *            The media resource container to consider.
+	 * 
+	 * @return Returns the number of deleted files.
+	 */
+	public int cleanAllDirectories(Context context, ResourceContainerMedia mediaResourceContainer)
+	{
+		// Validate parameter
+		if (mediaResourceContainer == null) return 0;
+
+		try
+		{
+			int nuOfMovedFiles = 0;
+			nuOfMovedFiles = nuOfMovedFiles + this.cleanRegularDirectory(context, mediaResourceContainer, this.cleanObsoleteDaysToKeep);
+			nuOfMovedFiles = nuOfMovedFiles + this.cleanPendingDirectory(context, mediaResourceContainer, this.cleanPendingDaysToKeep);
+			nuOfMovedFiles = nuOfMovedFiles + this.cleanDeletedDirectory(context, mediaResourceContainer, this.cleanDeletedDaysToKeep);
+			return nuOfMovedFiles;
+		}
+		catch (Exception e)
+		{
+			return 0;
+		}
+	}
+
+	/**
+	 * Clean all media directories for all media resources.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @return Returns the number of deleted files.
+	 */
+	public int cleanAll(Context context)
+	{
+		try
+		{
+			// Initialize
+			int nuOfMovedFiles = 0;
+
+			// Get all resource identifiers
+			String typeCriteria[] = { "Media" };
+			String applicationCriteria[] = { context.getApplicationName() };
+			String originCriteria[] = { "All", "Server", "Client" };
+			String usageCriteria[] = null;
+			String groupCriteria[] = null;
+			List<String> mediaResourceIdentifiers = context.getResourceManager().getResourceIdentifierList(context, typeCriteria, applicationCriteria, originCriteria, usageCriteria, groupCriteria);
+
+			// Clean all resources
+			for (String identifier : mediaResourceIdentifiers)
+			{
+				if (identifier == null || identifier.length() == 0) continue;
+
+				ResourceContainer mediaContainerProvisional = new ResourceContainer(identifier);
+				if (mediaContainerProvisional == null) continue;
+
+				ResourceContainerMedia mediaContainer = ResourceManager.media(context, mediaContainerProvisional.getGroup(), mediaContainerProvisional.getName());
+				if (mediaContainer == null) continue;
+
+				nuOfMovedFiles = nuOfMovedFiles + this.cleanAllDirectories(context, mediaContainer);
+			}
+
+			// Return
+			return nuOfMovedFiles;
+		}
+		catch (Exception e)
+		{
+			return 0;
+		}
 	}
 
 	/**
@@ -1675,5 +1861,42 @@ public class MediaManager implements ManagerInterface
 	public int getServerEncodingKeyNumber()
 	{
 		return this.serverEncodingKeyNumber;
+	}
+
+	/**
+	 * Getter
+	 */
+	public int getCleanPendingDaysToKeep()
+	{
+		return cleanPendingDaysToKeep;
+	}
+
+	/**
+	 * Getter
+	 */
+	public int getCleanDeletedDaysToKeep()
+	{
+		return cleanDeletedDaysToKeep;
+	}
+
+	/**
+	 * Getter
+	 */
+	public int getCleanObsoleteDaysToKeep()
+	{
+		return cleanObsoleteDaysToKeep;
+	}
+
+	/**
+	 * TEST Setter
+	 * 
+	 * Please notice: This setter is supposed test purposes only. It doesn't work
+	 * if it runs in productive environment.
+	 */
+	public void setCleanDeletedDaysToKeep(Context context, int cleanDeletedDaysToKeep)
+	{
+		if (!context.isRunningInTestMode()) return;
+		
+		this.cleanDeletedDaysToKeep = cleanDeletedDaysToKeep;
 	}
 }
