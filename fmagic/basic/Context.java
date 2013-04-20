@@ -555,9 +555,9 @@ public abstract class Context implements Cloneable, ManagerInterface
 		// Load configuration parameter if not done yet
 		if (this.dumpMaxNuOfDumpItems == null)
 		{
-			int iValue = this.getConfigurationManager().getPropertyAsIntegerValue(this, ResourceManager.configuration(this, "Context", "MaxNuOfDumpItems"), MAX_NU_OF_DUMP_ITEMS_DEFAULT, false);
-			if (iValue < MAX_NU_OF_DUMP_ITEMS_MINIMUM) iValue = MAX_NU_OF_DUMP_ITEMS_MINIMUM;
-			if (iValue > MAX_NU_OF_DUMP_ITEMS_MAXIMUM) iValue = MAX_NU_OF_DUMP_ITEMS_MAXIMUM;
+			Integer iValue = this.getConfigurationManager().getPropertyAsIntegerValue(this, ResourceManager.configuration(this, "Context", "MaxNuOfDumpItems"), MAX_NU_OF_DUMP_ITEMS_DEFAULT, false);
+			if (iValue != null && iValue < MAX_NU_OF_DUMP_ITEMS_MINIMUM) iValue = MAX_NU_OF_DUMP_ITEMS_MINIMUM;
+			if (iValue != null && iValue > MAX_NU_OF_DUMP_ITEMS_MAXIMUM) iValue = MAX_NU_OF_DUMP_ITEMS_MAXIMUM;
 			this.dumpMaxNuOfDumpItems = iValue;
 		}
 

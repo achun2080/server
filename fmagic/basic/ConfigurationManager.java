@@ -547,7 +547,7 @@ public class ConfigurationManager implements ManagerInterface
 	 *         property was not found, or <TT>0</TT>, if the value could not be
 	 *         converted to an integer value.
 	 */
-	public int getPropertyAsIntegerValue(Context context, ResourceContainer resourceContainer, int defaultValue, boolean mandatory)
+	public Integer getPropertyAsIntegerValue(Context context, ResourceContainer resourceContainer, Integer defaultValue, boolean mandatory)
 	{
 		// Check parameters
 		if (resourceContainer == null) return defaultValue;
@@ -589,10 +589,19 @@ public class ConfigurationManager implements ManagerInterface
 	 *         property was not found, or <TT>0</TT>, if the value could not be
 	 *         converted to an integer value.
 	 */
-	private int getPropertyAsIntegerValue(Context context, String identifier, int defaultValue, boolean mandatory)
+	private int getPropertyAsIntegerValue(Context context, String identifier, Integer defaultValue, boolean mandatory)
 	{
 		// Reads the current properties
-		String valueAsString = getProperty(context, identifier, String.valueOf(defaultValue), mandatory);
+		String valueAsString = null;
+
+		if (defaultValue == null)
+		{
+			valueAsString = getProperty(context, identifier, null, mandatory);
+		}
+		else
+		{
+			valueAsString = getProperty(context, identifier, String.valueOf(defaultValue), mandatory);
+		}
 
 		// Validate value
 		if (valueAsString == null) return defaultValue;

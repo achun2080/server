@@ -545,6 +545,9 @@ public class ResourceContainer implements Cloneable
 	/**
 	 * Print a Manual containing all information of a resource.
 	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
 	 * @return Returns the printed text as String.
 	 */
 	public String printManual(Context context)
@@ -746,7 +749,15 @@ public class ResourceContainer implements Cloneable
 	}
 
 	/**
-	 * Print a Template containing all information of a resource.
+	 * Print a properties file like template containing all information of a
+	 * resource.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param includingResourceIdentifiers
+	 *            Set to <TT>true</TT> if the resource identifier is to be
+	 *            printed in the template, otherwise <TT>false</TT>.
 	 * 
 	 * @return Returns the printed text as String.
 	 */
@@ -779,9 +790,7 @@ public class ResourceContainer implements Cloneable
 
 			if (manualHeader != null || manualItem != null)
 			{
-				outputString += "\n# --------------------";
-
-				if (manualHeader != null && manualHeader.length() > 0) outputString += "\n# " + manualHeader + "\n# --------------------\n#";
+				if (manualHeader != null && manualHeader.length() > 0) outputString += cutLines(":::::::::: " + manualHeader + "\n#", 60, "# ");
 
 				// List all manual items
 				for (int i = 1; i < 1000; i++)
@@ -799,9 +808,7 @@ public class ResourceContainer implements Cloneable
 
 			if (usageHeader != null || usageItem != null)
 			{
-				outputString += "\n# --------------------";
-
-				if (usageHeader != null && usageHeader.length() > 0) outputString += "\n# " + usageHeader + "\n# --------------------\n#";
+				if (usageHeader != null && usageHeader.length() > 0) outputString += cutLines(":::::::::: " + usageHeader + "\n#", 60, "# ");
 
 				// List all usage items
 				for (int i = 1; i < 1000; i++)
@@ -810,6 +817,20 @@ public class ResourceContainer implements Cloneable
 					if (usageItem == null) break;
 					outputString += cutLines(usageItem, 60, "# ") + "\n#";
 				}
+			}
+
+			// Minimum/Maximum/Default settings
+			Integer minimumValue = this.getAttributeMinimumSettingAsInteger(context);
+			Integer maximumValue = this.getAttributeMaximumSettingAsInteger(context);
+			Integer defaultValue = this.getAttributeDefaultSettingAsInteger(context);
+
+			if (minimumValue != null || maximumValue != null || defaultValue != null)
+			{
+				outputString += cutLines(":::::::::: " + "Settings" + "\n#", 60, "# ");
+
+				if (minimumValue != null) outputString += cutLines("Minimum value: " + String.valueOf(minimumValue), 60, "# ");
+				if (maximumValue != null) outputString += cutLines("Maximum value: " + String.valueOf(maximumValue), 60, "# ");
+				if (defaultValue != null) outputString += cutLines("Default value: " + String.valueOf(defaultValue), 60, "# ");
 			}
 
 			// Identifier
@@ -823,7 +844,7 @@ public class ResourceContainer implements Cloneable
 			}
 			else
 			{
-				outputString += "\n\n" + this.getRecourceIdentifier() + "=" + "\n\n\n";
+				outputString += "\n" + this.getRecourceIdentifier() + "=" + "\n\n\n";
 			}
 		}
 		catch (Exception e)
@@ -996,6 +1017,223 @@ public class ResourceContainer implements Cloneable
 		if (attributeValue == null || attributeValue.length() == 0) return null;
 
 		return attributeValue;
+	}
+
+	/**
+	 * Get the <TT>Minimum</TT> setting of a resource item.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @return Returns the setting of the attribute, or <TT>null</TT> if no
+	 *         value was found.
+	 */
+	public String getAttributeMinimumSetting(Context context)
+	{
+		ResourceContainer attributeResource = ResourceManager.attribute(context, "Common", "Minimum");
+		if (attributeResource == null) return null;
+
+		String attributeName = attributeResource.getAliasName();
+		if (attributeName == null || attributeName.length() == 0) return null;
+
+		String attributeValue = this.attributes.get(attributeName);
+		if (attributeValue == null || attributeValue.length() == 0) return null;
+
+		return attributeValue;
+	}
+
+	/**
+	 * Get the <TT>Minimum</TT> setting of a resource item, as <TT>Integer</TT>
+	 * value.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @return Returns the setting of the attribute, or <TT>null</TT> if no
+	 *         value was found.
+	 */
+	public Integer getAttributeMinimumSettingAsInteger(Context context)
+	{
+		String attributeValueString = getAttributeMinimumSetting(context);
+		if (attributeValueString == null || attributeValueString.length() == 0) return null;
+
+		Integer attributeValueInteger = 0;
+
+		try
+		{
+			attributeValueInteger = Integer.valueOf(attributeValueString);
+		}
+		catch (Exception e)
+		{
+			return null;
+		}
+
+		return attributeValueInteger;
+	}
+
+	/**
+	 * Get the <TT>Maximum</TT> setting of a resource item.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @return Returns the setting of the attribute, or <TT>null</TT> if no
+	 *         value was found.
+	 */
+	public String getAttributeMaximumSetting(Context context)
+	{
+		ResourceContainer attributeResource = ResourceManager.attribute(context, "Common", "Maximum");
+		if (attributeResource == null) return null;
+
+		String attributeName = attributeResource.getAliasName();
+		if (attributeName == null || attributeName.length() == 0) return null;
+
+		String attributeValue = this.attributes.get(attributeName);
+		if (attributeValue == null || attributeValue.length() == 0) return null;
+
+		return attributeValue;
+	}
+
+	/**
+	 * Get the <TT>Maximum</TT> setting of a resource item, as <<TT>Integer</TT>
+	 * value.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @return Returns the setting of the attribute, or <TT>null</TT> if no
+	 *         value was found.
+	 */
+	public Integer getAttributeMaximumSettingAsInteger(Context context)
+	{
+		String attributeValueString = getAttributeMaximumSetting(context);
+		if (attributeValueString == null || attributeValueString.length() == 0) return null;
+
+		Integer attributeValueInteger = 0;
+
+		try
+		{
+			attributeValueInteger = Integer.valueOf(attributeValueString);
+		}
+		catch (Exception e)
+		{
+			return null;
+		}
+
+		return attributeValueInteger;
+	}
+
+	/**
+	 * Get the <TT>Default</TT> setting of a resource item.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @return Returns the setting of the attribute, or <TT>null</TT> if no
+	 *         value was found.
+	 */
+	public String getAttributeDefaultSetting(Context context)
+	{
+		ResourceContainer attributeResource = ResourceManager.attribute(context, "Common", "Default");
+		if (attributeResource == null) return null;
+
+		String attributeName = attributeResource.getAliasName();
+		if (attributeName == null || attributeName.length() == 0) return null;
+
+		String attributeValue = this.attributes.get(attributeName);
+		if (attributeValue == null || attributeValue.length() == 0) return null;
+
+		return attributeValue;
+	}
+
+	/**
+	 * Get the <TT>Default</TT> setting of a resource item, as <<TT>Integer</TT>
+	 * value.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @return Returns the setting of the attribute, or <TT>null</TT> if no
+	 *         value was found.
+	 */
+	public Integer getAttributeDefaultSettingAsInteger(Context context)
+	{
+		String attributeValueString = getAttributeDefaultSetting(context);
+		if (attributeValueString == null || attributeValueString.length() == 0) return null;
+
+		Integer attributeValueInteger = 0;
+
+		try
+		{
+			attributeValueInteger = Integer.valueOf(attributeValueString);
+		}
+		catch (Exception e)
+		{
+			return null;
+		}
+
+		return attributeValueInteger;
+	}
+
+	/**
+	 * Validate the settings of <TT>Minimum</TT> and
+	 * <TT>Maximum>/TT> of a resource item, and set the <TT>Default</TT> value
+	 * if necessary.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param valueToValidate
+	 *            The value to validate.
+	 * 
+	 * @return Returns the validated value, or <TT>null</TT> if an error
+	 *         occurred, or no value is available, or the value was not in
+	 *         range.
+	 */
+	public Integer validateMinimumMaximumSetting(Context context, Integer valueToValidate)
+	{
+		String errorText = "";
+		boolean isError = false;
+
+		Integer validatedValue = valueToValidate;
+
+		Integer minimumValue = this.getAttributeMinimumSettingAsInteger(context);
+		Integer maximumValue = this.getAttributeMaximumSettingAsInteger(context);
+		Integer defaultValue = this.getAttributeDefaultSettingAsInteger(context);
+
+		if (validatedValue == null) validatedValue = defaultValue;
+
+		if (minimumValue != null && validatedValue != null && validatedValue < minimumValue)
+		{
+			errorText += "\n--> Current value '" + String.valueOf(validatedValue) + "' set to the resource item '" + this.getRecourceIdentifier() + "' is lower than the allowed minimum value '" + String.valueOf(minimumValue) + "'.";
+			errorText += "\n--> The value was set to '" + String.valueOf(minimumValue) + "'.";
+			isError = true;
+		}
+
+		if (maximumValue != null && validatedValue != null && validatedValue > maximumValue)
+		{
+			errorText += "\n--> Current value '" + String.valueOf(validatedValue) + "' set to the resource item '" + this.getRecourceIdentifier() + "' is greater than the allowed maximum value '" + String.valueOf(maximumValue) + "'.";
+			errorText += "\n--> The value was set to '" + String.valueOf(maximumValue) + "'.";
+			isError = true;
+		}
+
+		if (validatedValue == null)
+		{
+			errorText += "\n--> No setting available for the resource item '" + this.getRecourceIdentifier() + "'.";
+			isError = true;
+		}
+
+		// Check on error
+		if (isError == true)
+		{
+			String errorString = "--> Error on validating resource settings.";
+			errorString += errorText;
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Resource", "IntegrityError"), errorString, null);
+			return null;
+		}
+
+		// Return
+		return validatedValue;
 	}
 
 	/**

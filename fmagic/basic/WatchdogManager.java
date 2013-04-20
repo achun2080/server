@@ -16,7 +16,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.mail.internet.InternetAddress;
 
-
 /**
  * This class implements the functionality of the WATCHDOG. Please invoke the
  * method <TT>addWatchdogCommand()</TT> to notify an event, error, configuration
@@ -59,16 +58,10 @@ public class WatchdogManager
 	private boolean emailActive = false;
 
 	// Configuration parameter: MaxNuOfItemsInCommandQueue
-	final private int MAX_NU_OF_ITEMS_IN_COMMAND_QUEUE_MINIMUM = 100;
-	final private int MAX_NU_OF_ITEMS_IN_COMMAND_QUEUE_MAXIMUM = 500;
-	final private int MAX_NU_OF_ITEMS_IN_COMMAND_QUEUE_DEFAULT = 100;
-	private int watchdogMaxNuOfItemsInCommandQueue = MAX_NU_OF_ITEMS_IN_COMMAND_QUEUE_DEFAULT;
+	private int watchdogMaxNuOfItemsInCommandQueue = 0;
 
 	// Configuration parameter: SecondsToWaitBetweenWatchdogProcessing
-	final private int SECONDS_TO_WAIT_BETWEEN_WATCHDOG_PROCESSING_MINIMUM = 1;
-	final private int SECONDS_TO_WAIT_BETWEEN_WATCHDOG_PROCESSING_MAXIMUM = 60;
-	final private int SECONDS_TO_WAIT_BETWEEN_WATCHDOG_PROCESSING_DEFAULT = 5;
-	private int secondsToWaitBetweenWatchdogProcessing = SECONDS_TO_WAIT_BETWEEN_WATCHDOG_PROCESSING_DEFAULT;
+	private int secondsToWaitBetweenWatchdogProcessing = 0;
 
 	// EMAIL configuration parameter
 	private String smtpHost = "";
@@ -520,17 +513,35 @@ public class WatchdogManager
 
 			// Parameter: WATCHDOG Max number of items in CommandQueue
 			errorText = "--> On processing parameter: Watchdog MaximumNuOfItemsInCommandQueue";
-			int iValue = this.getContext().getConfigurationManager().getPropertyAsIntegerValue(this.getContext(), ResourceManager.configuration(this.getContext(), "Watchdog", "MaximumNuOfItemsInCommandQueue"), MAX_NU_OF_ITEMS_IN_COMMAND_QUEUE_DEFAULT, false);
-			if (iValue < 100) iValue = MAX_NU_OF_ITEMS_IN_COMMAND_QUEUE_MINIMUM;
-			if (iValue > 500) iValue = MAX_NU_OF_ITEMS_IN_COMMAND_QUEUE_MAXIMUM;
-			this.watchdogMaxNuOfItemsInCommandQueue = iValue;
+
+			ResourceContainer resourceContainer = ResourceManager.configuration(context, "Watchdog", "MaximumNuOfItemsInCommandQueue");
+			Integer iValue = this.getContext().getConfigurationManager().getPropertyAsIntegerValue(this.getContext(), resourceContainer, resourceContainer.getAttributeDefaultSettingAsInteger(context), false);
+			iValue = resourceContainer.validateMinimumMaximumSetting(context, iValue);
+
+			if (iValue != null)
+			{
+				this.watchdogMaxNuOfItemsInCommandQueue = iValue;
+			}
+			else
+			{
+				isError = true;
+			}
 
 			// Parameter: WATCHDOG SecondsToWaitBetweenWatchdogProcessing
 			errorText = "--> On processing parameter: WATCHDOG SecondsToWaitBetweenWatchdogProcessing";
-			iValue = this.getContext().getConfigurationManager().getPropertyAsIntegerValue(this.getContext(), ResourceManager.configuration(this.getContext(), "Watchdog", "SecondsToWaitBetweenWatchdogProcessing"), SECONDS_TO_WAIT_BETWEEN_WATCHDOG_PROCESSING_DEFAULT, false);
-			if (iValue < SECONDS_TO_WAIT_BETWEEN_WATCHDOG_PROCESSING_MINIMUM) iValue = SECONDS_TO_WAIT_BETWEEN_WATCHDOG_PROCESSING_MINIMUM;
-			if (iValue > SECONDS_TO_WAIT_BETWEEN_WATCHDOG_PROCESSING_MAXIMUM) iValue = SECONDS_TO_WAIT_BETWEEN_WATCHDOG_PROCESSING_MAXIMUM;
-			this.secondsToWaitBetweenWatchdogProcessing = iValue;
+
+			resourceContainer = ResourceManager.configuration(context, "Watchdog", "SecondsToWaitBetweenWatchdogProcessing");
+			iValue = this.getContext().getConfigurationManager().getPropertyAsIntegerValue(this.getContext(), resourceContainer, resourceContainer.getAttributeDefaultSettingAsInteger(context), false);
+			iValue = resourceContainer.validateMinimumMaximumSetting(context, iValue);
+
+			if (iValue != null)
+			{
+				this.secondsToWaitBetweenWatchdogProcessing = iValue;
+			}
+			else
+			{
+				isError = true;
+			}
 
 			// Parameter: EMAIL Active
 			errorText = "--> On processing parameter: Email Active";
@@ -647,7 +658,7 @@ public class WatchdogManager
 	{
 		// Do not add if the test mode of the application is set
 		if (callerContext.isRunningInTestMode()) return;
-		
+
 		// Lock message processing
 		if (this.lockMessageHandling("Watchdog", resourceIdentifier) == true) return;
 
@@ -683,7 +694,7 @@ public class WatchdogManager
 				// not loaded yet, the commands are always add to the WATCHDOG
 				// queue, because they could be requested after loading
 				// configuration.
-				if (this.configurationDone == true &&  (WatchdogManager.checkWatchdogCondition(this.getContext(), this.watchdogDistributionList, resourceIdentifier, context.getContextResourceContainer().getRecourceIdentifier()) == false))
+				if (this.configurationDone == true && (WatchdogManager.checkWatchdogCondition(this.getContext(), this.watchdogDistributionList, resourceIdentifier, context.getContextResourceContainer().getRecourceIdentifier()) == false))
 				{
 					break;
 				}
@@ -1102,5 +1113,5 @@ public class WatchdogManager
 	{
 		return emailActive;
 	}
-	
+
 }

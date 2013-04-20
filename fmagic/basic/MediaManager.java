@@ -353,77 +353,70 @@ public class MediaManager implements ManagerInterface
 	 */
 	private boolean readConfigurationCleaningConfigurationParameter(Context context)
 	{
-		final int CleanPendingDaysToKeep_MINIMUM = 0;
-		final int CleanPendingDaysToKeep_MAXIMUM = 30;
-		final int CleanPendingDaysToKeep_DEFAULT = 7;
-
-		final int CleanDeletedDaysToKeep_MINIMUM = 0;
-		final int CleanDeletedDaysToKeep_MAXIMUM = 365;
-		final int CleanDeletedDaysToKeep_DEFAULT = 180;
-
-		final int CleanObsoleteDaysToKeep_MINIMUM = 1;
-		final int CleanObsoleteDaysToKeep_MAXIMUM = 7;
-		final int CleanObsoleteDaysToKeep_DEFAULT = 1;
-
 		// Initialize
 		String errorText = "";
 		boolean isError = false;
 		ResourceContainer resourceContainer = null;
+		Integer iValue = null;
 
-		// Read parameter: CleanPendingDaysToKeep
-		resourceContainer = ResourceManager.configuration(context, "Media", "CleanPendingDaysToKeep");
-		this.cleanPendingDaysToKeep = context.getConfigurationManager().getPropertyAsIntegerValue(context, resourceContainer, CleanPendingDaysToKeep_DEFAULT, false);
-
-		if (this.cleanPendingDaysToKeep < CleanPendingDaysToKeep_MINIMUM)
+		try
 		{
-			errorText += "\n--> Current value '" + String.valueOf(this.cleanPendingDaysToKeep) + "' set to the configuration property '" + resourceContainer.getRecourceIdentifier() + "' is lower than the allowed minimum value '" + String.valueOf(CleanPendingDaysToKeep_MINIMUM) + "'.";
-			isError = true;
+			// Read parameter: CleanPendingDaysToKeep
+			resourceContainer = ResourceManager.configuration(context, "Media", "CleanPendingDaysToKeep");
+			iValue = context.getConfigurationManager().getPropertyAsIntegerValue(context, resourceContainer, resourceContainer.getAttributeDefaultSettingAsInteger(context), false);
+			iValue = resourceContainer.validateMinimumMaximumSetting(context, iValue);
+
+			if (iValue != null)
+			{
+				this.cleanPendingDaysToKeep = iValue;
+			}
+			else
+			{
+				isError = true;
+			}
+
+			// Read parameter: CleanDeletedDaysToKeep
+			resourceContainer = ResourceManager.configuration(context, "Media", "CleanDeletedDaysToKeep");
+			iValue = context.getConfigurationManager().getPropertyAsIntegerValue(context, resourceContainer, resourceContainer.getAttributeDefaultSettingAsInteger(context), false);
+			iValue = resourceContainer.validateMinimumMaximumSetting(context, iValue);
+
+			if (iValue != null)
+			{
+				this.cleanDeletedDaysToKeep = iValue;
+			}
+			else
+			{
+				isError = true;
+			}
+
+			// Read parameter: CleanObsoleteDaysToKeep
+			resourceContainer = ResourceManager.configuration(context, "Media", "CleanObsoleteDaysToKeep");
+			iValue = context.getConfigurationManager().getPropertyAsIntegerValue(context, resourceContainer, resourceContainer.getAttributeDefaultSettingAsInteger(context), false);
+			iValue = resourceContainer.validateMinimumMaximumSetting(context, iValue);
+
+			if (iValue != null)
+			{
+				this.cleanObsoleteDaysToKeep = iValue;
+			}
+			else
+			{
+				isError = true;
+			}
+
+			// Check parameter value
+			if (isError == true)
+			{
+				String errorString = "--> Error on reading configuration properties regarding media settings:";
+				errorString += errorText;
+				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Configuration", "IntegrityError"), errorString, null);
+				return true;
+			}
 		}
-
-		if (this.cleanPendingDaysToKeep > CleanPendingDaysToKeep_MAXIMUM)
-		{
-			errorText += "\n--> Current value '" + String.valueOf(this.cleanPendingDaysToKeep) + "' set to the configuration property '" + resourceContainer.getRecourceIdentifier() + "' is greater than the allowed maximum value '" + String.valueOf(CleanPendingDaysToKeep_MAXIMUM) + "'.";
-			isError = true;
-		}
-
-		// Read parameter: CleanDeletedDaysToKeep
-		resourceContainer = ResourceManager.configuration(context, "Media", "CleanDeletedDaysToKeep");
-		this.cleanDeletedDaysToKeep = context.getConfigurationManager().getPropertyAsIntegerValue(context, resourceContainer, CleanDeletedDaysToKeep_DEFAULT, false);
-
-		if (this.cleanDeletedDaysToKeep < CleanDeletedDaysToKeep_MINIMUM)
-		{
-			errorText += "\n--> Current value '" + String.valueOf(this.cleanDeletedDaysToKeep) + "' set to the configuration property '" + resourceContainer.getRecourceIdentifier() + "' is lower than the allowed minimum value '" + String.valueOf(CleanDeletedDaysToKeep_MINIMUM) + "'.";
-			isError = true;
-		}
-
-		if (this.cleanDeletedDaysToKeep > CleanDeletedDaysToKeep_MAXIMUM)
-		{
-			errorText += "\n--> Current value '" + String.valueOf(this.cleanDeletedDaysToKeep) + "' set to the configuration property '" + resourceContainer.getRecourceIdentifier() + "' is greater than the allowed maximum value '" + String.valueOf(CleanDeletedDaysToKeep_MAXIMUM) + "'.";
-			isError = true;
-		}
-
-		// Read parameter: CleanObsoleteDaysToKeep
-		resourceContainer = ResourceManager.configuration(context, "Media", "CleanObsoleteDaysToKeep");
-		this.cleanObsoleteDaysToKeep = context.getConfigurationManager().getPropertyAsIntegerValue(context, resourceContainer, CleanObsoleteDaysToKeep_DEFAULT, false);
-
-		if (this.cleanObsoleteDaysToKeep < CleanObsoleteDaysToKeep_MINIMUM)
-		{
-			errorText += "\n--> Current value '" + String.valueOf(this.cleanObsoleteDaysToKeep) + "' set to the configuration property '" + resourceContainer.getRecourceIdentifier() + "' is lower than the allowed minimum value '" + String.valueOf(CleanObsoleteDaysToKeep_MINIMUM) + "'.";
-			isError = true;
-		}
-
-		if (this.cleanObsoleteDaysToKeep > CleanObsoleteDaysToKeep_MAXIMUM)
-		{
-			errorText += "\n--> Current value '" + String.valueOf(this.cleanObsoleteDaysToKeep) + "' set to the configuration property '" + resourceContainer.getRecourceIdentifier() + "' is greater than the allowed maximum value '" + String.valueOf(CleanObsoleteDaysToKeep_MAXIMUM) + "'.";
-			isError = true;
-		}
-
-		// Check parameter value
-		if (isError == true)
+		catch (Exception e)
 		{
 			String errorString = "--> Error on reading configuration properties regarding media settings:";
 			errorString += errorText;
-			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Configuration", "IntegrityError"), errorString, null);
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Configuration", "IntegrityError"), errorString, e);
 			return true;
 		}
 
@@ -1613,17 +1606,45 @@ public class MediaManager implements ManagerInterface
 			// Get 'pending' directory of the media resource
 			String directoryPath = mediaResourceContainer.getMediaPendingFilePath(context);
 
+			// / Logging
+			String logText = "\n--> CLEAN 'PENDING' MEDIA DIRECTORY: Begin of cleaning (pending directory of a specific media resource)";
+			logText += "\n--> Media directory: '" + directoryPath + "'";
+			logText += "\n--> Days to keep: '" + String.valueOf(daysToKeep) + "'";
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
+
 			// Get file list of expired files
 			List<String> files = FileUtilFunctions.fileSearchDirectoryOnExpiredFiles(directoryPath, "*", daysToKeep);
 
 			if (files == null) return 0;
 			if (files.size() == 0) return 0;
 
-			// Delete expired files
-			return FileUtilFunctions.fileDelete(files);
+			// Logging
+			logText = "\n--> CLEAN 'PENDING' MEDIA DIRECTORY: List of media files to delete:";
+
+			int nuOfFilesToDelete = 0;
+			
+			for (String file : files)
+			{
+				logText += "\n(" +  String.valueOf(++nuOfFilesToDelete) + ") [" + file + "]";
+			}
+
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
+
+			// Delete files
+			int nuOfRemovedFiles =  FileUtilFunctions.fileDelete(files);
+
+			// Logging
+			logText = "\n--> CLEAN 'PENDING' MEDIA DIRECTORY: End of cleaning (pending directory of a specific media resource)";
+			logText += "\n--> Total number of deleted files: '" + String.valueOf(nuOfRemovedFiles) + "'";
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
+
+			// Return
+			return nuOfRemovedFiles;
 		}
 		catch (Exception e)
-		{
+		{ 
+			String errorString = "--> CLEAN 'PENDING' MEDIA DIRECTORY: Error on processing cleaning.";
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnProcessingFile"), errorString, e);
 			return 0;
 		}
 	}
@@ -1656,17 +1677,45 @@ public class MediaManager implements ManagerInterface
 			// Get 'deleted' directory of the media resource
 			String directoryPath = mediaResourceContainer.getMediaDeletedFilePath(context);
 
+			// / Logging
+			String logText = "\n--> CLEAN 'DELETED' MEDIA DIRECTORY: Begin of cleaning (deleted directory of a specific media resource)";
+			logText += "\n--> Media directory: '" + directoryPath + "'";
+			logText += "\n--> Days to keep: '" + String.valueOf(daysToKeep) + "'";
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
+
 			// Get file list of expired files
 			List<String> files = FileUtilFunctions.fileSearchDirectoryOnExpiredFiles(directoryPath, "*", daysToKeep);
 
 			if (files == null) return 0;
 			if (files.size() == 0) return 0;
 
-			// Delete expired files
-			return FileUtilFunctions.fileDelete(files);
+			// Logging
+			logText = "\n--> CLEAN 'DELETED' MEDIA DIRECTORY: List of media files to delete:";
+			
+			int nuOfFilesToDelete = 0;
+
+			for (String file : files)
+			{
+				logText += "\n(" +  String.valueOf(++nuOfFilesToDelete) + ") [" + file + "]";
+			}
+
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
+
+			// Delete files
+			int nuOfRemovedFiles = FileUtilFunctions.fileDelete(files);
+
+			// Logging
+			logText = "\n--> CLEAN 'DELETED' MEDIA DIRECTORY: End of cleaning (deleted directory of a specific media resource)";
+			logText += "\n--> Total number of deleted files: '" + String.valueOf(nuOfRemovedFiles) + "'";
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
+
+			// Return
+			return nuOfRemovedFiles;
 		}
 		catch (Exception e)
 		{
+			String errorString = "--> CLEAN 'DELETED' MEDIA DIRECTORY: Error on processing cleaning.";
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnProcessingFile"), errorString, e);
 			return 0;
 		}
 	}
@@ -1703,12 +1752,22 @@ public class MediaManager implements ManagerInterface
 		String regularMediaFilesDirectory = mediaResourceContainer.getMediaRegularFilePath(context);
 		String deletedMediaFilesDirectory = mediaResourceContainer.getMediaDeletedFilePath(context);
 
+		// / Logging
+		String logText = "\n--> CLEAN 'REGULAR' MEDIA DIRECTORY: Begin of cleaning (regular directory of a specific media resource)";
+		logText += "\n--> Media directory: '" + regularMediaFilesDirectory + "'";
+		logText += "\n--> Days to keep: '" + String.valueOf(daysToKeep) + "'";
+		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
+
 		/*
 		 * Get List of all different data identifiers that are real used in the
 		 * 'regular' directory.
 		 */
 		try
 		{
+			// Logging
+			logText = "\n--> CLEAN 'REGULAR' MEDIA DIRECTORY: List of data identifiers found:";
+			logText += "\n--> ";
+
 			// Get file list of all files
 			List<String> allFiles = FileUtilFunctions.fileSearchDirectoryForFiles(regularMediaFilesDirectory, "*");
 
@@ -1724,13 +1783,20 @@ public class MediaManager implements ManagerInterface
 				if (dataIdentifier == null || dataIdentifier.length() == 0) continue;
 
 				usedDataIdentifiers.add(dataIdentifier);
+
+				logText += "[" + dataIdentifier + "] ";
 			}
 
 			// Check list
 			if (usedDataIdentifiers.size() == 0) return 0;
+
+			// / Logging
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
 		}
 		catch (Exception e)
 		{
+			String errorString = "--> CLEAN 'REGULAR' MEDIA DIRECTORY: Error on processing cleaning.";
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnProcessingFile"), errorString, e);
 			return 0;
 		}
 
@@ -1739,6 +1805,9 @@ public class MediaManager implements ManagerInterface
 		 */
 		try
 		{
+			// Logging
+			logText = "\n--> CLEAN 'REGULAR' MEDIA DIRECTORY: List of media files moved:";
+
 			// Go through the list of data identifiers and move obsolete files
 			for (String dataIdentifier : usedDataIdentifiers)
 			{
@@ -1766,15 +1835,26 @@ public class MediaManager implements ManagerInterface
 					if (FileUtilFunctions.fileMove(filePath, deletedFilePath) == true)
 					{
 						nuOfMovedFiles++;
+
+						logText += "\n(" +  String.valueOf(nuOfMovedFiles) + ") [" + filePath + "] moved to [" + deletedFilePath + "]";
 					}
 				}
 			}
+
+			// / Logging
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
+
+			logText = "\n--> CLEAN 'REGULAR' MEDIA DIRECTORY: End of cleaning (regular directory of a specific media resource)";
+			logText += "\n--> Total number of moved files: '" + String.valueOf(nuOfMovedFiles) + "'";
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
 
 			// Return
 			return nuOfMovedFiles;
 		}
 		catch (Exception e)
 		{
+			String errorString = "--> CLEAN 'REGULAR' MEDIA DIRECTORY: Error on processing cleaning.";
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnProcessingFile"), errorString, e);
 			return 0;
 		}
 	}
@@ -1798,13 +1878,28 @@ public class MediaManager implements ManagerInterface
 		try
 		{
 			int nuOfMovedFiles = 0;
+
+			// / Logging
+			String logText = "\n--> CLEAN MEDIA DIRECTORIES: Begin of cleaning (all directories of a specific media resource)";
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
+
+			// Cleaning
 			nuOfMovedFiles = nuOfMovedFiles + this.cleanRegularDirectory(context, mediaResourceContainer, this.cleanObsoleteDaysToKeep);
 			nuOfMovedFiles = nuOfMovedFiles + this.cleanPendingDirectory(context, mediaResourceContainer, this.cleanPendingDaysToKeep);
 			nuOfMovedFiles = nuOfMovedFiles + this.cleanDeletedDirectory(context, mediaResourceContainer, this.cleanDeletedDaysToKeep);
+
+			// / Logging
+			logText = "\n--> CLEAN MEDIA DIRECTORIES: End of cleaning (all directories of a specific media resource)";
+			logText += "\n--> Total number of cleaned files: '" + String.valueOf(nuOfMovedFiles) + "'";
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
+
+			// Return
 			return nuOfMovedFiles;
 		}
 		catch (Exception e)
 		{
+			String errorString = "--> CLEAN MEDIA DIRECTORIES: Error on processing cleaning.";
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnProcessingFile"), errorString, e);
 			return 0;
 		}
 	}
@@ -1823,6 +1918,10 @@ public class MediaManager implements ManagerInterface
 		{
 			// Initialize
 			int nuOfMovedFiles = 0;
+
+			// / Logging
+			String logText = "\n--> CLEAN ALL MEDIA: Begin of cleaning (all directories of all media resources)";
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
 
 			// Get all resource identifiers
 			String typeCriteria[] = { "Media" };
@@ -1846,11 +1945,18 @@ public class MediaManager implements ManagerInterface
 				nuOfMovedFiles = nuOfMovedFiles + this.cleanAllDirectories(context, mediaContainer);
 			}
 
+			// / Logging
+			logText = "\n--> CLEAN ALL MEDIA: End of cleaning (all directories of all media resources)";
+			logText += "\n--> Total number of cleaned files: '" + String.valueOf(nuOfMovedFiles) + "'";
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
+
 			// Return
 			return nuOfMovedFiles;
 		}
 		catch (Exception e)
 		{
+			String errorString = "--> CLEAN ALL MEDIA: Error on processing cleaning.";
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnProcessingFile"), errorString, e);
 			return 0;
 		}
 	}
@@ -1890,13 +1996,13 @@ public class MediaManager implements ManagerInterface
 	/**
 	 * TEST Setter
 	 * 
-	 * Please notice: This setter is supposed test purposes only. It doesn't work
-	 * if it runs in productive environment.
+	 * Please notice: This setter is supposed test purposes only. It doesn't
+	 * work if it runs in productive environment.
 	 */
 	public void setCleanDeletedDaysToKeep(Context context, int cleanDeletedDaysToKeep)
 	{
 		if (!context.isRunningInTestMode()) return;
-		
+
 		this.cleanDeletedDaysToKeep = cleanDeletedDaysToKeep;
 	}
 }

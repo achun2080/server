@@ -1319,7 +1319,7 @@ public class FileUtilFunctions
 	 * @return Returns the list of obsolete files, or <TT>null</TT> if an error
 	 *         occurred, or no files could be found.
 	 */
-	public static List<String> fileSearchDirectoryOnObsoleteFiles(String filePath, String fileFilterMask, int daysToKeep)
+	public static List<String> fileSearchDirectoryOnObsoleteFiles(String filePath, String fileFilterMask, Integer daysToKeep)
 	{
 		/*
 		 * Get list of files that matches the file filter mask
@@ -1351,6 +1351,8 @@ public class FileUtilFunctions
 		 * Delete all files that are NOT older than x days.
 		 */
 
+		if (daysToKeep == null) return filePathList;
+			
 		try
 		{
 			// Compose expired date
@@ -1369,14 +1371,14 @@ public class FileUtilFunctions
 					filePathList.remove(currentFilePath);
 				}
 			}
-
-			// Return
-			return filePathList;
 		}
 		catch (Exception e)
 		{
 			return null;
 		}
+
+		// Return
+		return filePathList;
 	}
 
 	/**

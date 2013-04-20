@@ -35,9 +35,9 @@ public class MediaContainer
 		this.resourceContainerMedia = resourceContainerMedia;
 		this.dataIdentifier = dataIdentifier;
 
-		if (resourceContainerMedia != null && dataIdentifier != null)
+		if (this.resourceContainerMedia != null && this.dataIdentifier != null)
 		{
-			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "MEDIA CONTAINER: Instantiated for media container: '" + resourceContainerMedia.getRecourceIdentifier() + "' and data identifier '" + dataIdentifier + "'");
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "\n--> MEDIA CONTAINER: Instantiated for media container: '" + this.resourceContainerMedia.getRecourceIdentifier() + "' and data identifier '" + this.dataIdentifier + "'");
 		}
 	}
 
@@ -65,13 +65,13 @@ public class MediaContainer
 		this.originalMediaFilePath = this.resourceContainerMedia.getMediaRealFileName(this.context, this.dataIdentifier);
 		if (this.originalMediaFilePath == null || this.originalMediaFilePath.length() == 0) return false;
 
-		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "MEDIA CONTAINER: Media was bound to original media file path: '" + this.originalMediaFilePath + "'");
+		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "\n--> MEDIA CONTAINER: Media was bound to original media file path: '" + this.originalMediaFilePath + "'");
 
 		// Copy or decrypt media file to a pending (temporary) file
 		this.workingMediaFilePath = this.context.getMediaManager().operationDecrypt(this.context, this.resourceContainerMedia, this.originalMediaFilePath);
 		if (this.workingMediaFilePath == null || this.workingMediaFilePath.length() == 0) return false;
 
-		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "MEDIA CONTAINER: Bounded media was copied/decrypted the the 'pending' directory: '" + this.workingMediaFilePath + "'");
+		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "\n--> MEDIA CONTAINER: Bounded media was copied/decrypted the the 'pending' directory: '" + this.workingMediaFilePath + "'");
 
 		// Set bind mark
 		this.boundMark = true;
@@ -157,6 +157,11 @@ public class MediaContainer
 		if (this.workingMediaFilePath != null && this.workingMediaFilePath.length() > 0)
 		{
 			FileUtilFunctions.fileDelete(this.workingMediaFilePath);
+		}
+		
+		if (this.resourceContainerMedia != null && this.dataIdentifier != null)
+		{
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "\n--> MEDIA CONTAINER: Media container released: '" + this.resourceContainerMedia.getRecourceIdentifier() + "', data identifier '" + this.dataIdentifier + "'");
 		}
 
 		// / Clear variables

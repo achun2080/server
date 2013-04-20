@@ -32,26 +32,27 @@ public class ApplicationMain
 //		testRunner.executeSingleFunctionTest(testContainer, "testExpiredDeletedFiles");
 //		testRunner.executeSingleFunctionTest(testContainer, "testExpiredObsoleteFiles");
 		testRunner.executeSingleFunctionTest(testContainer, "testCleaningAll");
+//		testRunner.executeSingleFunctionTest(testContainer, "xxxxxxxxxx");
 
 		testRunner.cleanup();
 
 		try
 		{
-			// ApplicationTest testA = new ApplicationTest();
-			// testA.addTestRunner(new TestRunnerMedia("a-component"));
-			// testA.executeComponentTests();
-			//
-			// ApplicationTest testB = new ApplicationTest();
-			// testB.addTestRunner(new TestRunnerMedia("b-concurrent"));
-			// testB.executeConcurrentTests();
-			//
-			// ApplicationTest testC = new ApplicationTest();
-			// testC.addTestRunner(new TestRunnerMedia("c-stress"));
-			// testC.executeStressTests();
-			//
-			// ApplicationTest testD = new ApplicationTest();
-			// testD.addTestRunner(new TestRunnerMedia("d-integeration"));
-			// testD.executeIntegerationTests();
+//			ApplicationTest testA = new ApplicationTest();
+//			testA.addTestRunner(new TestRunnerMedia("a-component"));
+//			testA.executeComponentTests();
+//
+//			ApplicationTest testB = new ApplicationTest();
+//			testB.addTestRunner(new TestRunnerMedia("b-concurrent"));
+//			testB.executeConcurrentTests();
+//
+//			ApplicationTest testC = new ApplicationTest();
+//			testC.addTestRunner(new TestRunnerMedia("c-stress"));
+//			testC.executeStressTests();
+//
+//			ApplicationTest testD = new ApplicationTest();
+//			testD.addTestRunner(new TestRunnerMedia("d-integeration"));
+//			testD.executeIntegerationTests();
 		}
 		catch (Exception e)
 		{

@@ -215,6 +215,27 @@ public class ServerTestContainerMedia extends ServerTestContainer
 	}
 
 	/**
+	 * Test: XXXXXXXXXX
+	 */
+	public void xxxxxxxxxx()
+	{
+		TestManager.servicePrintHeader(this.getContext(), "===> xxxxxxxxxx()", null);
+
+		try
+		{
+			ResourceContainer configuration = ResourceManager.configuration(this.getContext(), "Media", "CleanDeletedDaysToKeep");
+			
+			System.out.println();
+			System.out.println(configuration.printTemplate(this.getContext(), true));
+			
+		}
+		catch (Exception e)
+		{
+			TestManager.servicePrintException(this.getContext(), "Unexpected Exception", e);
+		}
+	}
+
+	/**
 	 * Test: Media Resource
 	 */
 	public void testMediaResource()
@@ -342,7 +363,7 @@ public class ServerTestContainerMedia extends ServerTestContainer
 				this.doUploadFile(this.parameterResourceGroup, this.parameterResourceName, this.parameterDataIdentifierTestObsolete, fileList.get(i));
 
 				// Get list of obsolete files
-				List<String> obsoleteFiles = FileUtilFunctions.fileSearchDirectoryOnObsoleteFiles(mediaFilePath, mediaFileNameMask, 999);
+				List<String> obsoleteFiles = FileUtilFunctions.fileSearchDirectoryOnObsoleteFiles(mediaFilePath, mediaFileNameMask, null);
 				TestManager.assertNotNull(this.getContext(), null, obsoleteFiles);
 				TestManager.assertEquals(this.getContext(), null, obsoleteFiles.size(), nuOfObsoleteFiles + i + 1);
 
@@ -1056,10 +1077,6 @@ public class ServerTestContainerMedia extends ServerTestContainer
 
 			Date currentDate = new Date();
 
-			// Modify this parameter to ensure that no 'deleted' files were
-			// removed in this test case.
-			this.getContext().getMediaManager().setCleanDeletedDaysToKeep(this.getContext(), daysToKeep * 3);
-
 			// Get file directory of images
 			ResourceContainer configuration = ResourceManager.configuration(this.getContext(), "MediaTest", "DirectoryToSearchForMediaFiles");
 			String uploadFilePath = this.getContext().getConfigurationManager().getProperty(this.getContext(), configuration, null, true);
@@ -1170,16 +1187,26 @@ public class ServerTestContainerMedia extends ServerTestContainer
 
 			TestManager.assertGreaterThan(this.getContext(), null, nuOfFilesCreated, 0);
 
+			// Modify this parameter to ensure that no 'deleted' files were
+			// removed in this test case.
+			int currentCleanDeletedDaysToKeep = this.getContext().getMediaManager().getCleanDeletedDaysToKeep();
+			this.getContext().getMediaManager().setCleanDeletedDaysToKeep(this.getContext(), daysToKeep * 3);
+
 			// Invoke regular clean function of the media manager
 			int nuOfDeletedFiles = this.getContext().getMediaManager().cleanAll(this.getContext());
+
 			TestManager.assertGreaterThan(this.getContext(), null, nuOfDeletedFiles, 0);
 			TestManager.assertLowerThan(this.getContext(), null, nuOfDeletedFiles, nuOfFilesCreated);
 
 			TestManager.assertGreaterThan(this.getContext(), null, nuOfDeletedFiles, 0);
 			TestManager.assertLowerThan(this.getContext(), null, nuOfDeletedFiles, nuOfFilesCreated);
+
+			// Undo modifying this parameter to ensure that no 'deleted' files
+			// were removed in this test case.
+			this.getContext().getMediaManager().setCleanDeletedDaysToKeep(this.getContext(), currentCleanDeletedDaysToKeep);
 
 			// Count the real number of remaining files in the 'regular'
-			// directory
+			// directories
 
 			int nuOfRemainingFiles = 0;
 
