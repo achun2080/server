@@ -202,7 +202,7 @@ public abstract class ServerManager extends ApplicationManager
 		}
 
 		// Wait till end of thread
-		FileUtilFunctions.waitForThreadTerminating(this.applicationServer, 60);
+		FileUtilFunctions.generalWaitForThreadTerminating(this.applicationServer, 60);
 
 		// Release WATCHDOG
 		this.releaseWatchdog();

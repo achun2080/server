@@ -113,6 +113,12 @@ public class ServerSeniorCitizen extends ServerManager implements
 	}
 
 	@Override
+	public boolean cleanEnvironment(Context context)
+	{
+		return false;
+	}
+
+	@Override
 	protected boolean assignRightGroups(Context context)
 	{
 		boolean isSuccessful = true;

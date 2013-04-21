@@ -93,6 +93,12 @@ public class LabelManager implements ManagerInterface
 		return false;
 	}
 
+	@Override
+	public boolean cleanEnvironment(Context context)
+	{
+		return false;
+	}
+
 	/**
 	 * Composes the path of the data directory of label resource files.
 	 * 
@@ -641,7 +647,7 @@ public class LabelManager implements ManagerInterface
 
 			if (commonAttributes != null && commonAttributes.length() > 0)
 			{
-				output.append(FileUtilFunctions.normalizeNewLine(commonAttributes));
+				output.append(FileUtilFunctions.generalNormalizeNewLine(commonAttributes));
 			}
 
 			// Go through the list and get the manual for each resource item
@@ -687,7 +693,7 @@ public class LabelManager implements ManagerInterface
 					if (text == null) text = "";
 					manualText += identifier + ResourceManager.getAttributeDelimiterString() + label.getAttributeResourceIdentifier(context, number, destinationLanguage) + "=" + text.trim() + "\n\n";
 
-					resourceTemplateText += FileUtilFunctions.normalizeNewLine(manualText);
+					resourceTemplateText += FileUtilFunctions.generalNormalizeNewLine(manualText);
 				}
 
 				output.append(resourceTemplateText);

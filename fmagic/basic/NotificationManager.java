@@ -83,6 +83,9 @@ public class NotificationManager implements ManagerInterface
 	private ConcurrentHashMap<String, Boolean> processingActive = new ConcurrentHashMap<String, Boolean>();
 	private int messageLostCounter = 0;
 
+	// Configuration parameter
+	private int cleanDaysToKeep = 0;
+
 	@Override
 	public String printTemplate(Context context, boolean includingResourceIdentifiers)
 	{
@@ -140,6 +143,23 @@ public class NotificationManager implements ManagerInterface
 	@Override
 	public boolean readConfiguration(Context context)
 	{
+		boolean isError = false;
+
+		if (readConfigurationCleaningConfigurationParameter(context) == true) isError = true;
+
+		/*
+		 * Return
+		 */
+		return isError;
+	}
+
+	@Override
+	public boolean cleanEnvironment(Context context)
+	{
+		// Clean environment
+		this.cleanAll(context);
+		
+		// Return
 		return false;
 	}
 
@@ -761,7 +781,7 @@ public class NotificationManager implements ManagerInterface
 
 			// Write to log file
 			PrintWriter output = new PrintWriter(new FileOutputStream(new File(pathFileNameMessageDump), false));
-			output.append(FileUtilFunctions.normalizeNewLine(dumpMessageText));
+			output.append(FileUtilFunctions.generalNormalizeNewLine(dumpMessageText));
 			output.close();
 		}
 		catch (Exception e)
@@ -786,7 +806,7 @@ public class NotificationManager implements ManagerInterface
 
 			// Write to log file
 			PrintWriter output = new PrintWriter(new FileOutputStream(new File(pathFileNameDocumentationDump), false));
-			output.append(FileUtilFunctions.normalizeNewLine(dumpDocumentationText));
+			output.append(FileUtilFunctions.generalNormalizeNewLine(dumpDocumentationText));
 			output.close();
 		}
 		catch (Exception e)
@@ -1044,7 +1064,7 @@ public class NotificationManager implements ManagerInterface
 	private void writeMessageToLogfile(Context context, String logText)
 	{
 		// Normalize new line first
-		String normalizedText = FileUtilFunctions.normalizeNewLine(logText);
+		String normalizedText = FileUtilFunctions.generalNormalizeNewLine(logText);
 
 		// Write message to log file
 		try
@@ -1383,4 +1403,104 @@ public class NotificationManager implements ManagerInterface
 		this.notifyEvent(context, resourceContainer, additionalText, exception, true);
 	}
 
+	/**
+	 * Clean all log directories.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @return Returns the number of deleted files.
+	 */
+	public int cleanAll(Context context)
+	{
+		try
+		{
+			// Initialize
+			Integer nuOfMovedFiles = 0;
+
+			// Logging
+			String logText = "\n--> CLEAN ALL LOG DIRECTORIES: Begin of cleaning";
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
+			
+			// Get the root directory of log files
+			String directory = FileLocationFunctions.compileFilePath(FileLocationFunctions.getRootPath(), FileLocationFunctions.getLogSubPath());
+			nuOfMovedFiles = FileUtilFunctions.directoryDeleteExpiredFiles(directory, "*.log", this.cleanDaysToKeep);
+			
+			if (nuOfMovedFiles == null)
+			{
+				String errorString = "--> CLEAN ALL LOG DIRECTORIES: Error on processing cleaning.";
+				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Notification", "ErrorOnProcessingFile"), errorString, null);
+				return 0;
+			}
+
+			// / Logging
+			logText = "\n--> CLEAN ALL LOG DIRECTORIES: End of cleaning";
+			logText += "\n--> Total number of cleaned files: '" + String.valueOf(nuOfMovedFiles) + "'";
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
+
+			// Return
+			return nuOfMovedFiles;
+		}
+		catch (Exception e)
+		{
+			String errorString = "--> CLEAN ALL LOG DIRECTORIES: Error on processing cleaning.";
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Notification", "ErrorOnProcessingFile"), errorString, e);
+			return 0;
+		}
+	}
+
+	/**
+	 * Read configuration parameters regarding the cleaning services for log
+	 * directories.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @return Returns <TT>true</TT> if an error was found, otherwise
+	 *         <TT>false</TT>.
+	 */
+	private boolean readConfigurationCleaningConfigurationParameter(Context context)
+	{
+		// Initialize
+		String errorText = "";
+		boolean isError = false;
+		ResourceContainer resourceContainer = null;
+		Integer iValue = null;
+
+		try
+		{
+			// Read parameter: CleanDaysToKeep
+			resourceContainer = ResourceManager.configuration(context, "Notification", "CleanDaysToKeep");
+			iValue = context.getConfigurationManager().getPropertyAsIntegerValue(context, resourceContainer, resourceContainer.getAttributeDefaultSettingAsInteger(context), false);
+			iValue = resourceContainer.validateMinimumMaximumSetting(context, iValue);
+
+			if (iValue != null)
+			{
+				this.cleanDaysToKeep = iValue;
+			}
+			else
+			{
+				isError = true;
+			}
+
+			// Check parameter value
+			if (isError == true)
+			{
+				String errorString = "--> Error on reading configuration properties regarding log settings:";
+				errorString += errorText;
+				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Configuration", "IntegrityError"), errorString, null);
+				return true;
+			}
+		}
+		catch (Exception e)
+		{
+			String errorString = "--> Error on reading configuration properties regarding log settings:";
+			errorString += errorText;
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Configuration", "IntegrityError"), errorString, e);
+			return true;
+		}
+
+		// Return
+		return isError;
+	}
 }

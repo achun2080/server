@@ -64,4 +64,10 @@ public class ServerContext extends Context
 	{
 		return false;
 	}
+
+	@Override
+	public boolean cleanEnvironment(Context context)
+	{
+		return false;
+	}
 }

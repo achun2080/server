@@ -155,6 +155,12 @@ public class ResourceManager implements ManagerInterface
 		return false;
 	}
 
+	@Override
+	public boolean cleanEnvironment(Context context)
+	{
+		return false;
+	}
+
 	/**
 	 * Get a resource from the list of resources.
 	 * <p>
@@ -858,7 +864,7 @@ public class ResourceManager implements ManagerInterface
 		}
 
 		// Return
-		return FileUtilFunctions.normalizeNewLine(manualText);
+		return FileUtilFunctions.generalNormalizeNewLine(manualText);
 	}
 
 	/**
@@ -1004,7 +1010,7 @@ public class ResourceManager implements ManagerInterface
 		}
 
 		// Return
-		return FileUtilFunctions.normalizeNewLine(manualText);
+		return FileUtilFunctions.generalNormalizeNewLine(manualText);
 	}
 
 	/**
@@ -1151,7 +1157,7 @@ public class ResourceManager implements ManagerInterface
 		}
 
 		// Return
-		return FileUtilFunctions.normalizeNewLine(listText);
+		return FileUtilFunctions.generalNormalizeNewLine(listText);
 	}
 
 	/**
@@ -2267,82 +2273,6 @@ public class ResourceManager implements ManagerInterface
 		errorString += "\n--> Line number: '" + String.valueOf(lineNumber) + "'";
 		if (line != null) errorString += "\n--> Line text: '" + line + "'";
 		context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Resource", "ErrorOnParsingResourceFile"), errorString, null);
-	}
-
-	/**
-	 * Check on integrity errors.
-	 * 
-	 * @param context
-	 *            The context to use.
-	 * 
-	 * @return Returns <TT>true</TT> if an error was found, otherwise
-	 *         <TT>false</TT>.
-	 */
-	public boolean validateResources(Context context, ManagerInterface application)
-	{
-		// Variables
-		boolean isIntegrityError = false;
-
-		// Check for integrity errors (Named resource identifiers)
-		try
-		{
-			if (this.validateResources(context) == true) isIntegrityError = true;
-			if (context.validateResources(context) == true) isIntegrityError = true;
-			if (context.getCommandManager().validateResources(context) == true) isIntegrityError = true;
-			if (context.getNotificationManager().validateResources(context) == true) isIntegrityError = true;
-			if (context.getConfigurationManager().validateResources(context) == true) isIntegrityError = true;
-			if (context.getLabelManager().validateResources(context) == true) isIntegrityError = true;
-			if (context.getLocaldataManager().validateResources(context) == true) isIntegrityError = true;
-			if (context.getRightManager().validateResources(context) == true) isIntegrityError = true;
-			if (context.getLicenseManager().validateResources(context) == true) isIntegrityError = true;
-			if (context.getMediaManager().validateResources(context) == true) isIntegrityError = true;
-			if (application.validateResources(context) == true) isIntegrityError = true;
-		}
-		catch (Exception e)
-		{
-			// Be silent
-		}
-
-		// Return
-		return isIntegrityError;
-	}
-
-	/**
-	 * Read configuration items of all interfaces.
-	 * 
-	 * @param context
-	 *            The context to use.
-	 * 
-	 * @return Returns <TT>true</TT> if an error was found, otherwise
-	 *         <TT>false</TT>.
-	 */
-	public boolean readConfiguration(Context context, ManagerInterface application)
-	{
-		// Variables
-		boolean isError = false;
-
-		// Read configuration items of all interfaces
-		try
-		{
-			if (this.validateResources(context) == true) isError = true;
-			if (context.readConfiguration(context) == true) isError = true;
-			if (context.getCommandManager().readConfiguration(context) == true) isError = true;
-			if (context.getNotificationManager().readConfiguration(context) == true) isError = true;
-			if (context.getConfigurationManager().readConfiguration(context) == true) isError = true;
-			if (context.getLabelManager().readConfiguration(context) == true) isError = true;
-			if (context.getLocaldataManager().readConfiguration(context) == true) isError = true;
-			if (context.getRightManager().readConfiguration(context) == true) isError = true;
-			if (context.getLicenseManager().readConfiguration(context) == true) isError = true;
-			if (context.getMediaManager().readConfiguration(context) == true) isError = true;
-			if (application.readConfiguration(context) == true) isError = true;
-		}
-		catch (Exception e)
-		{
-			// Be silent
-		}
-
-		// Return
-		return isError;
 	}
 
 	/**

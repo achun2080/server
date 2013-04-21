@@ -113,4 +113,10 @@ public class CommandManager implements ManagerInterface
 	{
 		return false;
 	}
+
+	@Override
+	public boolean cleanEnvironment(Context context)
+	{
+		return false;
+	}
 }

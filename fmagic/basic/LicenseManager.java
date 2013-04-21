@@ -150,6 +150,12 @@ public class LicenseManager implements ManagerInterface
 		return false;
 	}
 
+	@Override
+	public boolean cleanEnvironment(Context context)
+	{
+		return false;
+	}
+
 	/**
 	 * Composes the path of the data directory of license files.
 	 * 
@@ -209,7 +215,7 @@ public class LicenseManager implements ManagerInterface
 			licenseFilePath = this.getLicenseFilePath(context);
 		}
 
-		if (FileUtilFunctions.fileDirectoryExists(licenseFilePath) == false)
+		if (FileUtilFunctions.directoryExists(licenseFilePath) == false)
 		{
 			String additionalText = "--> Error on parsing license file path";
 			additionalText += "\n--> License file path doesn't exist: '" + licenseFilePath + "'";
@@ -219,7 +225,7 @@ public class LicenseManager implements ManagerInterface
 
 		String licenseFileNameTypeMask = "*." + this.getLicenseFileNameType(context);
 
-		List<String> fileList = FileUtilFunctions.fileSearchDirectoryForFiles(licenseFilePath, licenseFileNameTypeMask);
+		List<String> fileList = FileUtilFunctions.directorySearchForFiles(licenseFilePath, licenseFileNameTypeMask);
 
 		if (fileList == null)
 		{
@@ -1154,7 +1160,7 @@ public class LicenseManager implements ManagerInterface
 
 			if (commonAttributes != null && commonAttributes.length() > 0)
 			{
-				output.append(FileUtilFunctions.normalizeNewLine(commonAttributes));
+				output.append(FileUtilFunctions.generalNormalizeNewLine(commonAttributes));
 			}
 
 			// Get a list of all license items of the license model and go
@@ -1214,7 +1220,7 @@ public class LicenseManager implements ManagerInterface
 						licenseTemplateText += "\n";
 
 						// Print out to file
-						output.append(FileUtilFunctions.normalizeNewLine(licenseTemplateText));
+						output.append(FileUtilFunctions.generalNormalizeNewLine(licenseTemplateText));
 					}
 				}
 			}

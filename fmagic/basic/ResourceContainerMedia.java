@@ -298,7 +298,7 @@ public class ResourceContainerMedia extends ResourceContainer
 				if (partsOfLogicalPath[i] == null || partsOfLogicalPath[i].length() == 0) continue;
 
 				if (normalizedPath.length() > 0) normalizedPath += "/";
-				normalizedPath += FileUtilFunctions.fitToFileNameCompatibility(partsOfLogicalPath[i]);
+				normalizedPath += FileUtilFunctions.generalFitToFileNameCompatibility(partsOfLogicalPath[i]);
 			}
 
 			return normalizedPath;
@@ -390,7 +390,7 @@ public class ResourceContainerMedia extends ResourceContainer
 	 */
 	public String getMediaRegularFilePath(Context context)
 	{
-		return FileLocationFunctions.compileFilePath(context.getMediaManager().mediaFileGetRootFilePath(context), FileUtilFunctions.fitToFileNameCompatibility(context.getApplicationName()), this.getLogicalPath(context));
+		return FileLocationFunctions.compileFilePath(context.getMediaManager().mediaFileGetRootFilePath(context), FileUtilFunctions.generalFitToFileNameCompatibility(context.getApplicationName()), this.getLogicalPath(context));
 	}
 
 	/**
@@ -415,7 +415,7 @@ public class ResourceContainerMedia extends ResourceContainer
 			normalizedIdentifier = "0".concat(normalizedIdentifier);
 		}
 
-		normalizedIdentifier = FileUtilFunctions.fitToFileNameCompatibility(normalizedIdentifier);
+		normalizedIdentifier = FileUtilFunctions.generalFitToFileNameCompatibility(normalizedIdentifier);
 
 		return normalizedIdentifier;
 	}
@@ -444,7 +444,7 @@ public class ResourceContainerMedia extends ResourceContainer
 
 		mediaFileNameMask = FileLocationFunctions.replacePlacholder(context, mediaFileNameMask);
 
-		if (this.getAliasName() != null) mediaFileNameMask = mediaFileNameMask.replace("${alias}", FileUtilFunctions.fitToFileNameCompatibility(this.getAliasName()));
+		if (this.getAliasName() != null) mediaFileNameMask = mediaFileNameMask.replace("${alias}", FileUtilFunctions.generalFitToFileNameCompatibility(this.getAliasName()));
 		mediaFileNameMask = mediaFileNameMask.replace("${identifier}", this.fitIdentifierToFileName(dataIdentifier));
 		mediaFileNameMask = mediaFileNameMask.replace("${encodingkey}", "*");
 		mediaFileNameMask = mediaFileNameMask.replace("${hashvalue}", "*");
@@ -560,7 +560,7 @@ public class ResourceContainerMedia extends ResourceContainer
 	{
 		String mediaFileNameMask = this.getMediaFileNameMask(context, dataIdentifier);
 		String mediaFilePath = this.getMediaRegularFilePath(context);
-		return FileUtilFunctions.fileSearchDirectoryOnMostRecentFile(mediaFilePath, mediaFileNameMask);
+		return FileUtilFunctions.directorySearchOnMostRecentFile(mediaFilePath, mediaFileNameMask);
 	}
 
 	/**
@@ -583,7 +583,7 @@ public class ResourceContainerMedia extends ResourceContainer
 	{
 		String mediaFileNameMask = this.getMediaFileNameMask(context, dataIdentifier);
 		String mediaFilePath = this.getMediaRegularFilePath(context);
-		return FileUtilFunctions.fileSearchDirectoryForFiles(mediaFilePath, mediaFileNameMask);
+		return FileUtilFunctions.directorySearchForFiles(mediaFilePath, mediaFileNameMask);
 	}
 
 	/**
@@ -723,7 +723,7 @@ public class ResourceContainerMedia extends ResourceContainer
 
 		mediaFileName = FileLocationFunctions.replacePlacholder(context, mediaFileName);
 
-		if (this.getAliasName() != null) mediaFileName = mediaFileName.replace("${alias}", FileUtilFunctions.fitToFileNameCompatibility(this.getAliasName()));
+		if (this.getAliasName() != null) mediaFileName = mediaFileName.replace("${alias}", FileUtilFunctions.generalFitToFileNameCompatibility(this.getAliasName()));
 		mediaFileName = mediaFileName.replace("${identifier}", this.fitIdentifierToFileName(dataIdentifier));
 		mediaFileName = mediaFileName.replace("${encodingkey}", this.getServerEncodingKeyAsString(context));
 		if (hashValue != null) mediaFileName = mediaFileName.replace("${hashvalue}", hashValue.trim());

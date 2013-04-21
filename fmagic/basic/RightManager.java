@@ -97,6 +97,12 @@ public class RightManager implements ManagerInterface
 		return false;
 	}
 
+	@Override
+	public boolean cleanEnvironment(Context context)
+	{
+		return false;
+	}
+
 	/**
 	 * Notify the WATCHDOG about right item access.
 	 * 

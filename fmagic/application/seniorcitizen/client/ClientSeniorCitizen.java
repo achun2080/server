@@ -104,6 +104,12 @@ public class ClientSeniorCitizen extends ClientManager
 	}
 
 	@Override
+	public boolean cleanEnvironment(Context context)
+	{
+		return false;
+	}
+
+	@Override
 	protected boolean assignRightGroups(Context context)
 	{
 		return true;

@@ -108,7 +108,7 @@ public class FileUtilFunctions
 	 * 
 	 * @return Returns the normalized string.
 	 */
-	public static String normalizeNewLine(String messageText)
+	public static String generalNormalizeNewLine(String messageText)
 	{
 		if (messageText == null) return null;
 
@@ -127,7 +127,7 @@ public class FileUtilFunctions
 	 * @return Returns the converted string, or <TT>null</TT> if an error
 	 *         occurred.
 	 */
-	public static String convertRegularWildcardsToRegexWildcards(String regularPattern)
+	public static String generalConvertRegularWildcardsToRegexWildcards(String regularPattern)
 	{
 		if (regularPattern == null) return null;
 
@@ -154,7 +154,7 @@ public class FileUtilFunctions
 	 * 
 	 * @return Returns the normalized string.
 	 */
-	public static String fitToFileNameCompatibility(String inputString)
+	public static String generalFitToFileNameCompatibility(String inputString)
 	{
 		String outputString;
 		outputString = inputString.toLowerCase().replaceAll("[^a-zA-Z0-9-.\\[\\]]+", "_");
@@ -172,7 +172,7 @@ public class FileUtilFunctions
 	 * 
 	 * @return Returns time difference in seconds
 	 */
-	public static long getTimeDifferenceInSeconds(Date earlyDate, Date laterDate)
+	public static long generalGetTimeDifferenceInSeconds(Date earlyDate, Date laterDate)
 	{
 		long earlyDateSeconds = earlyDate.getTime() / 1000;
 		long laterDateSeconds = laterDate.getTime() / 1000;
@@ -190,7 +190,7 @@ public class FileUtilFunctions
 	 * @param maxTimeToWaitInSeconds
 	 *            Maximum number of seconds to wait.
 	 */
-	public static void waitForThreadTerminating(Thread thread, int maxTimeToWaitInSeconds)
+	public static void generalWaitForThreadTerminating(Thread thread, int maxTimeToWaitInSeconds)
 	{
 		int counter = maxTimeToWaitInSeconds * 10;
 
@@ -216,7 +216,7 @@ public class FileUtilFunctions
 	 * @param seconds
 	 *            Number of seconds to pause.
 	 */
-	public static void sleepSeconds(int seconds)
+	public static void generalSleepSeconds(int seconds)
 	{
 		try
 		{
@@ -233,7 +233,7 @@ public class FileUtilFunctions
 	 * @param milliseconds
 	 *            Number of Milliseconds to pause.
 	 */
-	public static void sleepMilliseconds(int milliseconds)
+	public static void generalSleepMilliseconds(int milliseconds)
 	{
 		try
 		{
@@ -337,7 +337,7 @@ public class FileUtilFunctions
 
 			for (int i = 0; i < nuOfRetrials; i++)
 			{
-				FileUtilFunctions.sleepMilliseconds(idleTimeBetweenRetrialsInMilliseconds);
+				FileUtilFunctions.generalSleepMilliseconds(idleTimeBetweenRetrialsInMilliseconds);
 
 				file = new File(filePath);
 
@@ -365,7 +365,7 @@ public class FileUtilFunctions
 	 * @return Returns <TT>true</TT> if the directory exists and is accessible,
 	 *         otherwise <TT>false</TT>.
 	 */
-	public static boolean fileDirectoryExists(String filePath)
+	public static boolean directoryExists(String filePath)
 	{
 		if (filePath == null) return false;
 		if (filePath.length() == 0) return false;
@@ -434,7 +434,7 @@ public class FileUtilFunctions
 	 * @return Returns a list of files that were found, or <TT>null</TT>, if an
 	 *         error occurred.
 	 */
-	public static List<String> fileSearchDirectoryForFiles(String filePath, String fileFilterMask)
+	public static List<String> directorySearchForFiles(String filePath, String fileFilterMask)
 	{
 		class UtilFileFilter implements FilenameFilter
 		{
@@ -444,7 +444,7 @@ public class FileUtilFunctions
 			public UtilFileFilter(File directory, String fileNameMask)
 			{
 				this.directory = directory;
-				this.fileNameMask = FileUtilFunctions.convertRegularWildcardsToRegexWildcards(fileNameMask);
+				this.fileNameMask = FileUtilFunctions.generalConvertRegularWildcardsToRegexWildcards(fileNameMask);
 			}
 
 			public boolean accept(File currentDirectory, String currentFileName)
@@ -508,7 +508,7 @@ public class FileUtilFunctions
 	 * @return Returns a list of files that are older than <TT>x</TT> days, or
 	 *         <TT>null</TT>, if an error occurred.
 	 */
-	public static List<String> fileSearchDirectoryOnExpiredFiles(String directoryPath, String fileFilterMask, int daysToKeep)
+	public static List<String> directorySearchOnExpiredFiles(String directoryPath, String fileFilterMask, int daysToKeep)
 	{
 		class UtilFileFilter implements FilenameFilter
 		{
@@ -520,7 +520,7 @@ public class FileUtilFunctions
 					int daysToKeep)
 			{
 				this.directory = directory;
-				this.fileNameMask = FileUtilFunctions.convertRegularWildcardsToRegexWildcards(fileNameMask);
+				this.fileNameMask = FileUtilFunctions.generalConvertRegularWildcardsToRegexWildcards(fileNameMask);
 				this.daysToKeep = daysToKeep;
 			}
 
@@ -690,7 +690,7 @@ public class FileUtilFunctions
 
 			for (int i = 0; i < nuOfRetrials; i++)
 			{
-				FileUtilFunctions.sleepMilliseconds(idleTimeBetweenRetrialsInMilliseconds);
+				FileUtilFunctions.generalSleepMilliseconds(idleTimeBetweenRetrialsInMilliseconds);
 
 				sourceFile = new File(sourceFilePath);
 				destinationFile = new File(destinationFilePath);
@@ -992,7 +992,7 @@ public class FileUtilFunctions
 	 * 
 	 * @return Returns the number of deleted files.
 	 */
-	public static int fileCleanFileList(List<String> files)
+	public static int fileDeleteFilesOfList(List<String> files)
 	{
 		// Check parameters
 		if (files == null || files.size() == 0) return 0;
@@ -1170,7 +1170,7 @@ public class FileUtilFunctions
 
 			for (int i = 0; i < nuOfRetrials; i++)
 			{
-				FileUtilFunctions.sleepMilliseconds(idleTimeBetweenRetrialsInMilliseconds);
+				FileUtilFunctions.generalSleepMilliseconds(idleTimeBetweenRetrialsInMilliseconds);
 
 				file = new File(filePath);
 
@@ -1260,10 +1260,10 @@ public class FileUtilFunctions
 	 * @return Returns the most recent, existing file, or <TT>null</TT> if an
 	 *         error occurred, or no file could be found.
 	 */
-	public static String fileSearchDirectoryOnMostRecentFile(String filePath, String fileFilterMask)
+	public static String directorySearchOnMostRecentFile(String filePath, String fileFilterMask)
 	{
 		// Get list of files that matches the file filter mask
-		List<String> filePathList = FileUtilFunctions.fileSearchDirectoryForFiles(filePath, fileFilterMask);
+		List<String> filePathList = FileUtilFunctions.directorySearchForFiles(filePath, fileFilterMask);
 		if (filePathList == null) return null;
 		if (filePathList.size() == 0) return null;
 
@@ -1319,13 +1319,13 @@ public class FileUtilFunctions
 	 * @return Returns the list of obsolete files, or <TT>null</TT> if an error
 	 *         occurred, or no files could be found.
 	 */
-	public static List<String> fileSearchDirectoryOnObsoleteFiles(String filePath, String fileFilterMask, Integer daysToKeep)
+	public static List<String> directorySearchOnObsoleteFiles(String filePath, String fileFilterMask, Integer daysToKeep)
 	{
 		/*
 		 * Get list of files that matches the file filter mask
 		 */
 
-		List<String> filePathList = FileUtilFunctions.fileSearchDirectoryForFiles(filePath, fileFilterMask);
+		List<String> filePathList = FileUtilFunctions.directorySearchForFiles(filePath, fileFilterMask);
 		if (filePathList == null) return null;
 		if (filePathList.size() == 0) return null;
 
@@ -1334,7 +1334,7 @@ public class FileUtilFunctions
 		 * it from the result list.
 		 */
 
-		String mostRecentFilePath = FileUtilFunctions.fileSearchDirectoryOnMostRecentFile(filePath, fileFilterMask);
+		String mostRecentFilePath = FileUtilFunctions.directorySearchOnMostRecentFile(filePath, fileFilterMask);
 		if (mostRecentFilePath == null) return null;
 		if (mostRecentFilePath.length() == 0) return null;
 
@@ -1352,7 +1352,7 @@ public class FileUtilFunctions
 		 */
 
 		if (daysToKeep == null) return filePathList;
-			
+
 		try
 		{
 			// Compose expired date
@@ -1390,11 +1390,11 @@ public class FileUtilFunctions
 	 * @return Returns <TT>true</TT> if the file could be removed, otherwise
 	 *         <TT>false</TT>.
 	 */
-	public static boolean fileCleanDirectory(String directoryPath)
+	public static boolean directoryDeleteAllFiles(String directoryPath)
 	{
 		// Check parameters
 		if (directoryPath == null || directoryPath.length() == 0) return false;
-		if (FileUtilFunctions.fileDirectoryExists(directoryPath) == false) return false;
+		if (FileUtilFunctions.directoryExists(directoryPath) == false) return false;
 
 		// Create FILE objects
 		File directory = new File(directoryPath);
@@ -1403,7 +1403,7 @@ public class FileUtilFunctions
 		// Search for files in the directory and delete them
 		try
 		{
-			List<String> filesToDelete = FileUtilFunctions.fileSearchDirectoryForFiles(directoryPath, "*");
+			List<String> filesToDelete = FileUtilFunctions.directorySearchForFiles(directoryPath, "*");
 			if (filesToDelete == null) return false;
 			if (filesToDelete.size() == 0) return true;
 
@@ -1419,6 +1419,118 @@ public class FileUtilFunctions
 		catch (Exception e)
 		{
 			return false;
+		}
+	}
+
+	/**
+	 * Delete all files that are older than <TT>x</TT> days in a directory and
+	 * all sub directories.
+	 * 
+	 * @param directoryPath
+	 *            The path of the directory to be considered. The path of the
+	 *            files to be searched for.
+	 * 
+	 * @param fileFilterMask
+	 *            The file name mask to be searched for, including wildcards (*,
+	 *            ?).
+	 * 
+	 * @param daysToKeep
+	 *            All files that are older than this number of days (resp. 1440
+	 *            minutes, from <TT>now</TT>) will be deleted. Please set at
+	 *            least <TT>1</TT> day to keep. If the parameter is set lower
+	 *            than 1 it is set to one day automatically.
+	 * 
+	 * @return Returns the number of deleted files, or <TT>null</TT> if an error
+	 *         occurred.
+	 */
+	public static Integer directoryDeleteExpiredFiles(String directoryPath, String fileFilterMask, int daysToKeep)
+	{
+		class UtilFileFilter implements FilenameFilter
+		{
+			File directory;
+			String fileNameMask;
+			int daysToKeep;
+
+			public UtilFileFilter(File directory, String fileNameMask,
+					int daysToKeep)
+			{
+				this.directory = directory;
+				this.fileNameMask = FileUtilFunctions.generalConvertRegularWildcardsToRegexWildcards(fileNameMask);
+				this.daysToKeep = daysToKeep;
+			}
+
+			public boolean accept(File currentDirectory, String currentFileName)
+			{
+				if (directory == null) return false;
+				if (fileNameMask == null) return false;
+
+				try
+				{
+					// Check number of days
+					File file = new File(currentDirectory + "/" + currentFileName);
+					
+					// Pass through all sub directories
+					if (file.isDirectory()) return true;
+					
+					// Check file name mask
+					if (!currentFileName.matches(fileNameMask)) return false;
+
+					Date date1 = new Date();
+					Date date2 = new Date(file.lastModified());
+
+					long minutes1 = date1.getTime() / FileUtilFunctions.MINUTE_MILLISECONDS;
+					long minutes2 = date2.getTime() / FileUtilFunctions.MINUTE_MILLISECONDS;
+					if (Math.abs((minutes1 - minutes2)) <= (this.daysToKeep * FileUtilFunctions.MINUTES_PER_DAY)) return false;
+				}
+				catch (Exception e)
+				{
+					return false;
+				}
+
+				// Return
+				return true;
+			}
+		}
+
+		// Check parameters
+		if (directoryPath == null || directoryPath.length() == 0) return null;
+		if (FileUtilFunctions.directoryExists(directoryPath) == false) return null;
+		if (daysToKeep < 1) daysToKeep = 1;
+
+		// Search for files in the directory and delete them
+		try
+		{
+			// Check if it is a directory
+			File directory = new File(directoryPath);
+			if (!directory.isDirectory()) return null;
+
+			// Initialize variables
+			int nuOfDeletedFiles = 0;
+
+			// Get the list of all files in the directory
+			File[] listFiles = directory.listFiles(new UtilFileFilter(directory, fileFilterMask, daysToKeep));
+
+			// Go through all files found
+			for (File file : listFiles)
+			{
+				// If it is a sub directory, call this method recursively
+				if (file.isDirectory())
+				{
+					nuOfDeletedFiles = nuOfDeletedFiles + FileUtilFunctions.directoryDeleteExpiredFiles(file.getAbsolutePath(), fileFilterMask, daysToKeep);
+				}
+				// If it is a file, delete it, if it is older than x days
+				else
+				{
+					if (file.delete() == true) nuOfDeletedFiles++;
+				}
+			}
+
+			// Return
+			return nuOfDeletedFiles;
+		}
+		catch (Exception e)
+		{
+			return null;
 		}
 	}
 }

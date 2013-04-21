@@ -33,11 +33,13 @@ public class FileLocationFunctions
 	private static final String localdataSubPath = "configuration/fmagic.localdata";
 	private static final String localdataFileName = "fmagic.${codename}.localdata.properties";
 
-	private static final String logContextSubPath = "fmagic.logging/fmagic.logging.context";
+	private static final String logSubPath = "configuration/fmagic.logging";
+
+	private static final String logContextSubPath = "configuration/fmagic.logging/fmagic.logging.context";
 	private static final String logContextSubSubPath = "${sdate}";
 	private static final String logContextFileName = "fmagic-${origin}-${codename}-${ndate}-${context}.log";
 
-	private static final String logApplicationSubPath = "fmagic.logging/fmagic.logging.application";
+	private static final String logApplicationSubPath = "configuration/fmagic.logging/fmagic.logging.application";
 	private static final String logApplicationSubSubPath = "${codename}/${sdate}";
 	private static final String logApplicationFileName = "fmagic-${codename}-${ndate}.log";
 
@@ -63,7 +65,7 @@ public class FileLocationFunctions
 	private static final String mediaDeletedSubPath = "deleted";
 
 	private static final String testLoggingSubPath = "test/${testcasename}/fmagic.logging";
-	private static final String testLoggingSubSubPath = "${application}-${testsession}";
+	private static final String testLoggingSubSubPath = "${testsession}";
 	private static final String testLoggingLogFileName = "LOGGING-${application}-${origin}-${codename}-[${thread}].log";
 	private static final String testLoggingAssertFileName = "ASSERT-${application}-${origin}-${codename}-[${thread}].log";
 	private static final String testLoggingErrorFileName = "ERROR-${application}-${origin}.log";
@@ -259,6 +261,14 @@ public class FileLocationFunctions
 	public static String getLocaldataSubPath()
 	{
 		return localdataSubPath;
+	}
+
+	/**
+	 * Getter
+	 */
+	public static String getLogSubPath()
+	{
+		return logSubPath;
 	}
 
 	/**

@@ -63,4 +63,10 @@ public class ClientContext extends Context
 	{
 		return false;
 	}
+
+	@Override
+	public boolean cleanEnvironment(Context context)
+	{
+		return false;
+	}
 }

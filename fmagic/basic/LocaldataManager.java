@@ -91,6 +91,12 @@ public class LocaldataManager implements ManagerInterface
 		return false;
 	}
 
+	@Override
+	public boolean cleanEnvironment(Context context)
+	{
+		return false;
+	}
+
 	/**
 	 * Lock the processing of an event, a log message or an error message to
 	 * avoid recursive calls. Recursive calls can occur if a message is

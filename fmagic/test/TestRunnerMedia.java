@@ -36,6 +36,9 @@ public class TestRunnerMedia extends TestRunner
 	{
 		try
 		{
+			// Clear test session directory
+			TestManager.cleanTestSessionDirectory(this);
+			
 			/*
 			 * Please notice that each application server is configured with
 			 * specific settings via configuration files.
@@ -45,9 +48,6 @@ public class TestRunnerMedia extends TestRunner
 			serverAp1 = this.createApplicationServer("ap1");
 			serverAp2 = this.createApplicationServer("ap2");
 			serverAp3 = this.createApplicationServer("ap3");
-
-			// Clear test session directory
-			if (serverAp1 != null) TestManager.cleanTestSessionDirectory(serverAp1.getContext());
 		}
 		catch (Exception e)
 		{

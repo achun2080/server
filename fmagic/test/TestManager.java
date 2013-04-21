@@ -65,6 +65,12 @@ public class TestManager implements ManagerInterface
 		return false;
 	}
 
+	@Override
+	public boolean cleanEnvironment(Context context)
+	{
+		return false;
+	}
+
 	/**
 	 * Getter
 	 */
@@ -240,11 +246,14 @@ public class TestManager implements ManagerInterface
 	 * @param context
 	 *            The application context.
 	 */
-	public static void cleanTestSessionDirectory(Context context)
+	public static void cleanTestSessionDirectory(TestRunner testRunner)
 	{
 		String filePath = FileLocationFunctions.compileFilePath(FileLocationFunctions.getRootPath(), FileLocationFunctions.getTestLoggingSubPath(), FileLocationFunctions.getTestLoggingSubSubPath());
-		filePath = FileLocationFunctions.replacePlacholder(context, filePath);
-		FileUtilFunctions.fileCleanDirectory(filePath);
+
+		filePath = filePath.replace("${testcasename}", testRunner.getTestCaseName());
+		filePath = filePath.replace("${testsession}", testRunner.getTestSessionName());
+
+		FileUtilFunctions.directoryDeleteAllFiles(filePath);
 	}
 
 	/**
@@ -338,7 +347,7 @@ public class TestManager implements ManagerInterface
 			}
 			else
 			{
-				normalizedText = FileUtilFunctions.normalizeNewLine("\n" + assertText + "\n");
+				normalizedText = FileUtilFunctions.generalNormalizeNewLine("\n" + assertText + "\n");
 			}
 		}
 
@@ -392,7 +401,7 @@ public class TestManager implements ManagerInterface
 	private void writeMessageToErrorFile(Context context, String assertText, String additionalText)
 	{
 		// Normalize new line first
-		String normalizedText = FileUtilFunctions.normalizeNewLine(serviceFormatter(context.getCodeName(), assertText, additionalText));
+		String normalizedText = FileUtilFunctions.generalNormalizeNewLine(serviceFormatter(context.getCodeName(), assertText, additionalText));
 
 		// Write message to assert file
 		try
@@ -612,8 +621,8 @@ public class TestManager implements ManagerInterface
 	}
 
 	/**
-	 * Assert: Compare if <TT>String</TT> values are <TT>NOT</TT>equal, with considering
-	 * lower and upper cases.
+	 * Assert: Compare if <TT>String</TT> values are <TT>NOT</TT>equal, with
+	 * considering lower and upper cases.
 	 * 
 	 * @param context
 	 *            Application context of the message.
@@ -646,8 +655,8 @@ public class TestManager implements ManagerInterface
 	}
 
 	/**
-	 * Assert: Compare if <TT>String</TT> values are <TT>NOT</TT>equal, ignoring lower and
-	 * upper cases.
+	 * Assert: Compare if <TT>String</TT> values are <TT>NOT</TT>equal, ignoring
+	 * lower and upper cases.
 	 * 
 	 * @param context
 	 *            Application context of the message.

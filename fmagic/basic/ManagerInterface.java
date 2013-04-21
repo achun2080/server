@@ -74,4 +74,17 @@ public interface ManagerInterface
 	 *         <TT>false</TT>.
 	 */
 	public boolean readConfiguration(Context context);
+
+	/**
+	 * Clean environment.
+	 * <p>
+	 * This method is invoked periodically by the system services.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @return Returns <TT>true</TT> if an error was found, otherwise
+	 *         <TT>false</TT>.
+	 */
+	public boolean cleanEnvironment(Context context);
 }

@@ -31,8 +31,8 @@ public class ApplicationMain
 //		testRunner.executeSingleFunctionTest(testContainer, "testExpiredPendingFiles");
 //		testRunner.executeSingleFunctionTest(testContainer, "testExpiredDeletedFiles");
 //		testRunner.executeSingleFunctionTest(testContainer, "testExpiredObsoleteFiles");
-		testRunner.executeSingleFunctionTest(testContainer, "testCleaningAll");
-//		testRunner.executeSingleFunctionTest(testContainer, "xxxxxxxxxx");
+//		testRunner.executeSingleFunctionTest(testContainer, "testCleaningAll");
+		testRunner.executeSingleFunctionTest(testContainer, "xxxxxxxxxx");
 
 		testRunner.cleanup();
 

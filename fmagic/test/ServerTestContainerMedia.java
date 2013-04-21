@@ -223,11 +223,8 @@ public class ServerTestContainerMedia extends ServerTestContainer
 
 		try
 		{
-			ResourceContainer configuration = ResourceManager.configuration(this.getContext(), "Media", "CleanDeletedDaysToKeep");
-			
-			System.out.println();
-			System.out.println(configuration.printTemplate(this.getContext(), true));
-			
+			int nuOfDeletedFiles = this.getContext().getNotificationManager().cleanAll(this.getContext());
+			int i = 1;
 		}
 		catch (Exception e)
 		{
@@ -299,7 +296,7 @@ public class ServerTestContainerMedia extends ServerTestContainer
 		TestManager.assertNotNull(this.getContext(), additionalText, uploadFilePath);
 
 		// Get file List
-		List<String> fileList = FileUtilFunctions.fileSearchDirectoryForFiles(uploadFilePath, "*.jpg");
+		List<String> fileList = FileUtilFunctions.directorySearchForFiles(uploadFilePath, "*.jpg");
 
 		additionalText = "--> Tried to read media files in directory '" + uploadFilePath + "'";
 		TestManager.assertNotNull(this.getContext(), additionalText, fileList);
@@ -348,7 +345,7 @@ public class ServerTestContainerMedia extends ServerTestContainer
 			TestManager.assertNotNull(this.getContext(), additionalText, uploadFilePath);
 
 			// Get file List
-			List<String> fileList = FileUtilFunctions.fileSearchDirectoryForFiles(uploadFilePath, "*.jpg");
+			List<String> fileList = FileUtilFunctions.directorySearchForFiles(uploadFilePath, "*.jpg");
 
 			additionalText = "--> Tried to read media files in directory '" + uploadFilePath + "'";
 			TestManager.assertNotNull(this.getContext(), additionalText, fileList);
@@ -363,7 +360,7 @@ public class ServerTestContainerMedia extends ServerTestContainer
 				this.doUploadFile(this.parameterResourceGroup, this.parameterResourceName, this.parameterDataIdentifierTestObsolete, fileList.get(i));
 
 				// Get list of obsolete files
-				List<String> obsoleteFiles = FileUtilFunctions.fileSearchDirectoryOnObsoleteFiles(mediaFilePath, mediaFileNameMask, null);
+				List<String> obsoleteFiles = FileUtilFunctions.directorySearchOnObsoleteFiles(mediaFilePath, mediaFileNameMask, null);
 				TestManager.assertNotNull(this.getContext(), null, obsoleteFiles);
 				TestManager.assertEquals(this.getContext(), null, obsoleteFiles.size(), nuOfObsoleteFiles + i + 1);
 
@@ -481,7 +478,7 @@ public class ServerTestContainerMedia extends ServerTestContainer
 			TestManager.assertNotNull(this.getContext(), additionalText, uploadFilePath);
 
 			// Get file List
-			List<String> fileList = FileUtilFunctions.fileSearchDirectoryForFiles(uploadFilePath, "*.jpg");
+			List<String> fileList = FileUtilFunctions.directorySearchForFiles(uploadFilePath, "*.jpg");
 
 			additionalText = "--> Tried to read media files in directory '" + uploadFilePath + "'";
 			TestManager.assertNotNull(this.getContext(), additionalText, fileList);
@@ -591,7 +588,7 @@ public class ServerTestContainerMedia extends ServerTestContainer
 			ResourceContainerMedia mediaResource = ResourceManager.media(this.getContext(), group, name);
 			String mediaFileNameMask = mediaResource.getMediaFileNameMask(this.getContext(), dataIdentifierString);
 			String mediaFilePath = mediaResource.getMediaRegularFilePath(this.getContext());
-			List<String> mediaFiles = FileUtilFunctions.fileSearchDirectoryForFiles(mediaFilePath, mediaFileNameMask);
+			List<String> mediaFiles = FileUtilFunctions.directorySearchForFiles(mediaFilePath, mediaFileNameMask);
 
 			if (mediaFiles != null && mediaFiles.size() > 0)
 			{
@@ -617,7 +614,7 @@ public class ServerTestContainerMedia extends ServerTestContainer
 			String pendingDirectory = mediaResource.getMediaPendingFilePath(this.getContext());
 			TestManager.assertNotNull(this.getContext(), null, pendingDirectory);
 
-			boolean isSuccessful = FileUtilFunctions.fileCleanDirectory(pendingDirectory);
+			boolean isSuccessful = FileUtilFunctions.directoryDeleteAllFiles(pendingDirectory);
 			TestManager.assertTrue(this.getContext(), "--> Error on cleaning 'pending' directory '" + pendingDirectory + "'", isSuccessful);
 		}
 		catch (Exception e)
@@ -638,7 +635,7 @@ public class ServerTestContainerMedia extends ServerTestContainer
 			String regularDirectory = mediaResource.getMediaRegularFilePath(this.getContext());
 			TestManager.assertNotNull(this.getContext(), null, regularDirectory);
 
-			boolean isSuccessful = FileUtilFunctions.fileCleanDirectory(regularDirectory);
+			boolean isSuccessful = FileUtilFunctions.directoryDeleteAllFiles(regularDirectory);
 			TestManager.assertTrue(this.getContext(), "--> Error on cleaning 'regular' directory '" + regularDirectory + "'", isSuccessful);
 		}
 		catch (Exception e)
@@ -659,7 +656,7 @@ public class ServerTestContainerMedia extends ServerTestContainer
 			String deletedDirectory = mediaResource.getMediaDeletedFilePath(this.getContext());
 			TestManager.assertNotNull(this.getContext(), null, deletedDirectory);
 
-			boolean isSuccessful = FileUtilFunctions.fileCleanDirectory(deletedDirectory);
+			boolean isSuccessful = FileUtilFunctions.directoryDeleteAllFiles(deletedDirectory);
 			TestManager.assertTrue(this.getContext(), "--> Error on cleaning 'deleted' directory '" + deletedDirectory + "'", isSuccessful);
 		}
 		catch (Exception e)
@@ -680,7 +677,7 @@ public class ServerTestContainerMedia extends ServerTestContainer
 			String pendingDirectory = mediaResource.getMediaPendingFilePath(this.getContext());
 			TestManager.assertNotNull(this.getContext(), null, pendingDirectory);
 
-			List<String> filelist = FileUtilFunctions.fileSearchDirectoryForFiles(pendingDirectory, "*");
+			List<String> filelist = FileUtilFunctions.directorySearchForFiles(pendingDirectory, "*");
 			TestManager.assertNotNull(this.getContext(), null, filelist);
 			TestManager.assertEquals(this.getContext(), "--> Files found in 'pending' directory '" + pendingDirectory + "'", filelist.size(), 0);
 		}
@@ -735,7 +732,7 @@ public class ServerTestContainerMedia extends ServerTestContainer
 			TestManager.assertNotNull(this.getContext(), additionalText, uploadFilePath);
 
 			// Get file List
-			List<String> fileList = FileUtilFunctions.fileSearchDirectoryForFiles(uploadFilePath, "*.jpg");
+			List<String> fileList = FileUtilFunctions.directorySearchForFiles(uploadFilePath, "*.jpg");
 			additionalText = "--> Tried to read media files in directory '" + uploadFilePath + "'";
 
 			// No file list
@@ -835,7 +832,7 @@ public class ServerTestContainerMedia extends ServerTestContainer
 			TestManager.assertLowerThan(this.getContext(), null, nuOfDeletedFiles, nuOfFilesCreated);
 
 			// Get list of all files remained
-			List<String> fileRemainingList = FileUtilFunctions.fileSearchDirectoryForFiles(remainingFilePath, "*");
+			List<String> fileRemainingList = FileUtilFunctions.directorySearchForFiles(remainingFilePath, "*");
 			TestManager.assertNotNull(this.getContext(), null, fileRemainingList);
 
 			// Go through the list and check 'modified date'
@@ -901,7 +898,7 @@ public class ServerTestContainerMedia extends ServerTestContainer
 			TestManager.assertNotNull(this.getContext(), additionalText, uploadFilePath);
 
 			// Get file List
-			List<String> fileList = FileUtilFunctions.fileSearchDirectoryForFiles(uploadFilePath, "*.jpg");
+			List<String> fileList = FileUtilFunctions.directorySearchForFiles(uploadFilePath, "*.jpg");
 			additionalText = "--> Tried to read media files in directory '" + uploadFilePath + "'";
 
 			// No file list
@@ -982,7 +979,7 @@ public class ServerTestContainerMedia extends ServerTestContainer
 			// Count the real number of different files in the 'regular'
 			// directory
 			String regularMediaFilesDirectory = mediaResource.getMediaRegularFilePath(this.getContext());
-			List<String> fileRegularList = FileUtilFunctions.fileSearchDirectoryForFiles(regularMediaFilesDirectory, "*");
+			List<String> fileRegularList = FileUtilFunctions.directorySearchForFiles(regularMediaFilesDirectory, "*");
 			TestManager.assertNotNull(this.getContext(), null, fileRegularList);
 			TestManager.assertGreaterThan(this.getContext(), null, fileRegularList.size(), 0);
 			int nuOfFilesCreated = 0;
@@ -997,7 +994,7 @@ public class ServerTestContainerMedia extends ServerTestContainer
 			TestManager.assertLowerThan(this.getContext(), null, nuOfDeletedFiles, nuOfFilesCreated);
 
 			// Get list of all files remained
-			List<String> fileRemainingList = FileUtilFunctions.fileSearchDirectoryForFiles(remainingFilePath, "*");
+			List<String> fileRemainingList = FileUtilFunctions.directorySearchForFiles(remainingFilePath, "*");
 			TestManager.assertNotNull(this.getContext(), null, fileRemainingList);
 
 			// Go through the list and check 'modified date'
@@ -1086,7 +1083,7 @@ public class ServerTestContainerMedia extends ServerTestContainer
 			TestManager.assertNotNull(this.getContext(), additionalText, uploadFilePath);
 
 			// Get file List
-			List<String> fileList = FileUtilFunctions.fileSearchDirectoryForFiles(uploadFilePath, "*.jpg");
+			List<String> fileList = FileUtilFunctions.directorySearchForFiles(uploadFilePath, "*.jpg");
 			additionalText = "--> Tried to read media files in directory '" + uploadFilePath + "'";
 
 			// No file list
@@ -1179,7 +1176,7 @@ public class ServerTestContainerMedia extends ServerTestContainer
 				ResourceContainerMedia mediaResource = mediaResources.get(k);
 
 				String regularMediaFilesDirectory = mediaResource.getMediaRegularFilePath(this.getContext());
-				List<String> fileRegularList = FileUtilFunctions.fileSearchDirectoryForFiles(regularMediaFilesDirectory, "*");
+				List<String> fileRegularList = FileUtilFunctions.directorySearchForFiles(regularMediaFilesDirectory, "*");
 				TestManager.assertNotNull(this.getContext(), null, fileRegularList);
 				TestManager.assertGreaterThan(this.getContext(), null, fileRegularList.size(), 0);
 				if (fileRegularList != null) nuOfFilesCreated = nuOfFilesCreated + fileRegularList.size();
@@ -1215,7 +1212,7 @@ public class ServerTestContainerMedia extends ServerTestContainer
 				ResourceContainerMedia mediaResource = mediaResources.get(k);
 
 				String regularMediaFilesDirectory = mediaResource.getMediaRegularFilePath(this.getContext());
-				List<String> fileRegularList = FileUtilFunctions.fileSearchDirectoryForFiles(regularMediaFilesDirectory, "*");
+				List<String> fileRegularList = FileUtilFunctions.directorySearchForFiles(regularMediaFilesDirectory, "*");
 				TestManager.assertNotNull(this.getContext(), null, fileRegularList);
 				TestManager.assertGreaterThan(this.getContext(), null, fileRegularList.size(), 0);
 				if (fileRegularList != null) nuOfRemainingFiles = nuOfRemainingFiles + fileRegularList.size();

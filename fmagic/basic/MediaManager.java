@@ -173,6 +173,16 @@ public class MediaManager implements ManagerInterface
 		return isError;
 	}
 
+	@Override
+	public boolean cleanEnvironment(Context context)
+	{
+		// Clean environment
+		this.cleanAll(context);
+		
+		// Return
+		return false;
+	}
+
 	/**
 	 * Read configuration parameter 'LocalMediaFilePathRoot'.
 	 * 
@@ -806,7 +816,7 @@ public class MediaManager implements ManagerInterface
 				{
 					for (int i = 0; i < partsOfMediaLogicalPathValue.length; i++)
 					{
-						String normalizedMediaLogicalPathValue = FileUtilFunctions.fitToFileNameCompatibility(partsOfMediaLogicalPathValue[i]);
+						String normalizedMediaLogicalPathValue = FileUtilFunctions.generalFitToFileNameCompatibility(partsOfMediaLogicalPathValue[i]);
 
 						if (!normalizedMediaLogicalPathValue.equals(partsOfMediaLogicalPathValue[i]))
 						{
@@ -1613,7 +1623,7 @@ public class MediaManager implements ManagerInterface
 			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
 
 			// Get file list of expired files
-			List<String> files = FileUtilFunctions.fileSearchDirectoryOnExpiredFiles(directoryPath, "*", daysToKeep);
+			List<String> files = FileUtilFunctions.directorySearchOnExpiredFiles(directoryPath, "*", daysToKeep);
 
 			if (files == null) return 0;
 			if (files.size() == 0) return 0;
@@ -1684,7 +1694,7 @@ public class MediaManager implements ManagerInterface
 			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
 
 			// Get file list of expired files
-			List<String> files = FileUtilFunctions.fileSearchDirectoryOnExpiredFiles(directoryPath, "*", daysToKeep);
+			List<String> files = FileUtilFunctions.directorySearchOnExpiredFiles(directoryPath, "*", daysToKeep);
 
 			if (files == null) return 0;
 			if (files.size() == 0) return 0;
@@ -1769,7 +1779,7 @@ public class MediaManager implements ManagerInterface
 			logText += "\n--> ";
 
 			// Get file list of all files
-			List<String> allFiles = FileUtilFunctions.fileSearchDirectoryForFiles(regularMediaFilesDirectory, "*");
+			List<String> allFiles = FileUtilFunctions.directorySearchForFiles(regularMediaFilesDirectory, "*");
 
 			if (allFiles == null) return 0;
 			if (allFiles.size() == 0) return 0;
@@ -1818,7 +1828,7 @@ public class MediaManager implements ManagerInterface
 				String fileFilterMask = mediaResourceContainer.getMediaFileNameMask(context, dataIdentifier);
 
 				// Get file list of obsolete files
-				List<String> obsoleteFiles = FileUtilFunctions.fileSearchDirectoryOnObsoleteFiles(regularMediaFilesDirectory, fileFilterMask, daysToKeep);
+				List<String> obsoleteFiles = FileUtilFunctions.directorySearchOnObsoleteFiles(regularMediaFilesDirectory, fileFilterMask, daysToKeep);
 				if (obsoleteFiles == null || obsoleteFiles.size() == 0) continue;
 
 				// Move files

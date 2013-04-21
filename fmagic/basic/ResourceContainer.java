@@ -745,7 +745,7 @@ public class ResourceContainer implements Cloneable
 		}
 
 		// Return
-		return FileUtilFunctions.normalizeNewLine(outputString);
+		return FileUtilFunctions.generalNormalizeNewLine(outputString);
 	}
 
 	/**
@@ -853,7 +853,7 @@ public class ResourceContainer implements Cloneable
 		}
 
 		// Return
-		return FileUtilFunctions.normalizeNewLine(outputString);
+		return FileUtilFunctions.generalNormalizeNewLine(outputString);
 	}
 
 	/**

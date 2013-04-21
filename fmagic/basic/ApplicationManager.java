@@ -128,10 +128,10 @@ public abstract class ApplicationManager implements ManagerInterface
 				if (this.getContext().getConfigurationManager().createTemplateConfigurationFile(this.getContext(), this.getApplicationIdentifier().toString(), origin.toString(), true) == false) isError = true;
 
 				// Read configuration items of all interfaces
-				if (this.getContext().getResourceManager().readConfiguration(this.getContext(), this) == true) isError = true;
+				if (this.readConfigurationAll(this.getContext()) == true) isError = true;
 
 				// Check integrity of all read resources
-				if (this.getContext().getResourceManager().validateResources(this.getContext(), this) == true) isError = true;
+				if (this.validateResourcesAll(this.getContext()) == true) isError = true;
 
 				// Read security keys from configuration
 				if (this.readSecurityKeys() == false) isError = true;
@@ -444,7 +444,7 @@ public abstract class ApplicationManager implements ManagerInterface
 
 			// Notify shutdown on console. Wait for 2 seconds to have the error
 			// messages as the last messages on console.
-			FileUtilFunctions.sleepSeconds(2);
+			FileUtilFunctions.generalSleepSeconds(2);
 			System.err.println(shutdownText);
 			System.err.println(dumpText);
 
@@ -580,5 +580,119 @@ public abstract class ApplicationManager implements ManagerInterface
 	public boolean isNotifyLabelEvents()
 	{
 		return notifyLabelEvents;
+	}
+
+	/**
+	 * Check on integrity errors.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @return Returns <TT>true</TT> if an error was found, otherwise
+	 *         <TT>false</TT>.
+	 */
+	public boolean validateResourcesAll(Context context)
+	{
+		// Variables
+		boolean isIntegrityError = false;
+
+		// Check for integrity errors (Named resource identifiers)
+		try
+		{
+			if (this.validateResources(context) == true) isIntegrityError = true;
+			if (context.validateResources(context) == true) isIntegrityError = true;
+			if (context.getCommandManager().validateResources(context) == true) isIntegrityError = true;
+			if (context.getNotificationManager().validateResources(context) == true) isIntegrityError = true;
+			if (context.getConfigurationManager().validateResources(context) == true) isIntegrityError = true;
+			if (context.getLabelManager().validateResources(context) == true) isIntegrityError = true;
+			if (context.getLocaldataManager().validateResources(context) == true) isIntegrityError = true;
+			if (context.getRightManager().validateResources(context) == true) isIntegrityError = true;
+			if (context.getLicenseManager().validateResources(context) == true) isIntegrityError = true;
+			if (context.getMediaManager().validateResources(context) == true) isIntegrityError = true;
+			if (context.getTestManager().validateResources(context) == true) isIntegrityError = true;
+		}
+		catch (Exception e)
+		{
+			// Be silent
+		}
+
+		// Return
+		return isIntegrityError;
+	}
+
+	/**
+	 * Clean environment.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @return Returns <TT>true</TT> if an error was found, otherwise
+	 *         <TT>false</TT>.
+	 */
+	public boolean cleanEnvironmentAll(Context context)
+	{
+		// Variables
+		boolean isIntegrityError = false;
+
+		// Clean environment
+		try
+		{
+			if (this.cleanEnvironment(context) == true) isIntegrityError = true;
+			if (context.cleanEnvironment(context) == true) isIntegrityError = true;
+			if (context.getCommandManager().cleanEnvironment(context) == true) isIntegrityError = true;
+			if (context.getNotificationManager().cleanEnvironment(context) == true) isIntegrityError = true;
+			if (context.getConfigurationManager().cleanEnvironment(context) == true) isIntegrityError = true;
+			if (context.getLabelManager().cleanEnvironment(context) == true) isIntegrityError = true;
+			if (context.getLocaldataManager().cleanEnvironment(context) == true) isIntegrityError = true;
+			if (context.getRightManager().cleanEnvironment(context) == true) isIntegrityError = true;
+			if (context.getLicenseManager().cleanEnvironment(context) == true) isIntegrityError = true;
+			if (context.getMediaManager().cleanEnvironment(context) == true) isIntegrityError = true;
+			if (context.getTestManager().cleanEnvironment(context) == true) isIntegrityError = true;
+		}
+		catch (Exception e)
+		{
+			// Be silent
+		}
+
+		// Return
+		return isIntegrityError;
+	}
+
+	/**
+	 * Read configuration items of all interfaces.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @return Returns <TT>true</TT> if an error was found, otherwise
+	 *         <TT>false</TT>.
+	 */
+	public boolean readConfigurationAll(Context context)
+	{
+		// Variables
+		boolean isError = false;
+
+		// Read configuration items of all interfaces
+		try
+		{
+			if (this.readConfiguration(context) == true) isError = true;
+			if (context.readConfiguration(context) == true) isError = true;
+			if (context.getCommandManager().readConfiguration(context) == true) isError = true;
+			if (context.getNotificationManager().readConfiguration(context) == true) isError = true;
+			if (context.getConfigurationManager().readConfiguration(context) == true) isError = true;
+			if (context.getLabelManager().readConfiguration(context) == true) isError = true;
+			if (context.getLocaldataManager().readConfiguration(context) == true) isError = true;
+			if (context.getRightManager().readConfiguration(context) == true) isError = true;
+			if (context.getLicenseManager().readConfiguration(context) == true) isError = true;
+			if (context.getMediaManager().readConfiguration(context) == true) isError = true;
+			if (context.getTestManager().readConfiguration(context) == true) isError = true;
+		}
+		catch (Exception e)
+		{
+			// Be silent
+		}
+
+		// Return
+		return isError;
 	}
 }
