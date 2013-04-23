@@ -186,7 +186,7 @@ public class ResourceContainerMedia extends ResourceContainer
 
 	/**
 	 * Check if the storage location of the media resource item is set to
-	 * specific value.
+	 * a specific value.
 	 * 
 	 * @param context
 	 *            Application context.
@@ -659,43 +659,34 @@ public class ResourceContainerMedia extends ResourceContainer
 	 * @return Returns the server encoding key as string.
 	 * 
 	 */
-	private String getServerEncodingKeyAsString(Context context)
+	private String getEncodingKeyAsString(Context context)
 	{
 		// Get key number
-		int serverMediaKeyNumber = 0;
+		int encodingKeyNumber = 0;
 
-		if (context.getMediaManager().isServerEncodingEnabled(context, this))
+		if (context.getMediaManager().isEncodingEnabled(context, this))
 		{
-			serverMediaKeyNumber = context.getMediaManager().getServerEncodingKeyNumber();
+			encodingKeyNumber = context.getMediaManager().getEncodingKeyNumber();
 		}
 
 		// Compose string
-
-		String resultString = String.valueOf(serverMediaKeyNumber);
+		String resultString = String.valueOf(encodingKeyNumber);
 
 		for (int i = resultString.length(); i < 2; i++)
 		{
 			resultString = "0".concat(resultString);
 		}
 
-		resultString = "s".concat(resultString);
+		if (context.getApplicationManager().isServerApplication())
+		{
+			resultString = "s".concat(resultString);
+		}
+		else
+		{
+			resultString = "c".concat(resultString);
+		}
 
 		return resultString;
-	}
-
-	/**
-	 * Get the current client encoding key to be used for encoding on client
-	 * side.
-	 * 
-	 * @param context
-	 *            The context to use.
-	 * 
-	 * @return Returns the client encoding key as string.
-	 * 
-	 */
-	private String getClientEncodingKeyAsString(Context context)
-	{
-		return "c00";
 	}
 
 	/**
@@ -725,7 +716,7 @@ public class ResourceContainerMedia extends ResourceContainer
 
 		if (this.getAliasName() != null) mediaFileName = mediaFileName.replace("${alias}", FileUtilFunctions.generalFitToFileNameCompatibility(this.getAliasName()));
 		mediaFileName = mediaFileName.replace("${identifier}", this.fitIdentifierToFileName(dataIdentifier));
-		mediaFileName = mediaFileName.replace("${encodingkey}", this.getServerEncodingKeyAsString(context));
+		mediaFileName = mediaFileName.replace("${encodingkey}", this.getEncodingKeyAsString(context));
 		if (hashValue != null) mediaFileName = mediaFileName.replace("${hashvalue}", hashValue.trim());
 		if (fileType != null) mediaFileName = mediaFileName.replace("${filetype}", fileType);
 

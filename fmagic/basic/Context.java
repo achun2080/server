@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
+import fmagic.server.ServerMediaManager;
 import fmagic.test.TestManager;
 
 /**
@@ -72,7 +73,7 @@ public abstract class Context implements Cloneable, ManagerInterface
 	private final CommandManager commandManager;
 	private final RightManager rightManager;
 	private final LicenseManager licenseManager;
-	private final MediaManager mediaManager;
+	private final ServerMediaManager serverMediaManager;
 	private final TestManager testManager;
 
 	// Common data of context
@@ -171,7 +172,7 @@ public abstract class Context implements Cloneable, ManagerInterface
 		this.commandManager = new CommandManager();
 		this.rightManager = new RightManager();
 		this.licenseManager = new LicenseManager();
-		this.mediaManager = new MediaManager();
+		this.serverMediaManager = new ServerMediaManager();
 		this.testManager = testManager;
 
 		// If the application is running in "test mode", the context type is set
@@ -785,9 +786,9 @@ public abstract class Context implements Cloneable, ManagerInterface
 	/**
 	 * Getter
 	 */
-	public MediaManager getMediaManager()
+	public ServerMediaManager getMediaManager()
 	{
-		return this.mediaManager;
+		return this.serverMediaManager;
 	}
 
 	/**

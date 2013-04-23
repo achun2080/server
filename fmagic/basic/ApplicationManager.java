@@ -23,6 +23,8 @@ public abstract class ApplicationManager implements ManagerInterface
 	final private ApplicationManager.ApplicationIdentifierEnum applicationIdentifier;
 	final private int applicationVersion;
 	final private String codeName;
+	final private boolean serverApplication;
+	final private boolean clientApplication;
 
 	// Sets context of server
 	private Context context;
@@ -86,10 +88,14 @@ public abstract class ApplicationManager implements ManagerInterface
 		if (origin.toString().equals(OriginEnum.Server.toString()))
 		{
 			this.context = new ServerContext(codeName, applicationIdentifier.toString(), applicationVersion, this, runningInTestMode, testCaseName, testSessionName);
+			this.serverApplication = true;
+			this.clientApplication = false;
 		}
 		else
 		{
 			this.context = new ClientContext(codeName, applicationIdentifier.toString(), applicationVersion, this, runningInTestMode, testCaseName, testSessionName);
+			this.serverApplication = false;
+			this.clientApplication = true;
 		}
 
 		// Adopt constructor data
@@ -479,110 +485,6 @@ public abstract class ApplicationManager implements ManagerInterface
 	}
 
 	/**
-	 * Getter
-	 */
-	public Context getContext()
-	{
-		return this.context;
-	}
-
-	/**
-	 * Getter
-	 */
-	public String getCodeName()
-	{
-		return this.codeName;
-	}
-
-	/**
-	 * Getter
-	 */
-	public ApplicationManager.ApplicationIdentifierEnum getApplicationIdentifier()
-	{
-		return this.applicationIdentifier;
-	}
-
-	/**
-	 * Getter
-	 */
-	public boolean isShutdown()
-	{
-		return this.shutdown;
-	}
-
-	/**
-	 * Getter
-	 */
-	public boolean isStopRunning()
-	{
-		return this.stopRunning;
-	}
-
-	/**
-	 * Setter
-	 */
-	public void setStopRunning(boolean stopRunning)
-	{
-		this.stopRunning = stopRunning;
-	}
-
-	/**
-	 * Getter
-	 */
-	public int getApplicationVersion()
-	{
-		return this.applicationVersion;
-	}
-
-	/**
-	 * Getter
-	 */
-	public HashMap<String, String> getSupportedLanguages()
-	{
-		return this.supportedLanguages;
-	}
-
-	/**
-	 * Getter
-	 */
-	public String getSupportedLanguagesString()
-	{
-		String supportedLanguagesString = "";
-
-		for (String language : this.supportedLanguages.values())
-		{
-			if (supportedLanguagesString.length() > 0) supportedLanguagesString += ", ";
-			supportedLanguagesString += language;
-		}
-
-		return supportedLanguagesString;
-	}
-
-	/**
-	 * Getter
-	 */
-	public String getMainLanguage()
-	{
-		return mainLanguage;
-	}
-
-	/**
-	 * Getter
-	 */
-	public String getSecondaryLanguage()
-	{
-		return secondaryLanguage;
-	}
-
-	/**
-	 * Getter
-	 */
-	public boolean isNotifyLabelEvents()
-	{
-		return notifyLabelEvents;
-	}
-
-	/**
 	 * Check on integrity errors.
 	 * 
 	 * @param context
@@ -695,4 +597,125 @@ public abstract class ApplicationManager implements ManagerInterface
 		// Return
 		return isError;
 	}
+
+	/**
+	 * Getter
+	 */
+	public Context getContext()
+	{
+		return this.context;
+	}
+
+	/**
+	 * Getter
+	 */
+	public String getCodeName()
+	{
+		return this.codeName;
+	}
+
+	/**
+	 * Getter
+	 */
+	public ApplicationManager.ApplicationIdentifierEnum getApplicationIdentifier()
+	{
+		return this.applicationIdentifier;
+	}
+
+	/**
+	 * Getter
+	 */
+	public boolean isShutdown()
+	{
+		return this.shutdown;
+	}
+
+	/**
+	 * Getter
+	 */
+	public boolean isStopRunning()
+	{
+		return this.stopRunning;
+	}
+
+	/**
+	 * Setter
+	 */
+	public void setStopRunning(boolean stopRunning)
+	{
+		this.stopRunning = stopRunning;
+	}
+
+	/**
+	 * Getter
+	 */
+	public int getApplicationVersion()
+	{
+		return this.applicationVersion;
+	}
+
+	/**
+	 * Getter
+	 */
+	public HashMap<String, String> getSupportedLanguages()
+	{
+		return this.supportedLanguages;
+	}
+
+	/**
+	 * Getter
+	 */
+	public String getSupportedLanguagesString()
+	{
+		String supportedLanguagesString = "";
+
+		for (String language : this.supportedLanguages.values())
+		{
+			if (supportedLanguagesString.length() > 0) supportedLanguagesString += ", ";
+			supportedLanguagesString += language;
+		}
+
+		return supportedLanguagesString;
+	}
+
+	/**
+	 * Getter
+	 */
+	public String getMainLanguage()
+	{
+		return mainLanguage;
+	}
+
+	/**
+	 * Getter
+	 */
+	public String getSecondaryLanguage()
+	{
+		return secondaryLanguage;
+	}
+
+	/**
+	 * Getter
+	 */
+	public boolean isNotifyLabelEvents()
+	{
+		return notifyLabelEvents;
+	}
+
+	/**
+	 * Getter
+	 */
+	public boolean isServerApplication()
+	{
+		return serverApplication;
+	}
+
+	/**
+	 * Getter
+	 */
+	public boolean isClientApplication()
+	{
+		return clientApplication;
+	}
+	
 }
