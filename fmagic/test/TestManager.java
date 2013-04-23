@@ -229,6 +229,32 @@ public class TestManager implements ManagerInterface
 	}
 
 	/**
+	 * Get the absolute file path for the <TT>Local data</TT> directory of the test
+	 * environment, regarding a specific test case.
+	 * <p>
+	 * The result file path is combined of the root path of the development
+	 * environment, and the sub path "test", and the name of the test case, and
+	 * the <TT>License</TT> sub path.
+	 * <p>
+	 * For example, if the root path of the development environment is set to
+	 * "c:/fmagic" and the test case is named "mediatest" you will get:
+	 * <p>
+	 * <TT>c:/fmagic/test/mediatest/fmagic.localdata</TT>
+	 * 
+	 * @param context
+	 *            The application context.
+	 * 
+	 * @return Returns the file path or <TT>null</TT> if an error occurred.
+	 */
+	public static String getTestLocaldataFilePath(Context context)
+	{
+		String filePath = FileLocationFunctions.compileFilePath(FileLocationFunctions.getRootPath(), FileLocationFunctions.getTestLocaldataSubPath());
+		filePath = FileLocationFunctions.replacePlacholder(context, filePath);
+
+		return filePath;
+	}
+
+	/**
 	 * Clean all files in the test session directory, if the directory already
 	 * exists.
 	 * <p>

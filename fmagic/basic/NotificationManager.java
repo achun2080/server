@@ -1413,13 +1413,36 @@ public class NotificationManager implements ManagerInterface
 	 */
 	public int cleanAll(Context context)
 	{
+			// Initialize
+			Integer nuOfMovedFiles = 0;
+			
+			// Clean productive environment
+			nuOfMovedFiles = nuOfMovedFiles + this.cleanProductiveEnvironment(context);
+			
+			// Clean testing environment
+			nuOfMovedFiles = nuOfMovedFiles + this.cleanTestingEnvironment(context);
+
+			// Return
+			return nuOfMovedFiles;
+	}
+
+	/**
+	 * Clean all log directories in the productive environment.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @return Returns the number of deleted files.
+	 */
+	private int cleanProductiveEnvironment(Context context)
+	{
 		try
 		{
 			// Initialize
 			Integer nuOfMovedFiles = 0;
 
 			// Logging
-			String logText = "\n--> CLEAN ALL LOG DIRECTORIES: Begin of cleaning";
+			String logText = "\n--> CLEAN PRODUCTIVE LOG DIRECTORIES: Begin of cleaning";
 			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
 			
 			// Get the root directory of log files
@@ -1428,13 +1451,13 @@ public class NotificationManager implements ManagerInterface
 			
 			if (nuOfMovedFiles == null)
 			{
-				String errorString = "--> CLEAN ALL LOG DIRECTORIES: Error on processing cleaning.";
+				String errorString = "--> CLEAN PRODUCTIVE LOG DIRECTORIES: Error on processing cleaning.";
 				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Notification", "ErrorOnProcessingFile"), errorString, null);
 				return 0;
 			}
 
 			// / Logging
-			logText = "\n--> CLEAN ALL LOG DIRECTORIES: End of cleaning";
+			logText = "\n--> CLEAN PRODUCTIVE LOG DIRECTORIES: End of cleaning";
 			logText += "\n--> Total number of cleaned files: '" + String.valueOf(nuOfMovedFiles) + "'";
 			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
 
@@ -1443,7 +1466,81 @@ public class NotificationManager implements ManagerInterface
 		}
 		catch (Exception e)
 		{
-			String errorString = "--> CLEAN ALL LOG DIRECTORIES: Error on processing cleaning.";
+			String errorString = "--> CLEAN PRODUCTIVE LOG DIRECTORIES: Error on processing cleaning.";
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Notification", "ErrorOnProcessingFile"), errorString, e);
+			return 0;
+		}
+	}
+
+	/**
+	 * Clean all log directories in the testing environment.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @return Returns the number of deleted files.
+	 */
+	private int cleanTestingEnvironment(Context context)
+	{
+		try
+		{
+			// Initialize
+			Integer nuOfMovedFiles = 0;
+
+			// Logging
+			String logText = "\n--> CLEAN TESTING LOG DIRECTORIES: Begin of cleaning";
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
+			
+			// Get the root directory of log files
+			String directory = FileLocationFunctions.compileFilePath(FileLocationFunctions.getRootPath(), FileLocationFunctions.getTestSubPath());
+			
+			// Clean ASSERT files
+			Integer fileCounter = FileUtilFunctions.directoryDeleteExpiredFiles(directory, "ASSERT-*.log", this.cleanDaysToKeep);
+			
+			if (fileCounter == null)
+			{
+				String errorString = "--> CLEAN TESTING LOG DIRECTORIES: Error on processing cleaning ASSERT files.";
+				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Notification", "ErrorOnProcessingFile"), errorString, null);
+				return 0;
+			}
+			
+			nuOfMovedFiles = nuOfMovedFiles + fileCounter;
+			
+			// Clean LOGGING files
+			fileCounter = FileUtilFunctions.directoryDeleteExpiredFiles(directory, "LOGGING-*.log", this.cleanDaysToKeep);
+			
+			if (fileCounter == null)
+			{
+				String errorString = "--> CLEAN TESTING LOG DIRECTORIES: Error on processing cleaning LOGGING files.";
+				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Notification", "ErrorOnProcessingFile"), errorString, null);
+				return 0;
+			}
+			
+			nuOfMovedFiles = nuOfMovedFiles + fileCounter;
+			
+			// Clean ERROR files
+			fileCounter = FileUtilFunctions.directoryDeleteExpiredFiles(directory, "ERROR-*.log", this.cleanDaysToKeep);
+			
+			if (fileCounter == null)
+			{
+				String errorString = "--> CLEAN TESTING LOG DIRECTORIES: Error on processing cleaning ERROR files.";
+				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Notification", "ErrorOnProcessingFile"), errorString, null);
+				return 0;
+			}
+			
+			nuOfMovedFiles = nuOfMovedFiles + fileCounter;
+
+			// / Logging
+			logText = "\n--> CLEAN TESTING LOG DIRECTORIES: End of cleaning";
+			logText += "\n--> Total number of cleaned files: '" + String.valueOf(nuOfMovedFiles) + "'";
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
+
+			// Return
+			return nuOfMovedFiles;
+		}
+		catch (Exception e)
+		{
+			String errorString = "--> CLEAN TESTING LOG DIRECTORIES: Error on processing cleaning.";
 			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Notification", "ErrorOnProcessingFile"), errorString, e);
 			return 0;
 		}

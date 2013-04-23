@@ -7,6 +7,8 @@ import java.util.Date;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
+import fmagic.test.TestManager;
+
 /**
  * This class implements the management of data that clients or servers have to
  * persist for there own disposition.
@@ -84,7 +86,7 @@ public class LocaldataManager implements ManagerInterface
 	{
 		return false;
 	}
-	
+
 	@Override
 	public boolean readConfiguration(Context context)
 	{
@@ -432,7 +434,9 @@ public class LocaldataManager implements ManagerInterface
 		}
 		catch (Exception e)
 		{
-			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "LocalData", "ErrorOnAddingProperty"), "--> Identifier: '" + identifier + "'", e);
+			String additionalText = "--> Error on reading local data property";
+			additionalText += "\n--> Identifier: '" + identifier + "'";
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "LocalData", "ErrorOnAddingProperty"), additionalText, e);
 		}
 		finally
 		{
@@ -569,8 +573,21 @@ public class LocaldataManager implements ManagerInterface
 	 */
 	private void readPropertiesFile(Context context)
 	{
+		// If the application is running in "test mode", the test
+		// environment is used instead of the regular environment.
+		String localdataFilePath = null;
+
+		if (context.isRunningInTestMode())
+		{
+			localdataFilePath = TestManager.getTestLocaldataFilePath(context);
+		}
+		else
+		{
+			localdataFilePath = this.getLocalDataFilePath(context);
+		}
+
 		// Composes file name
-		String fileName = FileLocationFunctions.compileFilePath(getLocalDataFilePath(context), getLocaldataFileName(context));
+		String fileName = FileLocationFunctions.compileFilePath(localdataFilePath, this.getLocaldataFileName(context));
 
 		try
 		{
@@ -579,7 +596,9 @@ public class LocaldataManager implements ManagerInterface
 		catch (Exception e)
 		{
 			// No error message because of this file is optional
-			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.WARNING, "Local Data data not found in: '" + fileName + "'");
+			String additionalText = "--> Warning on reading local data properties file";
+			additionalText += "\n--> Local Data file not existing: '" + fileName + "'";
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.WARNING, additionalText);
 		}
 	}
 
@@ -591,13 +610,25 @@ public class LocaldataManager implements ManagerInterface
 	 */
 	private void writePropertiesFile(Context context)
 	{
+		// If the application is running in "test mode", the test
+		// environment is used instead of the regular environment.
+		String localdataFilePath = null;
+
+		if (context.isRunningInTestMode())
+		{
+			localdataFilePath = TestManager.getTestLocaldataFilePath(context);
+		}
+		else
+		{
+			localdataFilePath = this.getLocalDataFilePath(context);
+		}
+
 		// Composes file name
-		String path = getLocalDataFilePath(context);
-		String fileName = getLocaldataFileName(context);
-		String fullFileName = FileLocationFunctions.compileFilePath(path, fileName);
+		String fileName = this.getLocaldataFileName(context);
+		String fullFileName = FileLocationFunctions.compileFilePath(localdataFilePath, fileName);
 
 		// Creates directory
-		File directory = new File(path);
+		File directory = new File(localdataFilePath);
 		directory.mkdirs();
 
 		// Writes local data to file
@@ -607,7 +638,9 @@ public class LocaldataManager implements ManagerInterface
 		}
 		catch (Exception e)
 		{
-			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "LocalData", "ErrorOnWritingToPropertiesFile"), "--> File name searched for: '" + fullFileName + "'", e);
+			String additionalText = "--> Error on writing local data properties file";
+			additionalText += "\n--> File name searched for: '" + fullFileName + "'";
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "LocalData", "ErrorOnWritingToPropertiesFile"), additionalText, e);
 		}
 	}
 }

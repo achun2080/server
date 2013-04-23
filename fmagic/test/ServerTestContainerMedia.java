@@ -223,8 +223,8 @@ public class ServerTestContainerMedia extends ServerTestContainer
 
 		try
 		{
-			int nuOfDeletedFiles = this.getContext().getNotificationManager().cleanAll(this.getContext());
-			int i = 1;
+			this.getContext().getLocaldataManager().writeProperty(this.getContext(), ResourceManager.localdata(this.getContext(), "LastValidServerConnection", "ClientSessionIdentifier"), "1234abcd");
+			TestManager.assertGreaterThan(this.getContext(), null, 1, 0);
 		}
 		catch (Exception e)
 		{

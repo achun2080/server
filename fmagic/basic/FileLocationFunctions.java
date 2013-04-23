@@ -64,6 +64,7 @@ public class FileLocationFunctions
 	private static final String mediaDeletedFileName = "${originalname}-${timestamp}-[${thread}].${filetype}";
 	private static final String mediaDeletedSubPath = "deleted";
 
+	private static final String testSubPath = "test";
 	private static final String testLoggingSubPath = "test/${testcasename}/fmagic.logging";
 	private static final String testLoggingSubSubPath = "${testsession}";
 	private static final String testLoggingLogFileName = "LOGGING-${application}-${origin}-${codename}-[${thread}].log";
@@ -74,6 +75,7 @@ public class FileLocationFunctions
 	private static final String testStuffSubPath = "test/${testcasename}/fmagic.stuff";
 	private static final String testConfigurationSubPath = "test/${testcasename}/fmagic.configuration";
 	private static final String testLicenseSubPath = "test/${testcasename}/fmagic.license";
+	private static final String testLocaldataSubPath = "test/${testcasename}/fmagic.localdata";
 
 	// File location counter
 	private static long fileLocationCounter = 0;
@@ -551,6 +553,11 @@ public class FileLocationFunctions
 		return mediaPendingSubPath;
 	}
 
+	public static String getTestSubPath()
+	{
+		return testSubPath;
+	}
+
 	public static String getTestLoggingSubPath()
 	{
 		return testLoggingSubPath;
@@ -594,5 +601,10 @@ public class FileLocationFunctions
 	public static String getTestLicenseSubPath()
 	{
 		return testLicenseSubPath;
+	}
+
+	public static String getTestLocaldataSubPath()
+	{
+		return testLocaldataSubPath;
 	}
 }

@@ -19,14 +19,14 @@ public class ApplicationMain
 		testRunner.setup();
 
 		ServerTestContainerMedia testContainer = new ServerTestContainerMedia();
-		testContainer.setParameterResourceGroup("Apartment");
-		testContainer.setParameterResourceName("Room");
-		testContainer.setParameterDataIdentifierTestUpload("1234");
-		testContainer.setParameterDataIdentifierTestObsolete("1235");
-		testContainer.setParameterTestCycleNumberOfFiles(100);
-		testContainer.setParameterTestCycleDataIdentifierFrom(1);
-		testContainer.setParameterTestCycleDataIdentifierToo(40);
-
+//		testContainer.setParameterResourceGroup("Apartment");
+//		testContainer.setParameterResourceName("Room");
+//		testContainer.setParameterDataIdentifierTestUpload("1234");
+//		testContainer.setParameterDataIdentifierTestObsolete("1235");
+//		testContainer.setParameterTestCycleNumberOfFiles(100);
+//		testContainer.setParameterTestCycleDataIdentifierFrom(1);
+//		testContainer.setParameterTestCycleDataIdentifierToo(40);
+//
 //		testRunner.executeComponentTest();
 //		testRunner.executeSingleFunctionTest(testContainer, "testExpiredPendingFiles");
 //		testRunner.executeSingleFunctionTest(testContainer, "testExpiredDeletedFiles");
