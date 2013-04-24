@@ -32,6 +32,14 @@ public class ServerContext extends Context
 	 *            The instance of the application manager that is to be assigned
 	 *            to the context.
 	 * 
+	 * @param mediaManager
+	 *            The instance of the media manager that is to be assigned
+	 *            to the context.
+	 * 
+	 * @param testManager
+	 *            The instance of the test manager that is to be assigned
+	 *            to the context.
+	 * 
 	 * @param runningInTestMode
 	 *            Set to TRUE if the application is running in test mode.
 	 * 
@@ -49,7 +57,7 @@ public class ServerContext extends Context
 			int applicationVersion, ApplicationManager applicationManager,
 			boolean runningInTestMode, String testCaseName, String testSessionName)
 	{
-		super(codeName, applicationName, applicationVersion, ResourceContainer.OriginEnum.Server.toString(), applicationManager, new TestManagerServer(), runningInTestMode, testCaseName, testSessionName);
+		super(codeName, applicationName, applicationVersion, ResourceContainer.OriginEnum.Server.toString(), applicationManager, new ServerMediaManager(), new TestManagerServer(), runningInTestMode, testCaseName, testSessionName);
 	}
 
 	@Override

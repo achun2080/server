@@ -870,7 +870,7 @@ public abstract class MediaManager implements ManagerInterface
 	 * @return Returns <TT>true</TT> if server encoding is set.
 	 * 
 	 */
-	protected abstract boolean isEncodingEnabled(Context context, ResourceContainerMedia mediaResourceContainer);
+	public abstract boolean isEncodingEnabled(Context context, ResourceContainerMedia mediaResourceContainer);
 
 	/**
 	 * Encrypt a media file.

@@ -71,7 +71,7 @@ public class ResourceContainer implements Cloneable
 	{
 		Configuration,
 		Notification,
-		LocalData,
+		Localdata,
 		Command,
 		Container,
 		Context,

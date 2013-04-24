@@ -31,6 +31,14 @@ public class ClientContext extends Context
 	 *            The instance of the application manager that is to be assigned
 	 *            to the context.
 	 * 
+	 * @param mediaManager
+	 *            The instance of the media manager that is to be assigned
+	 *            to the context.
+	 * 
+	 * @param testManager
+	 *            The instance of the test manager that is to be assigned
+	 *            to the context.
+	 * 
 	 * @param runningInTestMode
 	 *            Set to TRUE if the application is running in test mode.
 	 * 
@@ -48,7 +56,7 @@ public class ClientContext extends Context
 			int applicationVersion, ApplicationManager applicationManager,
 			boolean runningInTestMode, String testCaseName, String testSessionName)
 	{
-		super(codeName, applicationName, applicationVersion, ResourceContainer.OriginEnum.Client.toString(), applicationManager, new TestManagerClient(), runningInTestMode, testCaseName, testSessionName);
+		super(codeName, applicationName, applicationVersion, ResourceContainer.OriginEnum.Client.toString(), applicationManager, new ClientMediaManager(), new TestManagerClient(), runningInTestMode, testCaseName, testSessionName);
 	}
 
 	@Override

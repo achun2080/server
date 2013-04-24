@@ -13,7 +13,7 @@ import fmagic.basic.ResourceContainer;
 import fmagic.basic.ResourceContainerMedia;
 import fmagic.basic.ResourceManager;
 
-public class ServerTestContainerMedia extends ServerTestContainer
+public class TestContainerMedia extends TestContainer
 {
 	private String parameterResourceGroup = "Apartment";
 	private String parameterResourceName = "Room";
@@ -32,7 +32,7 @@ public class ServerTestContainerMedia extends ServerTestContainer
 	/**
 	 * Constructor
 	 */
-	public ServerTestContainerMedia(Context context, boolean concurrentAccess)
+	public TestContainerMedia(Context context, boolean concurrentAccess)
 	{
 		super(context, concurrentAccess);
 	}
@@ -40,7 +40,7 @@ public class ServerTestContainerMedia extends ServerTestContainer
 	/**
 	 * Constructor
 	 */
-	public ServerTestContainerMedia()
+	public TestContainerMedia()
 	{
 		super();
 	}
@@ -557,7 +557,18 @@ public class ServerTestContainerMedia extends ServerTestContainer
 				// Compare check sum of source file and destination file
 				if (!this.isConcurrentAccess())
 				{
+					// Check always: If the checksum of the uploaded file and
+					// the working file are the same, all the same if the media
+					// files are encoded.
 					TestManager.assertEqualsFile(this.getContext(), additionalText, uploadFileName, mediaContainer.getWorkingMediaFilePath());
+
+					// Check if encoding is enabled encoding: If the checksum of
+					// the uploaded file and
+					// the original file are different.
+					if (this.getContext().getMediaManager().isEncodingEnabled(this.getContext(), mediaResource) == true)
+					{
+						TestManager.assertNotEqualsFile(this.getContext(), additionalText, uploadFileName, mediaContainer.getOriginalMediaFilePath());
+					}
 				}
 
 				// Read file content
@@ -614,8 +625,11 @@ public class ServerTestContainerMedia extends ServerTestContainer
 			String pendingDirectory = mediaResource.getMediaPendingFilePath(this.getContext());
 			TestManager.assertNotNull(this.getContext(), null, pendingDirectory);
 
-			boolean isSuccessful = FileUtilFunctions.directoryDeleteAllFiles(pendingDirectory);
-			TestManager.assertTrue(this.getContext(), "--> Error on cleaning 'pending' directory '" + pendingDirectory + "'", isSuccessful);
+			if (FileUtilFunctions.directoryExists(pendingDirectory))
+			{
+				boolean isSuccessful = FileUtilFunctions.directoryDeleteAllFiles(pendingDirectory);
+				TestManager.assertTrue(this.getContext(), "--> Error on cleaning 'pending' directory '" + pendingDirectory + "'", isSuccessful);
+			}
 		}
 		catch (Exception e)
 		{
@@ -635,8 +649,11 @@ public class ServerTestContainerMedia extends ServerTestContainer
 			String regularDirectory = mediaResource.getMediaRegularFilePath(this.getContext());
 			TestManager.assertNotNull(this.getContext(), null, regularDirectory);
 
-			boolean isSuccessful = FileUtilFunctions.directoryDeleteAllFiles(regularDirectory);
-			TestManager.assertTrue(this.getContext(), "--> Error on cleaning 'regular' directory '" + regularDirectory + "'", isSuccessful);
+			if (FileUtilFunctions.directoryExists(regularDirectory))
+			{
+				boolean isSuccessful = FileUtilFunctions.directoryDeleteAllFiles(regularDirectory);
+				TestManager.assertTrue(this.getContext(), "--> Error on cleaning 'regular' directory '" + regularDirectory + "'", isSuccessful);
+			}
 		}
 		catch (Exception e)
 		{
@@ -656,8 +673,11 @@ public class ServerTestContainerMedia extends ServerTestContainer
 			String deletedDirectory = mediaResource.getMediaDeletedFilePath(this.getContext());
 			TestManager.assertNotNull(this.getContext(), null, deletedDirectory);
 
-			boolean isSuccessful = FileUtilFunctions.directoryDeleteAllFiles(deletedDirectory);
-			TestManager.assertTrue(this.getContext(), "--> Error on cleaning 'deleted' directory '" + deletedDirectory + "'", isSuccessful);
+			if (FileUtilFunctions.directoryExists(deletedDirectory))
+			{
+				boolean isSuccessful = FileUtilFunctions.directoryDeleteAllFiles(deletedDirectory);
+				TestManager.assertTrue(this.getContext(), "--> Error on cleaning 'deleted' directory '" + deletedDirectory + "'", isSuccessful);
+			}
 		}
 		catch (Exception e)
 		{

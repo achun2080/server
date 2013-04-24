@@ -14,15 +14,15 @@ public class ApplicationMain
 	 */
 	public static void main(String[] args)
 	{
-		TestRunnerMedia testRunner = new TestRunnerMedia("aaaaaaaaaa");
-
-		testRunner.setup();
-
-		ServerTestContainerMedia testContainer = new ServerTestContainerMedia();
+//		TestRunnerMediaClient testRunner = new TestRunnerMediaClient("aaaaaaaaaa");
+//
+//		testRunner.setup();
+//
+//		TestContainerMedia testContainer = new TestContainerMedia();
 //		testContainer.setParameterResourceGroup("Apartment");
 //		testContainer.setParameterResourceName("Room");
-//		testContainer.setParameterDataIdentifierTestUpload("1234");
-//		testContainer.setParameterDataIdentifierTestObsolete("1235");
+//		testContainer.setParameterDataIdentifierTestUpload("5678");
+//		testContainer.setParameterDataIdentifierTestObsolete("5679");
 //		testContainer.setParameterTestCycleNumberOfFiles(100);
 //		testContainer.setParameterTestCycleDataIdentifierFrom(1);
 //		testContainer.setParameterTestCycleDataIdentifierToo(40);
@@ -32,27 +32,28 @@ public class ApplicationMain
 //		testRunner.executeSingleFunctionTest(testContainer, "testExpiredDeletedFiles");
 //		testRunner.executeSingleFunctionTest(testContainer, "testExpiredObsoleteFiles");
 //		testRunner.executeSingleFunctionTest(testContainer, "testCleaningAll");
-		testRunner.executeSingleFunctionTest(testContainer, "xxxxxxxxxx");
-
-		testRunner.cleanup();
+//		testRunner.executeSingleFunctionTest(testContainer, "xxxxxxxxxx");
+//
+//		testRunner.cleanup();
 
 		try
 		{
-//			ApplicationTest testA = new ApplicationTest();
-//			testA.addTestRunner(new TestRunnerMedia("a-component"));
-//			testA.executeComponentTests();
-//
-//			ApplicationTest testB = new ApplicationTest();
-//			testB.addTestRunner(new TestRunnerMedia("b-concurrent"));
-//			testB.executeConcurrentTests();
-//
-//			ApplicationTest testC = new ApplicationTest();
-//			testC.addTestRunner(new TestRunnerMedia("c-stress"));
-//			testC.executeStressTests();
-//
-//			ApplicationTest testD = new ApplicationTest();
-//			testD.addTestRunner(new TestRunnerMedia("d-integeration"));
-//			testD.executeIntegerationTests();
+			ApplicationTest testApplication = new ApplicationTest();
+
+			testApplication.addTestRunner(new TestRunnerMediaServer("server-a-component"));
+			testApplication.addTestRunner(new TestRunnerMediaServer("server-b-concurrent"));
+			testApplication.addTestRunner(new TestRunnerMediaServer("server-c-stress"));
+			testApplication.addTestRunner(new TestRunnerMediaServer("server-d-integeration"));
+
+			testApplication.addTestRunner(new TestRunnerMediaClient("client-a-component"));
+			testApplication.addTestRunner(new TestRunnerMediaClient("client-b-concurrent"));
+			testApplication.addTestRunner(new TestRunnerMediaClient("client-c-stress"));
+			testApplication.addTestRunner(new TestRunnerMediaClient("client-d-integeration"));
+
+			testApplication.executeComponentTests();
+			testApplication.executeConcurrentTests();
+			testApplication.executeStressTests();
+			testApplication.executeIntegerationTests();
 		}
 		catch (Exception e)
 		{

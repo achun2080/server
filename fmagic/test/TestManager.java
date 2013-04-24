@@ -1267,4 +1267,43 @@ public class TestManager implements ManagerInterface
 			TestManager.servicePrintProgress(context);
 		}
 	}
+
+	/**
+	 * Assert: Compare two files via checksum, if they are different.
+	 * 
+	 * @param context
+	 *            Application context of the message.
+	 * 
+	 * @param additionalText
+	 *            Additional text of the message.
+	 * 
+	 * @param filePath1
+	 *            The first file.
+	 * 
+	 * @param filePath2
+	 *            The second file.
+	 */
+	public static void assertNotEqualsFile(Context context, String additionalText, String filePath1, String filePath2)
+	{
+		long checksumFile1 = FileUtilFunctions.fileGetChecksum(filePath1);
+		TestManager.assertGreaterThan(context, additionalText + "\n--> Error on computing checksum of file '" + filePath1 + "'", checksumFile1, 0);
+
+		long checksumFile2 = FileUtilFunctions.fileGetChecksum(filePath2);
+		TestManager.assertGreaterThan(context, additionalText + "\n--> Error on computing checksum of file '" + filePath2 + "'", checksumFile2, 0);
+
+		if (checksumFile1 == checksumFile2)
+		{
+			context.getTestManager().setErrorFound();
+
+			String assertText = "Assertion failed: Comparing two files on diversity";
+			assertText += "\n--> File path 1: '" + filePath1 + "'";
+			assertText += "\n--> File path 2: '" + filePath2 + "'";
+
+			TestManager.servicePrintError(context, assertText, additionalText);
+		}
+		else
+		{
+			TestManager.servicePrintProgress(context);
+		}
+	}
 }

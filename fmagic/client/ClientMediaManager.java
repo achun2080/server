@@ -1,4 +1,4 @@
-package fmagic.server;
+package fmagic.client;
 
 import fmagic.basic.Context;
 import fmagic.basic.MediaManager;
@@ -7,19 +7,19 @@ import fmagic.basic.ResourceContainerMedia;
 import fmagic.basic.ResourceManager;
 
 /**
- * This class implements the management of media of server applications.
+ * This class implements the management of media of client applications.
  * 
  * @author frank.wuensche (FW)
  * 
- * @changed FW 30.03.2013 - Created
+ * @changed FW 24.04.2013 - Created
  * 
  */
-public class ServerMediaManager extends MediaManager
+public class ClientMediaManager extends MediaManager
 {
 	/**
 	 * Constructor
 	 */
-	public ServerMediaManager()
+	public ClientMediaManager()
 	{
 		super();
 	}
@@ -27,12 +27,12 @@ public class ServerMediaManager extends MediaManager
 	@Override
 	protected boolean readConfigurationLocalMediaFilePathRoot(Context context)
 	{
-		ResourceContainer resourceContainer = ResourceManager.configuration(context, "Media", "ServerLocalMediaFilePathRoot");
+		ResourceContainer resourceContainer = ResourceManager.configuration(context, "Media", "ClientLocalMediaFilePathRoot");
 		this.mediaRootFilePath = context.getConfigurationManager().getProperty(context, resourceContainer, null, true);
 
 		if (this.mediaRootFilePath == null || this.mediaRootFilePath.length() == 0)
 		{
-			String errorString = "--> Media configuration property 'ServerLocalMediaFilePathRoot' is not set.";
+			String errorString = "--> Media configuration property 'ClientLocalMediaFilePathRoot' is not set.";
 			errorString += "\n--> Configuration property: '" + resourceContainer.getRecourceIdentifier() + "'";
 			errorString += "\n--> Please set the media root file path explicitly.";
 			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Configuration", "IntegrityError"), errorString, null);
@@ -49,15 +49,15 @@ public class ServerMediaManager extends MediaManager
 		boolean isError = false;
 
 		// Read configuration item
-		ResourceContainer resourceContainer = ResourceManager.configuration(context, "Media", "ServerEncodingKeyList");
-		String serverMediaKeyListString = context.getConfigurationManager().getProperty(context, resourceContainer, null, false);
+		ResourceContainer resourceContainer = ResourceManager.localdata(context, "Media", "ClientEncodingKeyList");
+		String encodingKeyList = context.getLocaldataManager().readProperty(context, resourceContainer, null);
 
 		// Get key list
-		if (serverMediaKeyListString != null && serverMediaKeyListString.length() > 0)
+		if (encodingKeyList != null && encodingKeyList.length() > 0)
 		{
 			try
 			{
-				String keyListParts[] = serverMediaKeyListString.split(",");
+				String keyListParts[] = encodingKeyList.split(",");
 
 				if (keyListParts.length > 0)
 				{
@@ -93,9 +93,9 @@ public class ServerMediaManager extends MediaManager
 		// Process error message
 		if (isError == true)
 		{
-			String errorString = "--> Error on parsing server encoding key list.";
+			String errorString = "--> Error on parsing client encoding key list.";
 			errorString += "\n--> Configuration property: '" + resourceContainer.getRecourceIdentifier() + "'";
-			errorString += "\n--> Value parsed: '" + serverMediaKeyListString + "'";
+			errorString += "\n--> Value parsed: '" + encodingKeyList + "'";
 			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Configuration", "ErrorOnParsingConfigurationList"), errorString, null);
 		}
 
@@ -108,7 +108,7 @@ public class ServerMediaManager extends MediaManager
 
 				if (keyValue == null || keyValue.length() < 8)
 				{
-					String errorString = "--> Error on server encoding key list, on key number '" + String.valueOf(keyNumber) + "'.";
+					String errorString = "--> Error on client encoding key list, on key number '" + String.valueOf(keyNumber) + "'.";
 					errorString += "\n--> Key value must be at least 8 characters long.";
 					errorString += "\n--> Configuration property: '" + resourceContainer.getRecourceIdentifier() + "'";
 					errorString += "\n--> Key value: '" + keyValue + "'";
@@ -127,43 +127,43 @@ public class ServerMediaManager extends MediaManager
 	protected boolean readConfigurationEncodingKeyNumber(Context context)
 	{
 		// Read parameter value
-		ResourceContainer resourceContainer = ResourceManager.configuration(context, "Media", "ServerEncodingKeyNumber");
-		String configurationServerEncodingKeyNumberString = context.getConfigurationManager().getProperty(context, resourceContainer, null, false);
+		ResourceContainer resourceContainer = ResourceManager.localdata(context, "Media", "ClientEncodingKeyNumber");
+		String encodingKeyNumber = context.getLocaldataManager().readProperty(context, resourceContainer, null);
 
 		// Key number is not set
-		if (configurationServerEncodingKeyNumberString == null) return false;
+		if (encodingKeyNumber == null) return false;
 
 		// Convert key number to integer
-		int configurationServerEncodingKeyNumberInteger = 0;
+		int encodingKeyNumberInteger = 0;
 
 		try
 		{
-			configurationServerEncodingKeyNumberInteger = Integer.parseInt(configurationServerEncodingKeyNumberString);
+			encodingKeyNumberInteger = Integer.parseInt(encodingKeyNumber);
 		}
 		catch (Exception e)
 		{
-			String errorString = "--> Server encoding key number is not an integer value.";
+			String errorString = "--> Client encoding key number is not an integer value.";
 			errorString += "\n--> Configuration property: '" + resourceContainer.getRecourceIdentifier() + "'";
-			errorString += "\n--> Server encoding key number: '" + String.valueOf(configurationServerEncodingKeyNumberString) + "'";
-			errorString += "\n--> Available key numbers of server encoding keys: '" + this.encodingKeyList.keySet().toString() + "'";
+			errorString += "\n--> Client encoding key number: '" + String.valueOf(encodingKeyNumber) + "'";
+			errorString += "\n--> Available key numbers of client encoding keys: '" + this.encodingKeyList.keySet().toString() + "'";
 
 			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Configuration", "IntegrityError"), errorString, null);
 			return true;
 		}
 
 		// Check parameter value
-		if (this.encodingKeyList.get(configurationServerEncodingKeyNumberInteger) == null)
+		if (this.encodingKeyList.get(encodingKeyNumberInteger) == null)
 		{
-			String errorString = "--> Server encoding key number is not part of the key list.";
+			String errorString = "--> Client encoding key number is not part of the key list.";
 			errorString += "\n--> Configuration property: '" + resourceContainer.getRecourceIdentifier() + "'";
-			errorString += "\n--> Server encoding key number: '" + String.valueOf(configurationServerEncodingKeyNumberString) + "'";
-			errorString += "\n--> Available key numbers of server encoding keys: '" + this.encodingKeyList.keySet().toString() + "'";
+			errorString += "\n--> Client encoding key number: '" + String.valueOf(encodingKeyNumber) + "'";
+			errorString += "\n--> Available key numbers of client encoding keys: '" + this.encodingKeyList.keySet().toString() + "'";
 
 			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Configuration", "IntegrityError"), errorString, null);
 			return true;
 		}
 
-		this.encodingKeyNumber = configurationServerEncodingKeyNumberInteger;
+		this.encodingKeyNumber = encodingKeyNumberInteger;
 
 		return false;
 	}
@@ -171,15 +171,15 @@ public class ServerMediaManager extends MediaManager
 	@Override
 	protected boolean readConfigurationEncodingEnabled(Context context)
 	{
-		ResourceContainer resourceContainer = ResourceManager.configuration(context, "Media", "ServerEncodingEnabled");
+		ResourceContainer resourceContainer = ResourceManager.configuration(context, "Media", "ClientEncodingEnabled");
 		this.encodingEnabled = context.getConfigurationManager().getPropertyAsBooleanValue(context, resourceContainer, false, false);
 
 		// Check parameter value
 		if (this.encodingEnabled == true && this.encodingKeyNumber == 0)
 		{
-			String errorString = "--> Server encoding is enabled but no encoding key is set.";
+			String errorString = "--> Client encoding is enabled but no encoding key is set.";
 			errorString += "\n--> Configuration property: '" + resourceContainer.getRecourceIdentifier() + "'";
-			errorString += "\n--> Please set encoding key, or disable server encoding.";
+			errorString += "\n--> Please set encoding key, or disable client encoding.";
 
 			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Configuration", "IntegrityError"), errorString, null);
 			return true;
@@ -193,10 +193,11 @@ public class ServerMediaManager extends MediaManager
 	{
 		boolean encodingEnabled = true;
 
-		if (mediaResourceContainer.isServerEncoding(context) == false) encodingEnabled = false;
+		if (mediaResourceContainer.isClientEncoding(context) == false) encodingEnabled = false;
 		if (this.encodingEnabled == false) encodingEnabled = false;
 		if (this.getEncodingValue(context) == null) encodingEnabled = false;
 
 		return encodingEnabled;
 	}
+
 }

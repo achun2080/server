@@ -1536,7 +1536,7 @@ public class ResourceManager implements ManagerInterface
 	 */
 	public static ResourceContainer localdata(Context context, String group, String name)
 	{
-		return ResourceManager.getResourceContainerByTypeGroupName(context, ResourceContainer.TypeEnum.LocalData.toString(), group, name);
+		return ResourceManager.getResourceContainerByTypeGroupName(context, ResourceContainer.TypeEnum.Localdata.toString(), group, name);
 	}
 
 	/**

@@ -8,16 +8,16 @@ import fmagic.server.ServerManager;
 
 /**
  * This class implements testing functionality regarding the
- * <TT>Media Manager</TT>.
+ * <TT>Media Manager</TT>on server side.
  * 
  * @author frank.wuensche (FW)
  * 
  * @changed FW 11.04.2013 - Created
  * 
  */
-public class TestRunnerMedia extends TestRunner
+public class TestRunnerMediaServer extends TestRunner
 {
-	private static final String TESTCASE_NAME = "mediatest";
+	private static final String TESTCASE_NAME = "mediatestlocal";
 
 	private ServerManager serverAp1 = null;
 	private ServerManager serverAp2 = null;
@@ -26,7 +26,7 @@ public class TestRunnerMedia extends TestRunner
 	/**
 	 * Constructor
 	 */
-	public TestRunnerMedia(String testSessionName)
+	public TestRunnerMediaServer(String testSessionName)
 	{
 		super(TESTCASE_NAME, testSessionName);
 	}
@@ -71,9 +71,9 @@ public class TestRunnerMedia extends TestRunner
 	}
 
 	@Override
-	public void executeSingleFunctionTest(ServerTestContainer serverTestContainer, String methodName)
+	public void executeSingleFunctionTest(TestContainer testContainer, String methodName)
 	{
-		this.doSingleFunctionTest(serverAp1.getContext(), serverTestContainer, methodName);
+		this.doSingleFunctionTest(serverAp1.getContext(), testContainer, methodName);
 	}
 
 	@Override
@@ -135,12 +135,12 @@ public class TestRunnerMedia extends TestRunner
 	 */
 	private void doComponentTest(Context context)
 	{
-		ServerTestContainerMedia testMediaSingle;
+		TestContainerMedia testMediaSingle;
 
 		try
 		{
 			// Room
-			testMediaSingle = new ServerTestContainerMedia(context, false);
+			testMediaSingle = new TestContainerMedia(context, false);
 			testMediaSingle.setParameterResourceGroup("Apartment");
 			testMediaSingle.setParameterResourceName("Room");
 			testMediaSingle.setParameterDataIdentifierTestUpload("1234");
@@ -151,25 +151,25 @@ public class TestRunnerMedia extends TestRunner
 			testMediaSingle.executeComponentTest();
 
 			// Floor (don't test, cleanup only)
-			testMediaSingle = new ServerTestContainerMedia(context, false);
+			testMediaSingle = new TestContainerMedia(context, false);
 			testMediaSingle.setParameterResourceGroup("Apartment");
 			testMediaSingle.setParameterResourceName("Floor");
 			testMediaSingle.cleanupComponentTest();
 
 			// Bedroom (don't test, cleanup only)
-			testMediaSingle = new ServerTestContainerMedia(context, false);
+			testMediaSingle = new TestContainerMedia(context, false);
 			testMediaSingle.setParameterResourceGroup("Apartment");
 			testMediaSingle.setParameterResourceName("Bedroom");
 			testMediaSingle.cleanupComponentTest();
 
 			// Kitchen (don't test, cleanup only)
-			testMediaSingle = new ServerTestContainerMedia(context, false);
+			testMediaSingle = new TestContainerMedia(context, false);
 			testMediaSingle.setParameterResourceGroup("Apartment");
 			testMediaSingle.setParameterResourceName("Kitchen");
 			testMediaSingle.cleanupComponentTest();
 
 			// Bathroom (don't test, cleanup only)
-			testMediaSingle = new ServerTestContainerMedia(context, false);
+			testMediaSingle = new TestContainerMedia(context, false);
 			testMediaSingle.setParameterResourceGroup("Apartment");
 			testMediaSingle.setParameterResourceName("Bathroom");
 			testMediaSingle.cleanupComponentTest();
@@ -185,7 +185,7 @@ public class TestRunnerMedia extends TestRunner
 	 */
 	private void doConcurrentTest()
 	{
-		ServerTestContainerMedia testMediaConcurrent;
+		TestContainerMedia testMediaConcurrent;
 		List<Thread> threadList = new ArrayList<Thread>();
 
 		int nuOfFiles = 1000;
@@ -193,7 +193,7 @@ public class TestRunnerMedia extends TestRunner
 		try
 		{
 			// Room 1
-			testMediaConcurrent = new ServerTestContainerMedia(this.serverAp1.getContext(), true);
+			testMediaConcurrent = new TestContainerMedia(this.serverAp1.getContext(), true);
 			testMediaConcurrent.setParameterResourceGroup("Apartment");
 			testMediaConcurrent.setParameterResourceName("Room");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("1234");
@@ -204,7 +204,7 @@ public class TestRunnerMedia extends TestRunner
 			threadList.add(new Thread(testMediaConcurrent));
 
 			// Room 2
-			testMediaConcurrent = new ServerTestContainerMedia(this.serverAp2.getContext(), true);
+			testMediaConcurrent = new TestContainerMedia(this.serverAp2.getContext(), true);
 			testMediaConcurrent.setParameterResourceGroup("Apartment");
 			testMediaConcurrent.setParameterResourceName("Room");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("1236");
@@ -215,7 +215,7 @@ public class TestRunnerMedia extends TestRunner
 			threadList.add(new Thread(testMediaConcurrent));
 
 			// Room 3
-			testMediaConcurrent = new ServerTestContainerMedia(this.serverAp3.getContext(), true);
+			testMediaConcurrent = new TestContainerMedia(this.serverAp3.getContext(), true);
 			testMediaConcurrent.setParameterResourceGroup("Apartment");
 			testMediaConcurrent.setParameterResourceName("Room");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("1238");
@@ -226,7 +226,7 @@ public class TestRunnerMedia extends TestRunner
 			threadList.add(new Thread(testMediaConcurrent));
 
 			// Room 4
-			testMediaConcurrent = new ServerTestContainerMedia(this.serverAp1.getContext(), true);
+			testMediaConcurrent = new TestContainerMedia(this.serverAp1.getContext(), true);
 			testMediaConcurrent.setParameterResourceGroup("Apartment");
 			testMediaConcurrent.setParameterResourceName("Room");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("1240");
@@ -237,7 +237,7 @@ public class TestRunnerMedia extends TestRunner
 			threadList.add(new Thread(testMediaConcurrent));
 
 			// Room 5
-			testMediaConcurrent = new ServerTestContainerMedia(this.serverAp2.getContext(), true);
+			testMediaConcurrent = new TestContainerMedia(this.serverAp2.getContext(), true);
 			testMediaConcurrent.setParameterResourceGroup("Apartment");
 			testMediaConcurrent.setParameterResourceName("Room");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("1242");
@@ -248,7 +248,7 @@ public class TestRunnerMedia extends TestRunner
 			threadList.add(new Thread(testMediaConcurrent));
 
 			// Room 6
-			testMediaConcurrent = new ServerTestContainerMedia(this.serverAp3.getContext(), true);
+			testMediaConcurrent = new TestContainerMedia(this.serverAp3.getContext(), true);
 			testMediaConcurrent.setParameterResourceGroup("Apartment");
 			testMediaConcurrent.setParameterResourceName("Room");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("1244");
@@ -275,7 +275,7 @@ public class TestRunnerMedia extends TestRunner
 	 */
 	private void doStressTest()
 	{
-		ServerTestContainerMedia testMediaConcurrent;
+		TestContainerMedia testMediaConcurrent;
 		List<Thread> threadList = new ArrayList<Thread>();
 
 		int nuOfFiles = 1000;
@@ -283,7 +283,7 @@ public class TestRunnerMedia extends TestRunner
 		try
 		{
 			// Room 1
-			testMediaConcurrent = new ServerTestContainerMedia(this.serverAp1.getContext(), true);
+			testMediaConcurrent = new TestContainerMedia(this.serverAp1.getContext(), true);
 			testMediaConcurrent.setParameterResourceGroup("Apartment");
 			testMediaConcurrent.setParameterResourceName("Room");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("2345");
@@ -294,7 +294,7 @@ public class TestRunnerMedia extends TestRunner
 			threadList.add(new Thread(testMediaConcurrent));
 
 			// Room 2
-			testMediaConcurrent = new ServerTestContainerMedia(this.serverAp2.getContext(), true);
+			testMediaConcurrent = new TestContainerMedia(this.serverAp2.getContext(), true);
 			testMediaConcurrent.setParameterResourceGroup("Apartment");
 			testMediaConcurrent.setParameterResourceName("Room");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("2347");
@@ -305,7 +305,7 @@ public class TestRunnerMedia extends TestRunner
 			threadList.add(new Thread(testMediaConcurrent));
 
 			// Room 3
-			testMediaConcurrent = new ServerTestContainerMedia(this.serverAp3.getContext(), true);
+			testMediaConcurrent = new TestContainerMedia(this.serverAp3.getContext(), true);
 			testMediaConcurrent.setParameterResourceGroup("Apartment");
 			testMediaConcurrent.setParameterResourceName("Room");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("2349");
@@ -316,7 +316,7 @@ public class TestRunnerMedia extends TestRunner
 			threadList.add(new Thread(testMediaConcurrent));
 
 			// Floor
-			testMediaConcurrent = new ServerTestContainerMedia(this.serverAp1.getContext(), true);
+			testMediaConcurrent = new TestContainerMedia(this.serverAp1.getContext(), true);
 			testMediaConcurrent.setParameterResourceGroup("Apartment");
 			testMediaConcurrent.setParameterResourceName("Floor");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("1236");
@@ -327,7 +327,7 @@ public class TestRunnerMedia extends TestRunner
 			threadList.add(new Thread(testMediaConcurrent));
 
 			// Bedroom
-			testMediaConcurrent = new ServerTestContainerMedia(this.serverAp2.getContext(), true);
+			testMediaConcurrent = new TestContainerMedia(this.serverAp2.getContext(), true);
 			testMediaConcurrent.setParameterResourceGroup("Apartment");
 			testMediaConcurrent.setParameterResourceName("Bedroom");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("1238");
@@ -338,7 +338,7 @@ public class TestRunnerMedia extends TestRunner
 			threadList.add(new Thread(testMediaConcurrent));
 
 			// Kitchen
-			testMediaConcurrent = new ServerTestContainerMedia(this.serverAp3.getContext(), true);
+			testMediaConcurrent = new TestContainerMedia(this.serverAp3.getContext(), true);
 			testMediaConcurrent.setParameterResourceGroup("Apartment");
 			testMediaConcurrent.setParameterResourceName("Kitchen");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("1240");
@@ -349,7 +349,7 @@ public class TestRunnerMedia extends TestRunner
 			threadList.add(new Thread(testMediaConcurrent));
 
 			// Bathroom
-			testMediaConcurrent = new ServerTestContainerMedia(this.serverAp1.getContext(), true);
+			testMediaConcurrent = new TestContainerMedia(this.serverAp1.getContext(), true);
 			testMediaConcurrent.setParameterResourceGroup("Apartment");
 			testMediaConcurrent.setParameterResourceName("Bathroom");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("1242");
@@ -376,14 +376,14 @@ public class TestRunnerMedia extends TestRunner
 	 */
 	private void defineIntegrationTest(List<Thread> threadList)
 	{
-		ServerTestContainerMedia testMediaConcurrent;
+		TestContainerMedia testMediaConcurrent;
 
 		int nuOfFiles = 1000;
 
 		try
 		{
 			// Room 1
-			testMediaConcurrent = new ServerTestContainerMedia(this.serverAp1.getContext(), true);
+			testMediaConcurrent = new TestContainerMedia(this.serverAp1.getContext(), true);
 			testMediaConcurrent.setParameterResourceGroup("Apartment");
 			testMediaConcurrent.setParameterResourceName("Room");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("2345");
@@ -394,7 +394,7 @@ public class TestRunnerMedia extends TestRunner
 			threadList.add(new Thread(testMediaConcurrent));
 
 			// Room 2
-			testMediaConcurrent = new ServerTestContainerMedia(this.serverAp2.getContext(), true);
+			testMediaConcurrent = new TestContainerMedia(this.serverAp2.getContext(), true);
 			testMediaConcurrent.setParameterResourceGroup("Apartment");
 			testMediaConcurrent.setParameterResourceName("Room");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("2347");
@@ -405,7 +405,7 @@ public class TestRunnerMedia extends TestRunner
 			threadList.add(new Thread(testMediaConcurrent));
 
 			// Room 3
-			testMediaConcurrent = new ServerTestContainerMedia(this.serverAp3.getContext(), true);
+			testMediaConcurrent = new TestContainerMedia(this.serverAp3.getContext(), true);
 			testMediaConcurrent.setParameterResourceGroup("Apartment");
 			testMediaConcurrent.setParameterResourceName("Room");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("2349");
@@ -416,7 +416,7 @@ public class TestRunnerMedia extends TestRunner
 			threadList.add(new Thread(testMediaConcurrent));
 
 			// Floor
-			testMediaConcurrent = new ServerTestContainerMedia(this.serverAp1.getContext(), true);
+			testMediaConcurrent = new TestContainerMedia(this.serverAp1.getContext(), true);
 			testMediaConcurrent.setParameterResourceGroup("Apartment");
 			testMediaConcurrent.setParameterResourceName("Floor");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("1236");
@@ -427,7 +427,7 @@ public class TestRunnerMedia extends TestRunner
 			threadList.add(new Thread(testMediaConcurrent));
 
 			// Bedroom
-			testMediaConcurrent = new ServerTestContainerMedia(this.serverAp2.getContext(), true);
+			testMediaConcurrent = new TestContainerMedia(this.serverAp2.getContext(), true);
 			testMediaConcurrent.setParameterResourceGroup("Apartment");
 			testMediaConcurrent.setParameterResourceName("Bedroom");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("1238");
@@ -438,7 +438,7 @@ public class TestRunnerMedia extends TestRunner
 			threadList.add(new Thread(testMediaConcurrent));
 
 			// Kitchen
-			testMediaConcurrent = new ServerTestContainerMedia(this.serverAp3.getContext(), true);
+			testMediaConcurrent = new TestContainerMedia(this.serverAp3.getContext(), true);
 			testMediaConcurrent.setParameterResourceGroup("Apartment");
 			testMediaConcurrent.setParameterResourceName("Kitchen");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("1240");
@@ -449,7 +449,7 @@ public class TestRunnerMedia extends TestRunner
 			threadList.add(new Thread(testMediaConcurrent));
 
 			// Bathroom
-			testMediaConcurrent = new ServerTestContainerMedia(this.serverAp1.getContext(), true);
+			testMediaConcurrent = new TestContainerMedia(this.serverAp1.getContext(), true);
 			testMediaConcurrent.setParameterResourceGroup("Apartment");
 			testMediaConcurrent.setParameterResourceName("Bathroom");
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("1242");

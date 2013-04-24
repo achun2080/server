@@ -6,8 +6,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import fmagic.application.seniorcitizen.client.ClientSeniorCitizen;
 import fmagic.application.seniorcitizen.server.ServerSeniorCitizen;
 import fmagic.basic.Context;
+import fmagic.client.ClientManager;
 import fmagic.server.ServerManager;
 
 /**
@@ -54,7 +56,7 @@ abstract public class TestRunner
 	/**
 	 * Single Function Test
 	 */
-	protected void doSingleFunctionTest(Context context, ServerTestContainer testContainer, String methodName)
+	protected void doSingleFunctionTest(Context context, TestContainer testContainer, String methodName)
 	{
 		// Validate parameter
 		if (context == null) return;
@@ -80,7 +82,7 @@ abstract public class TestRunner
 	/**
 	 * Execute a single function test.
 	 */
-	abstract public void executeSingleFunctionTest(ServerTestContainer serverTestContainer, String methodName);
+	abstract public void executeSingleFunctionTest(TestContainer serverTestContainer, String methodName);
 
 	/**
 	 * Execute component tests.
@@ -151,6 +153,45 @@ abstract public class TestRunner
 	}
 
 	/**
+	 * Create a client application and start it.
+	 * <p>
+	 * The <TT>code name</TT> of the application is composed by the name of the
+	 * test case, an underline character "_", and the postfix name set as a
+	 * parameter to this function. For example: If the name of the test case is
+	 * "mediatest" and the postfix is set to "ap1", the result code name is
+	 * "mediatest_ap1".
+	 * 
+	 * @param codeNamePostfix
+	 *            The postfix of the designated code name of the application.
+	 * 
+	 * @return Returns the client instance, or <TT>null</TT> if an error
+	 *         occurred.
+	 */
+	protected ClientManager createApplicationClient(String codeNamePostfix)
+	{
+		ClientManager client = null;
+
+		try
+		{
+			// Compose code name
+			String codeName = this.getTestCaseName() + "_" + codeNamePostfix;
+
+			// Create instance
+			client = ClientSeniorCitizen.getTestInstance(codeName, this.getTestCaseName(), this.getTestSessionName());
+
+			// Start application server
+			if (client != null) client.startApplication();
+		}
+		catch (Exception e)
+		{
+			// Be silent
+		}
+
+		// Return
+		return client;
+	}
+
+	/**
 	 * Stop an application server and release it.
 	 * 
 	 * @param server
@@ -170,6 +211,27 @@ abstract public class TestRunner
 
 				// Deallocate port number of the server
 				this.deallocatePortNumber(port);
+			}
+		}
+		catch (Exception e)
+		{
+			// Be silent
+		}
+	}
+
+	/**
+	 * Stop a client application and release it.
+	 * 
+	 * @param client
+	 *            The client application to be considered.
+	 */
+	protected void releaseApplicationClient(ClientManager client)
+	{
+		try
+		{
+			if (client != null)
+			{
+				client.stopApplication();
 			}
 		}
 		catch (Exception e)

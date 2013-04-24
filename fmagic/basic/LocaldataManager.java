@@ -422,8 +422,9 @@ public class LocaldataManager implements ManagerInterface
 
 				// Reads property value
 				value = (String) this.localdataProperties.get(identifier);
+				
 				if (value == null) value = defaultValue;
-				value = value.trim();
+				if (value != null) value = value.trim();
 
 				// Notify WATCHDOG
 				this.notifyWatchdog(context, identifier, value, defaultValue, "Local Data property was read");
