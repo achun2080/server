@@ -2,6 +2,7 @@ package fmagic.test;
 
 import java.lang.reflect.Method;
 import java.net.ServerSocket;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -23,19 +24,32 @@ import fmagic.server.ServerManager;
  */
 abstract public class TestRunner
 {
-	// Test organization
-	private final String testCaseName;
+	// Organization
+	private final String testRunnerName;
 	private final String testSessionName;
-
-	// Application server port numbers
-	private final static Set<Integer> usedServerPorts = new HashSet<Integer>();
+	private final TestSuite testSuite;
+	
+	// Error protocol
+	private final HashMap<String, String> assertionErrorProtocol = new HashMap<String, String>();
+	private int assertionNumberOfErrors = 0;
 
 	/**
 	 * Constructor
+	 * 
+	 * @param testSuite
+	 *            The test suite that holds this test runner, or <TT>null</TT> if
+	 *            no test suite is available.
+	 * 
+	 * @param testRunnerName
+	 *            The name of the test runner.
+	 * 
+	 * @param testSessionName
+	 *            The name of the test session.
 	 */
-	public TestRunner(String testCaseName, String testSessionName)
+	public TestRunner(TestSuite testSuite, String testRunnerName, String testSessionName)
 	{
-		this.testCaseName = testCaseName;
+		this.testSuite = testSuite;
+		this.testRunnerName = testRunnerName;
 		this.testSessionName = testSessionName;
 	}
 
@@ -107,38 +121,29 @@ abstract public class TestRunner
 	/**
 	 * Create an application server and start it.
 	 * <p>
-	 * The <TT>code name</TT> of the application is composed by the name of the
-	 * test case, an underline character "_", and the postfix name set as a
-	 * parameter to this function. For example: If the name of the test case is
-	 * "mediatest" and the postfix is set to "ap1", the result code name is
-	 * "mediatest_ap1".
-	 * <p>
 	 * The <TT>server port</TT> number the application is listen to, is set
 	 * automatically, in order to ensure that all running application servers of
 	 * a test suite use different port numbers. You can get the current port
 	 * number, used by an application server, by invoking the getter method
 	 * <TT>getServerSocketPort()</TT> of the server instance.
 	 * 
-	 * @param codeNamePostfix
-	 *            The postfix of the designated code name of the application.
+	 * @param codeName
+	 *            The code name of the application.
 	 * 
 	 * @return Returns the server instance, or <TT>null</TT> if an error
 	 *         occurred.
 	 */
-	protected ServerManager createApplicationServer(String codeNamePostfix)
+	protected ServerManager createApplicationServer(String codeName)
 	{
 		ServerManager server = null;
 
 		try
 		{
-			// Compose code name
-			String codeName = this.getTestCaseName() + "_" + codeNamePostfix;
-
 			// Allocate port number
-			int port = this.allocatePortNumber();
+			int port = TestManager.allocatePortNumber();
 
 			// Create instance
-			server = ServerSeniorCitizen.getTestInstance(codeName, port, 1000000, this.getTestCaseName(), this.getTestSessionName());
+			server = ServerSeniorCitizen.getTestInstance(codeName, port, 1000000, this.getTestRunnerName(), this.getTestSessionName());
 
 			// Start application server
 			if (server != null) server.startApplication();
@@ -154,30 +159,21 @@ abstract public class TestRunner
 
 	/**
 	 * Create a client application and start it.
-	 * <p>
-	 * The <TT>code name</TT> of the application is composed by the name of the
-	 * test case, an underline character "_", and the postfix name set as a
-	 * parameter to this function. For example: If the name of the test case is
-	 * "mediatest" and the postfix is set to "ap1", the result code name is
-	 * "mediatest_ap1".
 	 * 
-	 * @param codeNamePostfix
-	 *            The postfix of the designated code name of the application.
+	 * @param codeName
+	 *            The code name of the application.
 	 * 
 	 * @return Returns the client instance, or <TT>null</TT> if an error
 	 *         occurred.
 	 */
-	protected ClientManager createApplicationClient(String codeNamePostfix)
+	protected ClientManager createApplicationClient(String codeName)
 	{
 		ClientManager client = null;
 
 		try
 		{
-			// Compose code name
-			String codeName = this.getTestCaseName() + "_" + codeNamePostfix;
-
 			// Create instance
-			client = ClientSeniorCitizen.getTestInstance(codeName, this.getTestCaseName(), this.getTestSessionName());
+			client = ClientSeniorCitizen.getTestInstance(codeName, this.getTestRunnerName(), this.getTestSessionName());
 
 			// Start application server
 			if (client != null) client.startApplication();
@@ -210,7 +206,7 @@ abstract public class TestRunner
 				server.stopApplication();
 
 				// Deallocate port number of the server
-				this.deallocatePortNumber(port);
+				TestManager.deallocatePortNumber(port);
 			}
 		}
 		catch (Exception e)
@@ -241,100 +237,11 @@ abstract public class TestRunner
 	}
 
 	/**
-	 * Allocate a port number for an application server.
-	 * <p>
-	 * The range of port numbers that can be allocated starts with <TT>8000</TT>
-	 * and ends with <TT>8999</TT>.
-	 * 
-	 * @return Returns the allocated port number, or <TT>0</TT> if an error
-	 *         occurred.
-	 */
-	private synchronized int allocatePortNumber()
-	{
-		try
-		{
-			for (int port = 8000; port <= 8999; port++)
-			{
-				if (TestRunner.usedServerPorts.contains(port)) continue;
-
-				if (this.isSocketUsed(port)) continue;
-
-				TestRunner.usedServerPorts.add(port);
-				
-				return port;
-			}
-		}
-		catch (Exception e)
-		{
-			// Be silent
-		}
-
-		// No port available yet
-		return 0;
-	}
-
-	/**
-	 * Check if a socket is currently used.
-	 * 
-	 * @param port
-	 *            The port to check.
-	 * 
-	 * @return Returns <TT>true</TT> if the socket is currently used, otherwise
-	 *         <TT>false</TT>.
-	 */
-	private boolean isSocketUsed(int port)
-	{
-		boolean portTaken = false;
-
-		ServerSocket socket = null;
-
-		try
-		{
-			socket = new ServerSocket(port);
-		}
-		catch (Exception e)
-		{
-			portTaken = true;
-		}
-		finally
-		{
-			if (socket != null)
-			{
-				try
-				{
-					socket.close();
-				}
-				catch (Exception e)
-				{
-					// Be silent
-				}
-			}
-		}
-
-		return portTaken;
-	}
-
-	/**
-	 * Deallocate a port number, used by an application server.
-	 */
-	private synchronized void deallocatePortNumber(int port)
-	{
-		try
-		{
-			TestRunner.usedServerPorts.remove(port);
-		}
-		catch (Exception e)
-		{
-			// Be silent
-		}
-	}
-
-	/**
 	 * Getter
 	 */
-	public String getTestCaseName()
+	public String getTestRunnerName()
 	{
-		return testCaseName;
+		return testRunnerName;
 	}
 
 	/**
@@ -343,5 +250,37 @@ abstract public class TestRunner
 	public String getTestSessionName()
 	{
 		return testSessionName;
+	}
+
+	/**
+	 * Getter
+	 */
+	public TestSuite getTestSuite()
+	{
+		return testSuite;
+	}
+
+	/**
+	 * Getter
+	 */
+	public HashMap<String, String> getAssertionErrorProtocol()
+	{
+		return assertionErrorProtocol;
+	}
+
+	/**
+	 * Getter
+	 */
+	public int getAssertionNumberOfErrors()
+	{
+		return assertionNumberOfErrors;
+	}
+
+	/**
+	 * Setter
+	 */
+	public void increaseAssertionNumberOfErrors()
+	{
+		this.assertionNumberOfErrors++;
 	}
 }

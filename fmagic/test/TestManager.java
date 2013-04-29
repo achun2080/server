@@ -5,10 +5,13 @@ import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.net.ServerSocket;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import fmagic.basic.Context;
 import fmagic.basic.FileLocationFunctions;
@@ -26,7 +29,8 @@ import fmagic.basic.ManagerInterface;
  */
 public class TestManager implements ManagerInterface
 {
-	private boolean errorFound = false;
+	// Currently used application server port numbers
+	private final static Set<Integer> usedServerPorts = new HashSet<Integer>();
 
 	/**
 	 * Constructor
@@ -72,22 +76,6 @@ public class TestManager implements ManagerInterface
 	}
 
 	/**
-	 * Getter
-	 */
-	public boolean isErrorFound()
-	{
-		return errorFound;
-	}
-
-	/**
-	 * Setter
-	 */
-	public void setErrorFound()
-	{
-		this.errorFound = true;
-	}
-
-	/**
 	 * Start all treads of a thread list.
 	 * 
 	 * @param threadList
@@ -120,6 +108,65 @@ public class TestManager implements ManagerInterface
 				// Be silent
 			}
 		}
+	}
+
+	/**
+	 * Push an error message to the error protocols of test container, test runner and
+	 * test suite.
+	 * 
+	 * @param context
+	 *            Application context of the message.
+	 * 
+	 * @param testContainer
+	 *            The test container that invoked this method, or <TT>null</TT>
+	 *            if no test container is available.
+	 * 
+	 * @param assertText
+	 *            Headline text that describes the assertion.
+	 * 
+	 * @param additionalText
+	 *            Additional text of the message.
+	 */
+	private static synchronized void addErrorToErrorProtocolLists(Context context, TestContainer testContainer, String assertText, String additionalText)
+	{
+		// Check parameter
+		if (testContainer == null) return;
+		if (assertText == null && additionalText == null) return;
+		if (assertText.length() == 0 && additionalText.length() == 0) return;
+
+		// Gets error file name as the identifier of the error protocol list
+		String errorFileName = FileLocationFunctions.compileFilePath(FileLocationFunctions.getRootPath(), FileLocationFunctions.getTestLoggingSubPath(), FileLocationFunctions.getTestLoggingSubSubPath(), FileLocationFunctions.getTestLoggingErrorFileName());
+		errorFileName = FileLocationFunctions.replacePlacholder(context, errorFileName);
+
+		// Add error messages to: Test Container
+		String errorText = testContainer.getAssertionErrorProtocol().get(errorFileName);
+		if (errorText == null) errorText = "";
+		if (assertText != null && assertText.length() > 0) errorText += "\n" + assertText;
+		if (additionalText != null && additionalText.length() > 0) errorText += "\n" + additionalText;
+		testContainer.getAssertionErrorProtocol().put(errorFileName, errorText);
+		testContainer.increaseAssertionNumberOfErrors();
+
+		// Add error messages to: Test Runner
+		TestRunner testRunner = testContainer.getTestRunner();
+		if (testRunner == null) return;
+
+		errorText = testRunner.getAssertionErrorProtocol().get(errorFileName);
+		if (errorText == null) errorText = "";
+		if (assertText != null && assertText.length() > 0) errorText += "\n" + assertText;
+		if (additionalText != null && additionalText.length() > 0) errorText += "\n" + additionalText;
+		testRunner.getAssertionErrorProtocol().put(errorFileName, errorText);
+		testRunner.increaseAssertionNumberOfErrors();
+
+		// Add error messages to: Test Runner
+		TestSuite testSuite = testRunner.getTestSuite();
+		if (testSuite == null) return;
+
+		errorText = testSuite.assertionErrorProtocolGetMap().get(errorFileName);
+		if (errorText == null) errorText = "";
+		if (assertText != null && assertText.length() > 0) errorText += "\n" + assertText;
+		if (additionalText != null && additionalText.length() > 0) errorText += "\n" + additionalText;
+		testSuite.assertionErrorProtocolGetMap().put(errorFileName, errorText);
+		testSuite.assertionErrorProtocolIncreaseNumberOfErrors();
 	}
 
 	/**
@@ -229,8 +276,8 @@ public class TestManager implements ManagerInterface
 	}
 
 	/**
-	 * Get the absolute file path for the <TT>Local data</TT> directory of the test
-	 * environment, regarding a specific test case.
+	 * Get the absolute file path for the <TT>Local data</TT> directory of the
+	 * test environment, regarding a specific test case.
 	 * <p>
 	 * The result file path is combined of the root path of the development
 	 * environment, and the sub path "test", and the name of the test case, and
@@ -276,7 +323,7 @@ public class TestManager implements ManagerInterface
 	{
 		String filePath = FileLocationFunctions.compileFilePath(FileLocationFunctions.getRootPath(), FileLocationFunctions.getTestLoggingSubPath(), FileLocationFunctions.getTestLoggingSubSubPath());
 
-		filePath = filePath.replace("${testcasename}", testRunner.getTestCaseName());
+		filePath = filePath.replace("${testcasename}", testRunner.getTestRunnerName());
 		filePath = filePath.replace("${testsession}", testRunner.getTestSessionName());
 
 		FileUtilFunctions.directoryDeleteAllFiles(filePath);
@@ -530,13 +577,17 @@ public class TestManager implements ManagerInterface
 	 * @param context
 	 *            Application context of the message.
 	 * 
+	 * @param testContainer
+	 *            The test container that invoked this method, or <TT>null</TT>
+	 *            if no test container is available.
+	 * 
 	 * @param assertText
 	 *            Headline text that describes the assertion.
 	 * 
 	 * @param additionalText
 	 *            Additional text of the message.
 	 */
-	public static void servicePrintError(Context context, String assertText, String additionalText)
+	public static void servicePrintError(Context context, TestContainer testContainer, String assertText, String additionalText)
 	{
 		// Check parameter
 		if (assertText == null || assertText.length() == 0) assertText = "Assertion message";
@@ -565,6 +616,10 @@ public class TestManager implements ManagerInterface
 
 		// Print message to error file
 		context.getTestManager().writeMessageToErrorFile(context, assertText, additionalText);
+
+		// Push message to the error protocols of test container, test runner
+		// and test suite
+		TestManager.addErrorToErrorProtocolLists(context, testContainer, assertText, additionalText);
 	}
 
 	/**
@@ -573,13 +628,17 @@ public class TestManager implements ManagerInterface
 	 * @param context
 	 *            Application context of the message.
 	 * 
+	 * @param testContainer
+	 *            The test container that invoked this method, or <TT>null</TT>
+	 *            if no test container is available.
+	 * 
 	 * @param additionalText
 	 *            Additional text of the message.
 	 * 
 	 * @param exception
 	 *            Exception to be printed.
 	 */
-	public static void servicePrintException(Context context, String additionalText, Exception exception)
+	public static void servicePrintException(Context context, TestContainer testContainer, String additionalText, Exception exception)
 	{
 		if (exception == null) return;
 
@@ -619,6 +678,10 @@ public class TestManager implements ManagerInterface
 	 * @param context
 	 *            Application context of the message.
 	 * 
+	 * @param testContainer
+	 *            The test container that invoked this method, or <TT>null</TT>
+	 *            if no test container is available.
+	 * 
 	 * @param additionalText
 	 *            Additional text of the message.
 	 * 
@@ -628,17 +691,15 @@ public class TestManager implements ManagerInterface
 	 * @param value2
 	 *            The second value.
 	 */
-	public static void assertEquals(Context context, String additionalText, String value1, String value2)
+	public static void assertEquals(Context context, TestContainer testContainer, String additionalText, String value1, String value2)
 	{
 		if (!value1.equals(value2))
 		{
-			context.getTestManager().setErrorFound();
-
 			String assertText = "Assertion failed: Comparing string (considering lower and upper cases)";
 			assertText += "\n--> String value 1: '" + value1 + "'";
 			assertText += "\n--> String value 2: '" + value2 + "'";
 
-			TestManager.servicePrintError(context, assertText, additionalText);
+			TestManager.servicePrintError(context, testContainer, assertText, additionalText);
 		}
 		else
 		{
@@ -653,6 +714,10 @@ public class TestManager implements ManagerInterface
 	 * @param context
 	 *            Application context of the message.
 	 * 
+	 * @param testContainer
+	 *            The test container that invoked this method, or <TT>null</TT>
+	 *            if no test container is available.
+	 * 
 	 * @param additionalText
 	 *            Additional text of the message.
 	 * 
@@ -662,17 +727,15 @@ public class TestManager implements ManagerInterface
 	 * @param value2
 	 *            The second value.
 	 */
-	public static void assertNotEquals(Context context, String additionalText, String value1, String value2)
+	public static void assertNotEquals(Context context, TestContainer testContainer, String additionalText, String value1, String value2)
 	{
 		if (value1.equals(value2))
 		{
-			context.getTestManager().setErrorFound();
-
 			String assertText = "Assertion failed: Comparing string on diversity (considering lower and upper cases)";
 			assertText += "\n--> String value 1: '" + value1 + "'";
 			assertText += "\n--> String value 2: '" + value2 + "'";
 
-			TestManager.servicePrintError(context, assertText, additionalText);
+			TestManager.servicePrintError(context, testContainer, assertText, additionalText);
 		}
 		else
 		{
@@ -687,6 +750,10 @@ public class TestManager implements ManagerInterface
 	 * @param context
 	 *            Application context of the message.
 	 * 
+	 * @param testContainer
+	 *            The test container that invoked this method, or <TT>null</TT>
+	 *            if no test container is available.
+	 * 
 	 * @param additionalText
 	 *            Additional text of the message.
 	 * 
@@ -696,17 +763,15 @@ public class TestManager implements ManagerInterface
 	 * @param value2
 	 *            The second value.
 	 */
-	public static void assertNotEqualsIgnoreCase(Context context, String additionalText, String value1, String value2)
+	public static void assertNotEqualsIgnoreCase(Context context, TestContainer testContainer, String additionalText, String value1, String value2)
 	{
 		if (value1.equalsIgnoreCase(value2))
 		{
-			context.getTestManager().setErrorFound();
-
 			String assertText = "Assertion failed: Comparing string on diversity (ignoring lower and upper cases)";
 			assertText += "\n--> String value 1: '" + value1 + "'";
 			assertText += "\n--> String value 2: '" + value2 + "'";
 
-			TestManager.servicePrintError(context, assertText, additionalText);
+			TestManager.servicePrintError(context, testContainer, assertText, additionalText);
 		}
 		else
 		{
@@ -721,6 +786,10 @@ public class TestManager implements ManagerInterface
 	 * @param context
 	 *            Application context of the message.
 	 * 
+	 * @param testContainer
+	 *            The test container that invoked this method, or <TT>null</TT>
+	 *            if no test container is available.
+	 * 
 	 * @param additionalText
 	 *            Additional text of the message.
 	 * 
@@ -730,17 +799,15 @@ public class TestManager implements ManagerInterface
 	 * @param value2
 	 *            The second value.
 	 */
-	public static void assertEqualsIgnoreCase(Context context, String additionalText, String value1, String value2)
+	public static void assertEqualsIgnoreCase(Context context, TestContainer testContainer, String additionalText, String value1, String value2)
 	{
 		if (!value1.equalsIgnoreCase(value2))
 		{
-			context.getTestManager().setErrorFound();
-
 			String assertText = "Assertion failed: Comparing string (ignoring lower and upper cases)";
 			assertText += "\n--> String value 1: '" + value1 + "'";
 			assertText += "\n--> String value 2: '" + value2 + "'";
 
-			TestManager.servicePrintError(context, assertText, additionalText);
+			TestManager.servicePrintError(context, testContainer, assertText, additionalText);
 		}
 		else
 		{
@@ -754,6 +821,10 @@ public class TestManager implements ManagerInterface
 	 * @param context
 	 *            Application context of the message.
 	 * 
+	 * @param testContainer
+	 *            The test container that invoked this method, or <TT>null</TT>
+	 *            if no test container is available.
+	 * 
 	 * @param additionalText
 	 *            Additional text of the message.
 	 * 
@@ -763,17 +834,15 @@ public class TestManager implements ManagerInterface
 	 * @param value2
 	 *            The second value.
 	 */
-	public static void assertEndsWith(Context context, String additionalText, String value1, String value2)
+	public static void assertEndsWith(Context context, TestContainer testContainer, String additionalText, String value1, String value2)
 	{
 		if (!value1.endsWith(value2))
 		{
-			context.getTestManager().setErrorFound();
-
 			String assertText = "Assertion failed: String 1 doesn't end with string 2";
 			assertText += "\n--> String value 1: '" + value1 + "'";
 			assertText += "\n--> String value 2: '" + value2 + "'";
 
-			TestManager.servicePrintError(context, assertText, additionalText);
+			TestManager.servicePrintError(context, testContainer, assertText, additionalText);
 		}
 		else
 		{
@@ -788,6 +857,10 @@ public class TestManager implements ManagerInterface
 	 * @param context
 	 *            Application context of the message.
 	 * 
+	 * @param testContainer
+	 *            The test container that invoked this method, or <TT>null</TT>
+	 *            if no test container is available.
+	 * 
 	 * @param additionalText
 	 *            Additional text of the message.
 	 * 
@@ -797,17 +870,15 @@ public class TestManager implements ManagerInterface
 	 * @param value2
 	 *            The second value.
 	 */
-	public static void assertContains(Context context, String additionalText, String value1, String value2)
+	public static void assertContains(Context context, TestContainer testContainer, String additionalText, String value1, String value2)
 	{
 		if (!value1.contains(value2))
 		{
-			context.getTestManager().setErrorFound();
-
 			String assertText = "Assertion failed: String value 1 doesn't contain string value 2";
 			assertText += "\n--> String value 1:\n'" + value1 + "'\n";
 			assertText += "\n--> String value 2:\n'" + value2 + "'\n";
 
-			TestManager.servicePrintError(context, assertText, additionalText);
+			TestManager.servicePrintError(context, testContainer, assertText, additionalText);
 		}
 		else
 		{
@@ -822,6 +893,10 @@ public class TestManager implements ManagerInterface
 	 * @param context
 	 *            Application context of the message.
 	 * 
+	 * @param testContainer
+	 *            The test container that invoked this method, or <TT>null</TT>
+	 *            if no test container is available.
+	 * 
 	 * @param additionalText
 	 *            Additional text of the message.
 	 * 
@@ -831,17 +906,15 @@ public class TestManager implements ManagerInterface
 	 * @param value2
 	 *            The second value.
 	 */
-	public static void assertNotContains(Context context, String additionalText, String value1, String value2)
+	public static void assertNotContains(Context context, TestContainer testContainer, String additionalText, String value1, String value2)
 	{
 		if (value1.contains(value2))
 		{
-			context.getTestManager().setErrorFound();
-
 			String assertText = "Assertion failed: String value 1 contains string value 2";
 			assertText += "\n--> String value 1:\n'" + value1 + "'\n";
 			assertText += "\n--> String value 2:\n'" + value2 + "'\n";
 
-			TestManager.servicePrintError(context, assertText, additionalText);
+			TestManager.servicePrintError(context, testContainer, assertText, additionalText);
 		}
 		else
 		{
@@ -855,6 +928,10 @@ public class TestManager implements ManagerInterface
 	 * @param context
 	 *            Application context of the message.
 	 * 
+	 * @param testContainer
+	 *            The test container that invoked this method, or <TT>null</TT>
+	 *            if no test container is available.
+	 * 
 	 * @param additionalText
 	 *            Additional text of the message.
 	 * 
@@ -864,17 +941,15 @@ public class TestManager implements ManagerInterface
 	 * @param value2
 	 *            The second value.
 	 */
-	public static void assertEquals(Context context, String additionalText, boolean value1, boolean value2)
+	public static void assertEquals(Context context, TestContainer testContainer, String additionalText, boolean value1, boolean value2)
 	{
 		if (value1 != value2)
 		{
-			context.getTestManager().setErrorFound();
-
 			String assertText = "Assertion failed: Comparing boolean values (equals)";
 			assertText += "\n--> Boolean value 1: '" + String.valueOf(value1) + "'";
 			assertText += "\n--> Boolean value 2: '" + String.valueOf(value2) + "'";
 
-			TestManager.servicePrintError(context, assertText, additionalText);
+			TestManager.servicePrintError(context, testContainer, assertText, additionalText);
 		}
 		else
 		{
@@ -888,6 +963,10 @@ public class TestManager implements ManagerInterface
 	 * @param context
 	 *            Application context of the message.
 	 * 
+	 * @param testContainer
+	 *            The test container that invoked this method, or <TT>null</TT>
+	 *            if no test container is available.
+	 * 
 	 * @param additionalText
 	 *            Additional text of the message.
 	 * 
@@ -897,17 +976,15 @@ public class TestManager implements ManagerInterface
 	 * @param value2
 	 *            The second value.
 	 */
-	public static void assertEquals(Context context, String additionalText, int value1, int value2)
+	public static void assertEquals(Context context, TestContainer testContainer, String additionalText, int value1, int value2)
 	{
 		if (value1 != value2)
 		{
-			context.getTestManager().setErrorFound();
-
 			String assertText = "Assertion failed: Comparing integer values (equals)";
 			assertText += "\n--> Integer value 1: '" + String.valueOf(value1) + "'";
 			assertText += "\n--> Integer value 2: '" + String.valueOf(value2) + "'";
 
-			TestManager.servicePrintError(context, assertText, additionalText);
+			TestManager.servicePrintError(context, testContainer, assertText, additionalText);
 		}
 		else
 		{
@@ -921,6 +998,10 @@ public class TestManager implements ManagerInterface
 	 * @param context
 	 *            Application context of the message.
 	 * 
+	 * @param testContainer
+	 *            The test container that invoked this method, or <TT>null</TT>
+	 *            if no test container is available.
+	 * 
 	 * @param additionalText
 	 *            Additional text of the message.
 	 * 
@@ -933,18 +1014,16 @@ public class TestManager implements ManagerInterface
 	 * @param value
 	 *            The value to check.
 	 */
-	public static void assertEqualsRange(Context context, String additionalText, int from, int too, int value)
+	public static void assertEqualsRange(Context context, TestContainer testContainer, String additionalText, int from, int too, int value)
 	{
 		if (value < from || value > too)
 		{
-			context.getTestManager().setErrorFound();
-
 			String assertText = "Assertion failed: Comparing integer range from/too";
 			assertText += "\n--> Range from: '" + String.valueOf(from) + "'";
 			assertText += "\n--> Range too: '" + String.valueOf(too) + "'";
 			assertText += "\n--> Integer value: '" + String.valueOf(value) + "'";
 
-			TestManager.servicePrintError(context, assertText, additionalText);
+			TestManager.servicePrintError(context, testContainer, assertText, additionalText);
 		}
 		else
 		{
@@ -958,6 +1037,10 @@ public class TestManager implements ManagerInterface
 	 * @param context
 	 *            Application context of the message.
 	 * 
+	 * @param testContainer
+	 *            The test container that invoked this method, or <TT>null</TT>
+	 *            if no test container is available.
+	 * 
 	 * @param additionalText
 	 *            Additional text of the message.
 	 * 
@@ -967,17 +1050,15 @@ public class TestManager implements ManagerInterface
 	 * @param value2
 	 *            The second value.
 	 */
-	public static void assertEquals(Context context, String additionalText, long value1, long value2)
+	public static void assertEquals(Context context, TestContainer testContainer, String additionalText, long value1, long value2)
 	{
 		if (value1 != value2)
 		{
-			context.getTestManager().setErrorFound();
-
 			String assertText = "Assertion failed: Comparing long values (equals)";
 			assertText += "\n--> Long value 1: '" + String.valueOf(value1) + "'";
 			assertText += "\n--> Long value 2: '" + String.valueOf(value2) + "'";
 
-			TestManager.servicePrintError(context, assertText, additionalText);
+			TestManager.servicePrintError(context, testContainer, assertText, additionalText);
 		}
 		else
 		{
@@ -991,22 +1072,24 @@ public class TestManager implements ManagerInterface
 	 * @param context
 	 *            Application context of the message.
 	 * 
+	 * @param testContainer
+	 *            The test container that invoked this method, or <TT>null</TT>
+	 *            if no test container is available.
+	 * 
 	 * @param additionalText
 	 *            Additional text of the message.
 	 * 
 	 * @param value
 	 *            The value to assert.
 	 */
-	public static void assertTrue(Context context, String additionalText, boolean value)
+	public static void assertTrue(Context context, TestContainer testContainer, String additionalText, boolean value)
 	{
 		if (value != true)
 		{
-			context.getTestManager().setErrorFound();
-
 			String assertText = "Assertion failed: Check if a boolean value is TRUE";
 			assertText += "\n--> Boolean value: '" + String.valueOf(value) + "'";
 
-			TestManager.servicePrintError(context, assertText, additionalText);
+			TestManager.servicePrintError(context, testContainer, assertText, additionalText);
 		}
 		else
 		{
@@ -1020,22 +1103,24 @@ public class TestManager implements ManagerInterface
 	 * @param context
 	 *            Application context of the message.
 	 * 
+	 * @param testContainer
+	 *            The test container that invoked this method, or <TT>null</TT>
+	 *            if no test container is available.
+	 * 
 	 * @param additionalText
 	 *            Additional text of the message.
 	 * 
 	 * @param value
 	 *            The value to assert.
 	 */
-	public static void assertFalse(Context context, String additionalText, boolean value)
+	public static void assertFalse(Context context, TestContainer testContainer, String additionalText, boolean value)
 	{
 		if (value != false)
 		{
-			context.getTestManager().setErrorFound();
-
 			String assertText = "Assertion failed: Check if a boolean value is FALSE";
 			assertText += "\n--> Boolean value: '" + String.valueOf(value) + "'";
 
-			TestManager.servicePrintError(context, assertText, additionalText);
+			TestManager.servicePrintError(context, testContainer, assertText, additionalText);
 		}
 		else
 		{
@@ -1049,22 +1134,24 @@ public class TestManager implements ManagerInterface
 	 * @param context
 	 *            Application context of the message.
 	 * 
+	 * @param testContainer
+	 *            The test container that invoked this method, or <TT>null</TT>
+	 *            if no test container is available.
+	 * 
 	 * @param additionalText
 	 *            Additional text of the message.
 	 * 
 	 * @param value
 	 *            The value to assert.
 	 */
-	public static void assertNull(Context context, String additionalText, Object object)
+	public static void assertNull(Context context, TestContainer testContainer, String additionalText, Object object)
 	{
 		if (object != null)
 		{
-			context.getTestManager().setErrorFound();
-
 			String assertText = "Assertion failed: Check if a NULL value is set";
 			assertText += "\n--> Value: '" + object.toString() + "'";
 
-			TestManager.servicePrintError(context, assertText, additionalText);
+			TestManager.servicePrintError(context, testContainer, assertText, additionalText);
 		}
 		else
 		{
@@ -1078,22 +1165,24 @@ public class TestManager implements ManagerInterface
 	 * @param context
 	 *            Application context of the message.
 	 * 
+	 * @param testContainer
+	 *            The test container that invoked this method, or <TT>null</TT>
+	 *            if no test container is available.
+	 * 
 	 * @param additionalText
 	 *            Additional text of the message.
 	 * 
 	 * @param object
 	 *            The value to assert.
 	 */
-	public static void assertNotNull(Context context, String additionalText, Object object)
+	public static void assertNotNull(Context context, TestContainer testContainer, String additionalText, Object object)
 	{
 		if (object == null)
 		{
-			context.getTestManager().setErrorFound();
-
 			String assertText = "Assertion failed: Check if there is an Object instantiated";
 			assertText += "\n--> Value: '" + "NULL" + "'";
 
-			TestManager.servicePrintError(context, assertText, additionalText);
+			TestManager.servicePrintError(context, testContainer, assertText, additionalText);
 		}
 		else
 		{
@@ -1107,22 +1196,24 @@ public class TestManager implements ManagerInterface
 	 * @param context
 	 *            Application context of the message.
 	 * 
+	 * @param testContainer
+	 *            The test container that invoked this method, or <TT>null</TT>
+	 *            if no test container is available.
+	 * 
 	 * @param additionalText
 	 *            Additional text of the message.
 	 * 
 	 * @param value
 	 *            The value to check.
 	 */
-	public static void assertNotEmpty(Context context, String additionalText, String value)
+	public static void assertNotEmpty(Context context, TestContainer testContainer, String additionalText, String value)
 	{
 		if (value == null || value.length() == 0)
 		{
-			context.getTestManager().setErrorFound();
-
 			String assertText = "Assertion failed: String is not NULL or EMPTY";
 			assertText += "\n--> String value: '" + value + "'";
 
-			TestManager.servicePrintError(context, assertText, additionalText);
+			TestManager.servicePrintError(context, testContainer, assertText, additionalText);
 		}
 		else
 		{
@@ -1136,6 +1227,10 @@ public class TestManager implements ManagerInterface
 	 * @param context
 	 *            Application context of the message.
 	 * 
+	 * @param testContainer
+	 *            The test container that invoked this method, or <TT>null</TT>
+	 *            if no test container is available.
+	 * 
 	 * @param additionalText
 	 *            Additional text of the message.
 	 * 
@@ -1145,17 +1240,15 @@ public class TestManager implements ManagerInterface
 	 * @param value2
 	 *            The second value.
 	 */
-	public static void assertGreaterThan(Context context, String additionalText, int value1, int value2)
+	public static void assertGreaterThan(Context context, TestContainer testContainer, String additionalText, int value1, int value2)
 	{
 		if (!(value1 > value2))
 		{
-			context.getTestManager().setErrorFound();
-
 			String assertText = "Assertion failed:  Compare if value 1 is greater than a value 2";
 			assertText += "\n--> Integer value 1: '" + String.valueOf(value1) + "'";
 			assertText += "\n--> Integer value 2: '" + String.valueOf(value2) + "'";
 
-			TestManager.servicePrintError(context, assertText, additionalText);
+			TestManager.servicePrintError(context, testContainer, assertText, additionalText);
 		}
 		else
 		{
@@ -1169,6 +1262,10 @@ public class TestManager implements ManagerInterface
 	 * @param context
 	 *            Application context of the message.
 	 * 
+	 * @param testContainer
+	 *            The test container that invoked this method, or <TT>null</TT>
+	 *            if no test container is available.
+	 * 
 	 * @param additionalText
 	 *            Additional text of the message.
 	 * 
@@ -1178,17 +1275,15 @@ public class TestManager implements ManagerInterface
 	 * @param value2
 	 *            The second value.
 	 */
-	public static void assertLowerThan(Context context, String additionalText, int value1, int value2)
+	public static void assertLowerThan(Context context, TestContainer testContainer, String additionalText, int value1, int value2)
 	{
 		if (!(value1 < value2))
 		{
-			context.getTestManager().setErrorFound();
-
 			String assertText = "Assertion failed:  Compare if value 1 is lower than a value 2";
 			assertText += "\n--> Integer value 1: '" + String.valueOf(value1) + "'";
 			assertText += "\n--> Integer value 2: '" + String.valueOf(value2) + "'";
 
-			TestManager.servicePrintError(context, assertText, additionalText);
+			TestManager.servicePrintError(context, testContainer, assertText, additionalText);
 		}
 		else
 		{
@@ -1202,6 +1297,10 @@ public class TestManager implements ManagerInterface
 	 * @param context
 	 *            Application context of the message.
 	 * 
+	 * @param testContainer
+	 *            The test container that invoked this method, or <TT>null</TT>
+	 *            if no test container is available.
+	 * 
 	 * @param additionalText
 	 *            Additional text of the message.
 	 * 
@@ -1211,17 +1310,15 @@ public class TestManager implements ManagerInterface
 	 * @param value2
 	 *            The second value.
 	 */
-	public static void assertGreaterThan(Context context, String additionalText, long value1, long value2)
+	public static void assertGreaterThan(Context context, TestContainer testContainer, String additionalText, long value1, long value2)
 	{
 		if (!(value1 > value2))
 		{
-			context.getTestManager().setErrorFound();
-
 			String assertText = "Assertion failed:  Compare if value 1 is greater than a value 2";
 			assertText += "\n--> Long value 1: '" + String.valueOf(value1) + "'";
 			assertText += "\n--> Long value 2: '" + String.valueOf(value2) + "'";
 
-			TestManager.servicePrintError(context, assertText, additionalText);
+			TestManager.servicePrintError(context, testContainer, assertText, additionalText);
 		}
 		else
 		{
@@ -1235,6 +1332,10 @@ public class TestManager implements ManagerInterface
 	 * @param context
 	 *            Application context of the message.
 	 * 
+	 * @param testContainer
+	 *            The test container that invoked this method, or <TT>null</TT>
+	 *            if no test container is available.
+	 * 
 	 * @param additionalText
 	 *            Additional text of the message.
 	 * 
@@ -1244,23 +1345,21 @@ public class TestManager implements ManagerInterface
 	 * @param filePath2
 	 *            The second file.
 	 */
-	public static void assertEqualsFile(Context context, String additionalText, String filePath1, String filePath2)
+	public static void assertEqualsFile(Context context, TestContainer testContainer, String additionalText, String filePath1, String filePath2)
 	{
 		long checksumFile1 = FileUtilFunctions.fileGetChecksum(filePath1);
-		TestManager.assertGreaterThan(context, additionalText + "\n--> Error on computing checksum of file '" + filePath1 + "'", checksumFile1, 0);
+		TestManager.assertGreaterThan(context, testContainer, additionalText + "\n--> Error on computing checksum of file '" + filePath1 + "'", checksumFile1, 0);
 
 		long checksumFile2 = FileUtilFunctions.fileGetChecksum(filePath2);
-		TestManager.assertGreaterThan(context, additionalText + "\n--> Error on computing checksum of file '" + filePath2 + "'", checksumFile2, 0);
+		TestManager.assertGreaterThan(context, testContainer, additionalText + "\n--> Error on computing checksum of file '" + filePath2 + "'", checksumFile2, 0);
 
 		if (checksumFile1 != checksumFile2)
 		{
-			context.getTestManager().setErrorFound();
-
 			String assertText = "Assertion failed: Comparing two files on identity";
 			assertText += "\n--> File path 1: '" + filePath1 + "'";
 			assertText += "\n--> File path 2: '" + filePath2 + "'";
 
-			TestManager.servicePrintError(context, assertText, additionalText);
+			TestManager.servicePrintError(context, testContainer, assertText, additionalText);
 		}
 		else
 		{
@@ -1274,6 +1373,10 @@ public class TestManager implements ManagerInterface
 	 * @param context
 	 *            Application context of the message.
 	 * 
+	 * @param testContainer
+	 *            The test container that invoked this method, or <TT>null</TT>
+	 *            if no test container is available.
+	 * 
 	 * @param additionalText
 	 *            Additional text of the message.
 	 * 
@@ -1283,27 +1386,115 @@ public class TestManager implements ManagerInterface
 	 * @param filePath2
 	 *            The second file.
 	 */
-	public static void assertNotEqualsFile(Context context, String additionalText, String filePath1, String filePath2)
+	public static void assertNotEqualsFile(Context context, TestContainer testContainer, String additionalText, String filePath1, String filePath2)
 	{
 		long checksumFile1 = FileUtilFunctions.fileGetChecksum(filePath1);
-		TestManager.assertGreaterThan(context, additionalText + "\n--> Error on computing checksum of file '" + filePath1 + "'", checksumFile1, 0);
+		TestManager.assertGreaterThan(context, testContainer, additionalText + "\n--> Error on computing checksum of file '" + filePath1 + "'", checksumFile1, 0);
 
 		long checksumFile2 = FileUtilFunctions.fileGetChecksum(filePath2);
-		TestManager.assertGreaterThan(context, additionalText + "\n--> Error on computing checksum of file '" + filePath2 + "'", checksumFile2, 0);
+		TestManager.assertGreaterThan(context, testContainer, additionalText + "\n--> Error on computing checksum of file '" + filePath2 + "'", checksumFile2, 0);
 
 		if (checksumFile1 == checksumFile2)
 		{
-			context.getTestManager().setErrorFound();
-
 			String assertText = "Assertion failed: Comparing two files on diversity";
 			assertText += "\n--> File path 1: '" + filePath1 + "'";
 			assertText += "\n--> File path 2: '" + filePath2 + "'";
 
-			TestManager.servicePrintError(context, assertText, additionalText);
+			TestManager.servicePrintError(context, testContainer, assertText, additionalText);
 		}
 		else
 		{
 			TestManager.servicePrintProgress(context);
 		}
 	}
+
+	/**
+	 * Allocate a port number for an application server.
+	 * <p>
+	 * The range of port numbers that can be allocated starts with <TT>8000</TT>
+	 * and ends with <TT>8999</TT>.
+	 * 
+	 * @return Returns the allocated port number, or <TT>0</TT> if an error
+	 *         occurred.
+	 */
+	public static synchronized int allocatePortNumber()
+	{
+		try
+		{
+			for (int port = 8000; port <= 8999; port++)
+			{
+				if (TestManager.usedServerPorts.contains(port)) continue;
+
+				if (TestManager.isSocketUsed(port)) continue;
+
+				TestManager.usedServerPorts.add(port);
+				
+				return port;
+			}
+		}
+		catch (Exception e)
+		{
+			// Be silent
+		}
+
+		// No port available yet
+		return 0;
+	}
+
+	/**
+	 * Check if a socket is currently used.
+	 * 
+	 * @param port
+	 *            The port to check.
+	 * 
+	 * @return Returns <TT>true</TT> if the socket is currently used, otherwise
+	 *         <TT>false</TT>.
+	 */
+	private static boolean isSocketUsed(int port)
+	{
+		boolean portTaken = false;
+
+		ServerSocket socket = null;
+
+		try
+		{
+			socket = new ServerSocket(port);
+		}
+		catch (Exception e)
+		{
+			portTaken = true;
+		}
+		finally
+		{
+			if (socket != null)
+			{
+				try
+				{
+					socket.close();
+				}
+				catch (Exception e)
+				{
+					// Be silent
+				}
+			}
+		}
+
+		return portTaken;
+	}
+
+	/**
+	 * Deallocate a port number, used by an application server.
+	 */
+	public static synchronized void deallocatePortNumber(int port)
+	{
+		try
+		{
+			TestManager.usedServerPorts.remove(port);
+		}
+		catch (Exception e)
+		{
+			// Be silent
+		}
+	}
+
 }

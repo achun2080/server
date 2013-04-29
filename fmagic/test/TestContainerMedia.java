@@ -31,10 +31,22 @@ public class TestContainerMedia extends TestContainer
 
 	/**
 	 * Constructor
+	 * 
+	 * @param context
+	 *            The application context.
+	 * 
+	 * @param testRunner
+	 *            The test runner that holds this container, or <TT>null</TT> if
+	 *            no test runner is available.
+	 * 
+	 * @param concurrentAccess
+	 *            Set to <TT>true</TT> if the test container is supposed to run
+	 *            in a concurrent environment with other parallel threads or
+	 *            applications, otherwise to <TT>false</TT>.
 	 */
-	public TestContainerMedia(Context context, boolean concurrentAccess)
+	public TestContainerMedia(Context context, TestRunner testRunner, boolean concurrentAccess)
 	{
-		super(context, concurrentAccess);
+		super(context, testRunner, concurrentAccess);
 	}
 
 	/**
@@ -54,7 +66,7 @@ public class TestContainerMedia extends TestContainer
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
 		}
 	}
 
@@ -67,7 +79,7 @@ public class TestContainerMedia extends TestContainer
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
 		}
 	}
 
@@ -80,7 +92,7 @@ public class TestContainerMedia extends TestContainer
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
 		}
 	}
 
@@ -106,7 +118,7 @@ public class TestContainerMedia extends TestContainer
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
 		}
 	}
 
@@ -136,7 +148,7 @@ public class TestContainerMedia extends TestContainer
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
 		}
 	}
 
@@ -162,7 +174,7 @@ public class TestContainerMedia extends TestContainer
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
 		}
 	}
 
@@ -175,7 +187,7 @@ public class TestContainerMedia extends TestContainer
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
 		}
 	}
 
@@ -205,12 +217,12 @@ public class TestContainerMedia extends TestContainer
 				String additionalText = "--> Media attribute: '" + group + "." + name + "' is not defined in the resource files.";
 
 				String documentation = attribute.printManual(this.getContext());
-				TestManager.assertNotContains(this.getContext(), additionalText, documentation, "Resource.*.*.*.");
+				TestManager.assertNotContains(this.getContext(), this, additionalText, documentation, "Resource.*.*.*.");
 			}
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
 		}
 	}
 
@@ -224,11 +236,11 @@ public class TestContainerMedia extends TestContainer
 		try
 		{
 			this.getContext().getLocaldataManager().writeProperty(this.getContext(), ResourceManager.localdata(this.getContext(), "LastValidServerConnection", "ClientSessionIdentifier"), "1234abcd");
-			TestManager.assertGreaterThan(this.getContext(), null, 1, 0);
+			TestManager.assertGreaterThan(this.getContext(), this, null, 1, 0);
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
 		}
 	}
 
@@ -243,33 +255,33 @@ public class TestContainerMedia extends TestContainer
 		{
 			ResourceContainerMedia media = ResourceManager.media(this.getContext(), "Test", "TestMediaResource");
 
-			TestManager.assertTrue(this.getContext(), null, media.isMediaTypeImage(this.getContext()));
-			TestManager.assertFalse(this.getContext(), null, media.isMediaTypeVideo(this.getContext()));
-			TestManager.assertFalse(this.getContext(), null, media.isMediaTypeAudio(this.getContext()));
-			TestManager.assertFalse(this.getContext(), null, media.isMediaTypeDocument(this.getContext()));
-			TestManager.assertTrue(this.getContext(), null, media.isFileTypeSupported(this.getContext(), "JPG"));
-			TestManager.assertTrue(this.getContext(), null, media.isFileTypeSupported(this.getContext(), "jpg"));
-			TestManager.assertTrue(this.getContext(), null, media.isFileTypeSupported(this.getContext(), "png"));
-			TestManager.assertFalse(this.getContext(), null, media.isFileTypeSupported(this.getContext(), "gif"));
-			TestManager.assertFalse(this.getContext(), null, media.isFileTypeSupported(this.getContext(), "MKV"));
-			TestManager.assertFalse(this.getContext(), null, media.isFileTypeSupported(this.getContext(), "mkv"));
-			TestManager.assertFalse(this.getContext(), null, media.isFileTypeSupported(this.getContext(), "aaa"));
-			TestManager.assertFalse(this.getContext(), null, media.isStorageLocationServer(this.getContext()));
-			TestManager.assertFalse(this.getContext(), null, media.isStorageLocationClient(this.getContext()));
-			TestManager.assertTrue(this.getContext(), null, media.isStorageLocationSynchronize(this.getContext()));
-			TestManager.assertEqualsIgnoreCase(this.getContext(), null, media.getLogicalPath(this.getContext()), "test/media/resource");
-			TestManager.assertTrue(this.getContext(), null, media.isServerEncoding(this.getContext()));
-			TestManager.assertFalse(this.getContext(), null, media.isClientEncoding(this.getContext()));
+			TestManager.assertTrue(this.getContext(), this, null, media.isMediaTypeImage(this.getContext()));
+			TestManager.assertFalse(this.getContext(), this, null, media.isMediaTypeVideo(this.getContext()));
+			TestManager.assertFalse(this.getContext(), this, null, media.isMediaTypeAudio(this.getContext()));
+			TestManager.assertFalse(this.getContext(), this, null, media.isMediaTypeDocument(this.getContext()));
+			TestManager.assertTrue(this.getContext(), this, null, media.isFileTypeSupported(this.getContext(), "JPG"));
+			TestManager.assertTrue(this.getContext(), this, null, media.isFileTypeSupported(this.getContext(), "jpg"));
+			TestManager.assertTrue(this.getContext(), this, null, media.isFileTypeSupported(this.getContext(), "png"));
+			TestManager.assertFalse(this.getContext(), this, null, media.isFileTypeSupported(this.getContext(), "gif"));
+			TestManager.assertFalse(this.getContext(), this, null, media.isFileTypeSupported(this.getContext(), "MKV"));
+			TestManager.assertFalse(this.getContext(), this, null, media.isFileTypeSupported(this.getContext(), "mkv"));
+			TestManager.assertFalse(this.getContext(), this, null, media.isFileTypeSupported(this.getContext(), "aaa"));
+			TestManager.assertFalse(this.getContext(), this, null, media.isStorageLocationServer(this.getContext()));
+			TestManager.assertFalse(this.getContext(), this, null, media.isStorageLocationClient(this.getContext()));
+			TestManager.assertTrue(this.getContext(), this, null, media.isStorageLocationSynchronize(this.getContext()));
+			TestManager.assertEqualsIgnoreCase(this.getContext(), this, null, media.getLogicalPath(this.getContext()), "test/media/resource");
+			TestManager.assertTrue(this.getContext(), this, null, media.isServerEncoding(this.getContext()));
+			TestManager.assertFalse(this.getContext(), this, null, media.isClientEncoding(this.getContext()));
 
-			TestManager.assertEndsWith(this.getContext(), null, media.getMediaRegularFilePath(this.getContext()), "test/media/resource");
-			TestManager.assertEndsWith(this.getContext(), null, media.getMediaFileNameMask(this.getContext(), "1234"), "-testmediaresource-00000000001234-*-*.*");
-			TestManager.assertEndsWith(this.getContext(), null, media.getMediaPendingFileName(this.getContext(), "png"), ".png");
-			TestManager.assertEndsWith(this.getContext(), null, media.getMediaPendingFilePath(this.getContext()), "test/media/resource/pending");
-			TestManager.assertEndsWith(this.getContext(), null, media.getMediaDeletedFilePath(this.getContext()), "test/media/resource/deleted");
+			TestManager.assertEndsWith(this.getContext(), this, null, media.getMediaRegularFilePath(this.getContext()), "test/media/resource");
+			TestManager.assertEndsWith(this.getContext(), this, null, media.getMediaFileNameMask(this.getContext(), "1234"), "-testmediaresource-00000000001234-*-*.*");
+			TestManager.assertEndsWith(this.getContext(), this, null, media.getMediaPendingFileName(this.getContext(), "png"), ".png");
+			TestManager.assertEndsWith(this.getContext(), this, null, media.getMediaPendingFilePath(this.getContext()), "test/media/resource/pending");
+			TestManager.assertEndsWith(this.getContext(), this, null, media.getMediaDeletedFilePath(this.getContext()), "test/media/resource/deleted");
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
 		}
 	}
 
@@ -293,14 +305,14 @@ public class TestContainerMedia extends TestContainer
 
 		String additionalText = "--> Tried to read the directory for the media files to process during test";
 		additionalText += "\n--> Please set the test configuration parameter '" + configuration.getRecourceIdentifier() + "' for the application '" + this.getContext().getCodeName() + "'";
-		TestManager.assertNotNull(this.getContext(), additionalText, uploadFilePath);
+		TestManager.assertNotNull(this.getContext(), this, additionalText, uploadFilePath);
 
 		// Get file List
 		List<String> fileList = FileUtilFunctions.directorySearchForFiles(uploadFilePath, "*.jpg");
 
 		additionalText = "--> Tried to read media files in directory '" + uploadFilePath + "'";
-		TestManager.assertNotNull(this.getContext(), additionalText, fileList);
-		if (fileList != null) TestManager.assertGreaterThan(this.getContext(), additionalText, fileList.size(), 0);
+		TestManager.assertNotNull(this.getContext(), this, additionalText, fileList);
+		if (fileList != null) TestManager.assertGreaterThan(this.getContext(), this, additionalText, fileList.size(), 0);
 
 		// Try some uploads
 		for (int i = 0; i < 20; i++)
@@ -342,14 +354,14 @@ public class TestContainerMedia extends TestContainer
 
 			String additionalText = "--> Tried to read the directory for the media files to process during test";
 			additionalText += "\n--> Please set the test configuration parameter '" + configuration.getRecourceIdentifier() + "' for the application '" + this.getContext().getCodeName() + "'";
-			TestManager.assertNotNull(this.getContext(), additionalText, uploadFilePath);
+			TestManager.assertNotNull(this.getContext(), this, additionalText, uploadFilePath);
 
 			// Get file List
 			List<String> fileList = FileUtilFunctions.directorySearchForFiles(uploadFilePath, "*.jpg");
 
 			additionalText = "--> Tried to read media files in directory '" + uploadFilePath + "'";
-			TestManager.assertNotNull(this.getContext(), additionalText, fileList);
-			if (fileList != null) TestManager.assertGreaterThan(this.getContext(), additionalText, fileList.size(), 0);
+			TestManager.assertNotNull(this.getContext(), this, additionalText, fileList);
+			if (fileList != null) TestManager.assertGreaterThan(this.getContext(), this, additionalText, fileList.size(), 0);
 
 			// Override media files and count number of obsolete files
 			int nuOfObsoleteFiles = -1;
@@ -361,12 +373,12 @@ public class TestContainerMedia extends TestContainer
 
 				// Get list of obsolete files
 				List<String> obsoleteFiles = FileUtilFunctions.directorySearchOnObsoleteFiles(mediaFilePath, mediaFileNameMask, null);
-				TestManager.assertNotNull(this.getContext(), null, obsoleteFiles);
-				TestManager.assertEquals(this.getContext(), null, obsoleteFiles.size(), nuOfObsoleteFiles + i + 1);
+				TestManager.assertNotNull(this.getContext(), this, null, obsoleteFiles);
+				TestManager.assertEquals(this.getContext(), this, null, obsoleteFiles.size(), nuOfObsoleteFiles + i + 1);
 
 				// The new uploaded file name must not be part of the list
 				String recentFileName = mediaResource.getMediaRealFileName(this.getContext(), this.parameterDataIdentifierTestObsolete);
-				TestManager.assertFalse(this.getContext(), null, obsoleteFiles.contains(recentFileName));
+				TestManager.assertFalse(this.getContext(), this, null, obsoleteFiles.contains(recentFileName));
 			}
 
 			// Check pending directory
@@ -374,7 +386,7 @@ public class TestContainerMedia extends TestContainer
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
 		}
 	}
 
@@ -475,21 +487,21 @@ public class TestContainerMedia extends TestContainer
 
 			String additionalText = "--> Tried to read the directory for the media files to process during test";
 			additionalText += "\n--> Please set the test configuration parameter '" + configuration.getRecourceIdentifier() + "' for the application '" + this.getContext().getCodeName() + "'";
-			TestManager.assertNotNull(this.getContext(), additionalText, uploadFilePath);
+			TestManager.assertNotNull(this.getContext(), this, additionalText, uploadFilePath);
 
 			// Get file List
 			List<String> fileList = FileUtilFunctions.directorySearchForFiles(uploadFilePath, "*.jpg");
 
 			additionalText = "--> Tried to read media files in directory '" + uploadFilePath + "'";
-			TestManager.assertNotNull(this.getContext(), additionalText, fileList);
-			if (fileList != null) TestManager.assertGreaterThan(this.getContext(), additionalText, fileList.size(), 0);
+			TestManager.assertNotNull(this.getContext(), this, additionalText, fileList);
+			if (fileList != null) TestManager.assertGreaterThan(this.getContext(), this, additionalText, fileList.size(), 0);
 
 			// Get parameter
 			int dataIdentifierInteger = this.parameterTestCycleDataIdentifierFrom;
-			TestManager.assertGreaterThan(this.getContext(), null, dataIdentifierInteger, 0);
+			TestManager.assertGreaterThan(this.getContext(), this, null, dataIdentifierInteger, 0);
 
 			int nuOfFilesToTest = this.parameterTestCycleNumberOfFiles;
-			TestManager.assertGreaterThan(this.getContext(), null, nuOfFilesToTest, 0);
+			TestManager.assertGreaterThan(this.getContext(), this, null, nuOfFilesToTest, 0);
 			TestManager.servicePrintSubLine(this.getContext(), "Files to process: '" + String.valueOf(nuOfFilesToTest) + "'");
 
 			// Initialize
@@ -501,7 +513,7 @@ public class TestContainerMedia extends TestContainer
 				// Get next file path from list
 				String filePath = fileList.get(fileListCounter++);
 				if (fileListCounter >= fileList.size()) fileListCounter = 0;
-				TestManager.assertNotNull(this.getContext(), null, filePath);
+				TestManager.assertNotNull(this.getContext(), this, null, filePath);
 
 				// Upload file
 				if (dataIdentifierInteger > this.parameterTestCycleDataIdentifierToo) dataIdentifierInteger = this.parameterTestCycleDataIdentifierFrom;
@@ -517,7 +529,7 @@ public class TestContainerMedia extends TestContainer
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
 		}
 
 		return;
@@ -538,7 +550,7 @@ public class TestContainerMedia extends TestContainer
 			additionalText += "\n--> Data identifier? '" + dataIdentifierString + "'";
 
 			boolean booleanResult = this.getContext().getMediaManager().operationUpload(this.getContext(), mediaResource, uploadFileName, dataIdentifierString);
-			TestManager.assertTrue(this.getContext(), additionalText, booleanResult);
+			TestManager.assertTrue(this.getContext(), this, additionalText, booleanResult);
 
 			// Check if file content can be read
 			additionalText = "--> Tried to read file content of an uploaded file";
@@ -546,13 +558,13 @@ public class TestContainerMedia extends TestContainer
 			additionalText += "\n--> Data identifier? '" + dataIdentifierString + "'";
 
 			MediaContainer mediaContainer = new MediaContainer(this.getContext(), mediaResource, dataIdentifierString);
-			TestManager.assertNotNull(this.getContext(), additionalText, mediaContainer);
+			TestManager.assertNotNull(this.getContext(), this, additionalText, mediaContainer);
 
 			if (mediaContainer != null)
 			{
 				// Bind media object
 				booleanResult = mediaContainer.bindMedia();
-				TestManager.assertTrue(this.getContext(), additionalText + "\n--> Error on binding media file", booleanResult);
+				TestManager.assertTrue(this.getContext(), this, additionalText + "\n--> Error on binding media file", booleanResult);
 
 				// Compare check sum of source file and destination file
 				if (!this.isConcurrentAccess())
@@ -560,31 +572,31 @@ public class TestContainerMedia extends TestContainer
 					// Check always: If the checksum of the uploaded file and
 					// the working file are the same, all the same if the media
 					// files are encoded.
-					TestManager.assertEqualsFile(this.getContext(), additionalText, uploadFileName, mediaContainer.getWorkingMediaFilePath());
+					TestManager.assertEqualsFile(this.getContext(), this, additionalText, uploadFileName, mediaContainer.getWorkingMediaFilePath());
 
 					// Check if encoding is enabled encoding: If the checksum of
 					// the uploaded file and
 					// the original file are different.
 					if (this.getContext().getMediaManager().isEncodingEnabled(this.getContext(), mediaResource) == true)
 					{
-						TestManager.assertNotEqualsFile(this.getContext(), additionalText, uploadFileName, mediaContainer.getOriginalMediaFilePath());
+						TestManager.assertNotEqualsFile(this.getContext(), this, additionalText, uploadFileName, mediaContainer.getOriginalMediaFilePath());
 					}
 				}
 
 				// Read file content
 				byte[] contentAsByteBuffer = mediaContainer.readMediaContentAsByteArray();
-				TestManager.assertNotNull(this.getContext(), additionalText + "\n--> Error on reading media file content", contentAsByteBuffer);
-				TestManager.assertGreaterThan(this.getContext(), additionalText, contentAsByteBuffer.length, 0);
+				TestManager.assertNotNull(this.getContext(), this, additionalText + "\n--> Error on reading media file content", contentAsByteBuffer);
+				TestManager.assertGreaterThan(this.getContext(), this, additionalText, contentAsByteBuffer.length, 0);
 
 				// Release media file
 				booleanResult = mediaContainer.releaseMedia();
-				TestManager.assertTrue(this.getContext(), additionalText + "\n--> Error on releasing media file", booleanResult);
+				TestManager.assertTrue(this.getContext(), this, additionalText + "\n--> Error on releasing media file", booleanResult);
 			}
 
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
 		}
 	}
 
@@ -604,12 +616,12 @@ public class TestContainerMedia extends TestContainer
 			if (mediaFiles != null && mediaFiles.size() > 0)
 			{
 				int nuOfDeletedFiles = FileUtilFunctions.fileDelete(mediaFiles);
-				TestManager.assertEquals(this.getContext(), null, mediaFiles.size(), nuOfDeletedFiles);
+				TestManager.assertEquals(this.getContext(), this, null, mediaFiles.size(), nuOfDeletedFiles);
 			}
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
 		}
 	}
 
@@ -623,17 +635,17 @@ public class TestContainerMedia extends TestContainer
 		{
 			ResourceContainerMedia mediaResource = ResourceManager.media(this.getContext(), group, name);
 			String pendingDirectory = mediaResource.getMediaPendingFilePath(this.getContext());
-			TestManager.assertNotNull(this.getContext(), null, pendingDirectory);
+			TestManager.assertNotNull(this.getContext(), this, null, pendingDirectory);
 
 			if (FileUtilFunctions.directoryExists(pendingDirectory))
 			{
 				boolean isSuccessful = FileUtilFunctions.directoryDeleteAllFiles(pendingDirectory);
-				TestManager.assertTrue(this.getContext(), "--> Error on cleaning 'pending' directory '" + pendingDirectory + "'", isSuccessful);
+				TestManager.assertTrue(this.getContext(), this, "--> Error on cleaning 'pending' directory '" + pendingDirectory + "'", isSuccessful);
 			}
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
 		}
 	}
 
@@ -647,17 +659,17 @@ public class TestContainerMedia extends TestContainer
 		{
 			ResourceContainerMedia mediaResource = ResourceManager.media(this.getContext(), group, name);
 			String regularDirectory = mediaResource.getMediaRegularFilePath(this.getContext());
-			TestManager.assertNotNull(this.getContext(), null, regularDirectory);
+			TestManager.assertNotNull(this.getContext(), this, null, regularDirectory);
 
 			if (FileUtilFunctions.directoryExists(regularDirectory))
 			{
 				boolean isSuccessful = FileUtilFunctions.directoryDeleteAllFiles(regularDirectory);
-				TestManager.assertTrue(this.getContext(), "--> Error on cleaning 'regular' directory '" + regularDirectory + "'", isSuccessful);
+				TestManager.assertTrue(this.getContext(), this, "--> Error on cleaning 'regular' directory '" + regularDirectory + "'", isSuccessful);
 			}
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
 		}
 	}
 
@@ -671,17 +683,17 @@ public class TestContainerMedia extends TestContainer
 		{
 			ResourceContainerMedia mediaResource = ResourceManager.media(this.getContext(), group, name);
 			String deletedDirectory = mediaResource.getMediaDeletedFilePath(this.getContext());
-			TestManager.assertNotNull(this.getContext(), null, deletedDirectory);
+			TestManager.assertNotNull(this.getContext(), this, null, deletedDirectory);
 
 			if (FileUtilFunctions.directoryExists(deletedDirectory))
 			{
 				boolean isSuccessful = FileUtilFunctions.directoryDeleteAllFiles(deletedDirectory);
-				TestManager.assertTrue(this.getContext(), "--> Error on cleaning 'deleted' directory '" + deletedDirectory + "'", isSuccessful);
+				TestManager.assertTrue(this.getContext(), this, "--> Error on cleaning 'deleted' directory '" + deletedDirectory + "'", isSuccessful);
 			}
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
 		}
 	}
 
@@ -695,15 +707,15 @@ public class TestContainerMedia extends TestContainer
 		{
 			ResourceContainerMedia mediaResource = ResourceManager.media(this.getContext(), group, name);
 			String pendingDirectory = mediaResource.getMediaPendingFilePath(this.getContext());
-			TestManager.assertNotNull(this.getContext(), null, pendingDirectory);
+			TestManager.assertNotNull(this.getContext(), this, null, pendingDirectory);
 
 			List<String> filelist = FileUtilFunctions.directorySearchForFiles(pendingDirectory, "*");
-			TestManager.assertNotNull(this.getContext(), null, filelist);
-			TestManager.assertEquals(this.getContext(), "--> Files found in 'pending' directory '" + pendingDirectory + "'", filelist.size(), 0);
+			TestManager.assertNotNull(this.getContext(), this, null, filelist);
+			TestManager.assertEquals(this.getContext(), this, "--> Files found in 'pending' directory '" + pendingDirectory + "'", filelist.size(), 0);
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
 		}
 	}
 
@@ -736,7 +748,7 @@ public class TestContainerMedia extends TestContainer
 			}
 			else
 			{
-				TestManager.servicePrintError(this.getContext(), "CleaningFunctionEnum not supported", null);
+				TestManager.servicePrintError(this.getContext(), this, "CleaningFunctionEnum not supported", null);
 				return;
 			}
 
@@ -749,7 +761,7 @@ public class TestContainerMedia extends TestContainer
 
 			String additionalText = "--> Tried to read the directory for the media files to process during test";
 			additionalText += "\n--> Please set the test configuration parameter '" + configuration.getRecourceIdentifier() + "' for the application '" + this.getContext().getCodeName() + "'";
-			TestManager.assertNotNull(this.getContext(), additionalText, uploadFilePath);
+			TestManager.assertNotNull(this.getContext(), this, additionalText, uploadFilePath);
 
 			// Get file List
 			List<String> fileList = FileUtilFunctions.directorySearchForFiles(uploadFilePath, "*.jpg");
@@ -758,13 +770,13 @@ public class TestContainerMedia extends TestContainer
 			// No file list
 			if (fileList == null)
 			{
-				TestManager.assertNotNull(this.getContext(), additionalText, fileList);
+				TestManager.assertNotNull(this.getContext(), this, additionalText, fileList);
 				return;
 			}
 
 			if (fileList.size() == 0)
 			{
-				TestManager.assertGreaterThan(this.getContext(), additionalText, fileList.size(), 0);
+				TestManager.assertGreaterThan(this.getContext(), this, additionalText, fileList.size(), 0);
 				return;
 			}
 
@@ -780,13 +792,13 @@ public class TestContainerMedia extends TestContainer
 			{
 				// Get media file to copy
 				int index = FileUtilFunctions.generalGetRandomValue(0, fileList.size() - 1);
-				TestManager.assertEqualsRange(this.getContext(), null, 0, fileList.size() - 1, index);
+				TestManager.assertEqualsRange(this.getContext(), this, null, 0, fileList.size() - 1, index);
 
 				String mediaFilePathToCopy = fileList.get(index);
-				TestManager.assertNotEmpty(this.getContext(), null, mediaFilePathToCopy);
+				TestManager.assertNotEmpty(this.getContext(), this, null, mediaFilePathToCopy);
 
 				String fileType = FileUtilFunctions.fileGetFileTypePart(mediaFilePathToCopy);
-				TestManager.assertNotEmpty(this.getContext(), null, fileType);
+				TestManager.assertNotEmpty(this.getContext(), this, null, fileType);
 
 				// Get file name of the file to be created
 				String filePathToCreate = null;
@@ -801,25 +813,25 @@ public class TestContainerMedia extends TestContainer
 				}
 				else
 				{
-					TestManager.servicePrintError(this.getContext(), "CleaningFunctionEnum not supported", null);
+					TestManager.servicePrintError(this.getContext(), this, "CleaningFunctionEnum not supported", null);
 					return;
 				}
 
-				TestManager.assertNotEmpty(this.getContext(), null, filePathToCreate);
+				TestManager.assertNotEmpty(this.getContext(), this, null, filePathToCreate);
 
 				// Create file
 				int resultInteger = FileUtilFunctions.fileCopyRetry(mediaFilePathToCopy, filePathToCreate);
-				TestManager.assertGreaterThan(this.getContext(), null, resultInteger, 0);
+				TestManager.assertGreaterThan(this.getContext(), this, null, resultInteger, 0);
 
 				// Set a 'modified date' in a range of x days
 				int daySetting = FileUtilFunctions.generalGetRandomValue(0, dayRange);
-				TestManager.assertEqualsRange(this.getContext(), null, 0, dayRange, daySetting);
+				TestManager.assertEqualsRange(this.getContext(), this, null, 0, dayRange, daySetting);
 
 				Date modifiedDate = FileUtilFunctions.generalAddTimeDiff(currentDate, -daySetting, -1, minuteCounter--, secondCounter--);
-				TestManager.assertNotEmpty(this.getContext(), null, fileType);
+				TestManager.assertNotEmpty(this.getContext(), this, null, fileType);
 
 				resultInteger = FileUtilFunctions.fileSetLastModifiedRetry(filePathToCreate, modifiedDate);
-				TestManager.assertGreaterThan(this.getContext(), null, resultInteger, 0);
+				TestManager.assertGreaterThan(this.getContext(), this, null, resultInteger, 0);
 			}
 
 			/*
@@ -827,7 +839,7 @@ public class TestContainerMedia extends TestContainer
 			 */
 
 			// Invoke regular clean function of the media manager
-			TestManager.assertGreaterThan(this.getContext(), null, daysToKeep, 1);
+			TestManager.assertGreaterThan(this.getContext(), this, null, daysToKeep, 1);
 
 			String remainingFilePath = "";
 			int nuOfDeletedFiles = 0;
@@ -844,48 +856,48 @@ public class TestContainerMedia extends TestContainer
 			}
 			else
 			{
-				TestManager.servicePrintError(this.getContext(), "CleaningFunctionEnum not supported", null);
+				TestManager.servicePrintError(this.getContext(), this, "CleaningFunctionEnum not supported", null);
 				return;
 			}
 
-			TestManager.assertGreaterThan(this.getContext(), null, nuOfDeletedFiles, 0);
-			TestManager.assertLowerThan(this.getContext(), null, nuOfDeletedFiles, nuOfFilesCreated);
+			TestManager.assertGreaterThan(this.getContext(), this, null, nuOfDeletedFiles, 0);
+			TestManager.assertLowerThan(this.getContext(), this, null, nuOfDeletedFiles, nuOfFilesCreated);
 
 			// Get list of all files remained
 			List<String> fileRemainingList = FileUtilFunctions.directorySearchForFiles(remainingFilePath, "*");
-			TestManager.assertNotNull(this.getContext(), null, fileRemainingList);
+			TestManager.assertNotNull(this.getContext(), this, null, fileRemainingList);
 
 			// Go through the list and check 'modified date'
 			if (fileRemainingList != null)
 			{
 				int nuOfRemainingFiles = fileRemainingList.size();
-				TestManager.assertGreaterThan(this.getContext(), null, nuOfRemainingFiles, 0);
+				TestManager.assertGreaterThan(this.getContext(), this, null, nuOfRemainingFiles, 0);
 
 				additionalText = "--> Mismatch about the number of created files, the number of deleted files and the number of remaining files.";
 				additionalText += "\n--> The relation must be: nuOfFilesCreated = nuOfRemainingFiles + nuOfDeletedFiles";
 				additionalText += "\n--> nuOfFilesCreated: '" + String.valueOf(nuOfFilesCreated) + "'";
 				additionalText += "\n--> nuOfDeletedFiles: '" + String.valueOf(nuOfDeletedFiles) + "'";
 				additionalText += "\n--> nuOfRemainingFiles: '" + String.valueOf(nuOfRemainingFiles) + "'";
-				TestManager.assertEquals(this.getContext(), additionalText, nuOfRemainingFiles + nuOfDeletedFiles, nuOfFilesCreated);
+				TestManager.assertEquals(this.getContext(), this, additionalText, nuOfRemainingFiles + nuOfDeletedFiles, nuOfFilesCreated);
 
 				for (String filePath : fileRemainingList)
 				{
-					TestManager.assertNotNull(this.getContext(), null, filePath);
+					TestManager.assertNotNull(this.getContext(), this, null, filePath);
 
 					File file = new File(filePath);
-					TestManager.assertNotNull(this.getContext(), null, file);
+					TestManager.assertNotNull(this.getContext(), this, null, file);
 
 					Date fileDate = new Date(file.lastModified());
-					TestManager.assertNotNull(this.getContext(), null, fileDate);
+					TestManager.assertNotNull(this.getContext(), this, null, fileDate);
 
 					boolean resultBoolean = fileDate.after(daysToKeepDate);
-					TestManager.assertTrue(this.getContext(), null, resultBoolean);
+					TestManager.assertTrue(this.getContext(), this, null, resultBoolean);
 				}
 			}
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
 		}
 	}
 
@@ -915,7 +927,7 @@ public class TestContainerMedia extends TestContainer
 
 			String additionalText = "--> Tried to read the directory for the media files to process during test";
 			additionalText += "\n--> Please set the test configuration parameter '" + configuration.getRecourceIdentifier() + "' for the application '" + this.getContext().getCodeName() + "'";
-			TestManager.assertNotNull(this.getContext(), additionalText, uploadFilePath);
+			TestManager.assertNotNull(this.getContext(), this, additionalText, uploadFilePath);
 
 			// Get file List
 			List<String> fileList = FileUtilFunctions.directorySearchForFiles(uploadFilePath, "*.jpg");
@@ -924,13 +936,13 @@ public class TestContainerMedia extends TestContainer
 			// No file list
 			if (fileList == null)
 			{
-				TestManager.assertNotNull(this.getContext(), additionalText, fileList);
+				TestManager.assertNotNull(this.getContext(), this, additionalText, fileList);
 				return;
 			}
 
 			if (fileList.size() == 0)
 			{
-				TestManager.assertGreaterThan(this.getContext(), additionalText, fileList.size(), 0);
+				TestManager.assertGreaterThan(this.getContext(), this, additionalText, fileList.size(), 0);
 				return;
 			}
 
@@ -950,44 +962,44 @@ public class TestContainerMedia extends TestContainer
 				{
 					// Get media file to copy
 					int index = FileUtilFunctions.generalGetRandomValue(0, fileList.size() - 1);
-					TestManager.assertEqualsRange(this.getContext(), null, 0, fileList.size() - 1, index);
+					TestManager.assertEqualsRange(this.getContext(), this, null, 0, fileList.size() - 1, index);
 
 					String uploadFileName = fileList.get(index);
-					TestManager.assertNotEmpty(this.getContext(), null, uploadFileName);
+					TestManager.assertNotEmpty(this.getContext(), this, null, uploadFileName);
 
 					String fileType = FileUtilFunctions.fileGetFileTypePart(uploadFileName);
-					TestManager.assertNotEmpty(this.getContext(), null, fileType);
+					TestManager.assertNotEmpty(this.getContext(), this, null, fileType);
 
 					// Upload the file
 					this.doUploadFile(group, name, dataIdentifier, uploadFileName);
 
 					// Set a 'modified date' in a range of x days
 					int daySetting = FileUtilFunctions.generalGetRandomValue(0, dayRange);
-					TestManager.assertEqualsRange(this.getContext(), null, 0, dayRange, daySetting);
+					TestManager.assertEqualsRange(this.getContext(), this, null, 0, dayRange, daySetting);
 
 					Date modifiedDate = FileUtilFunctions.generalAddTimeDiff(currentDate, -daySetting, -1, minuteCounter--, secondCounter--);
-					TestManager.assertNotEmpty(this.getContext(), null, fileType);
+					TestManager.assertNotEmpty(this.getContext(), this, null, fileType);
 
 					MediaContainer mediaContainer = new MediaContainer(this.getContext(), mediaResource, dataIdentifier);
-					TestManager.assertNotNull(this.getContext(), additionalText, mediaContainer);
+					TestManager.assertNotNull(this.getContext(), this, additionalText, mediaContainer);
 
 					if (mediaContainer != null)
 					{
 						// Bind media object
 						boolean booleanResult = mediaContainer.bindMedia();
-						TestManager.assertTrue(this.getContext(), additionalText + "\n--> Error on binding media file", booleanResult);
+						TestManager.assertTrue(this.getContext(), this, additionalText + "\n--> Error on binding media file", booleanResult);
 
 						// Get regular file name
 						String uploadedFilePath = mediaContainer.getOriginalMediaFilePath();
-						TestManager.assertNotEmpty(this.getContext(), null, uploadedFilePath);
+						TestManager.assertNotEmpty(this.getContext(), this, null, uploadedFilePath);
 
 						// Set modified date
 						int resultInteger = FileUtilFunctions.fileSetLastModifiedRetry(uploadedFilePath, modifiedDate);
-						TestManager.assertGreaterThan(this.getContext(), null, resultInteger, 0);
+						TestManager.assertGreaterThan(this.getContext(), this, null, resultInteger, 0);
 
 						// Release media file
 						booleanResult = mediaContainer.releaseMedia();
-						TestManager.assertTrue(this.getContext(), additionalText + "\n--> Error on releasing media file", booleanResult);
+						TestManager.assertTrue(this.getContext(), this, additionalText + "\n--> Error on releasing media file", booleanResult);
 					}
 				}
 			}
@@ -1000,54 +1012,54 @@ public class TestContainerMedia extends TestContainer
 			// directory
 			String regularMediaFilesDirectory = mediaResource.getMediaRegularFilePath(this.getContext());
 			List<String> fileRegularList = FileUtilFunctions.directorySearchForFiles(regularMediaFilesDirectory, "*");
-			TestManager.assertNotNull(this.getContext(), null, fileRegularList);
-			TestManager.assertGreaterThan(this.getContext(), null, fileRegularList.size(), 0);
+			TestManager.assertNotNull(this.getContext(), this, null, fileRegularList);
+			TestManager.assertGreaterThan(this.getContext(), this, null, fileRegularList.size(), 0);
 			int nuOfFilesCreated = 0;
 			if (fileRegularList != null) nuOfFilesCreated = fileRegularList.size();
 
 			// Invoke regular clean function of the media manager
-			TestManager.assertGreaterThan(this.getContext(), null, daysToKeep, 1);
+			TestManager.assertGreaterThan(this.getContext(), this, null, daysToKeep, 1);
 
 			String remainingFilePath = mediaResource.getMediaRegularFilePath(this.getContext());
 			int nuOfDeletedFiles = this.getContext().getMediaManager().cleanRegularDirectory(this.getContext(), mediaResource, daysToKeep);
-			TestManager.assertGreaterThan(this.getContext(), null, nuOfDeletedFiles, 0);
-			TestManager.assertLowerThan(this.getContext(), null, nuOfDeletedFiles, nuOfFilesCreated);
+			TestManager.assertGreaterThan(this.getContext(), this, null, nuOfDeletedFiles, 0);
+			TestManager.assertLowerThan(this.getContext(), this, null, nuOfDeletedFiles, nuOfFilesCreated);
 
 			// Get list of all files remained
 			List<String> fileRemainingList = FileUtilFunctions.directorySearchForFiles(remainingFilePath, "*");
-			TestManager.assertNotNull(this.getContext(), null, fileRemainingList);
+			TestManager.assertNotNull(this.getContext(), this, null, fileRemainingList);
 
 			// Go through the list and check 'modified date'
 			if (fileRemainingList != null)
 			{
 				int nuOfRemainingFiles = fileRemainingList.size();
-				TestManager.assertGreaterThan(this.getContext(), null, nuOfRemainingFiles, 0);
+				TestManager.assertGreaterThan(this.getContext(), this, null, nuOfRemainingFiles, 0);
 
 				additionalText = "--> Mismatch about the number of created files, the number of deleted files and the number of remaining files.";
 				additionalText += "\n--> The relation must be: nuOfFilesCreated = nuOfRemainingFiles + nuOfDeletedFiles";
 				additionalText += "\n--> nuOfFilesCreated: '" + String.valueOf(nuOfFilesCreated) + "'";
 				additionalText += "\n--> nuOfDeletedFiles: '" + String.valueOf(nuOfDeletedFiles) + "'";
 				additionalText += "\n--> nuOfRemainingFiles: '" + String.valueOf(nuOfRemainingFiles) + "'";
-				TestManager.assertEquals(this.getContext(), additionalText, nuOfRemainingFiles + nuOfDeletedFiles, nuOfFilesCreated);
+				TestManager.assertEquals(this.getContext(), this, additionalText, nuOfRemainingFiles + nuOfDeletedFiles, nuOfFilesCreated);
 
 				for (String filePath : fileRemainingList)
 				{
-					TestManager.assertNotNull(this.getContext(), null, filePath);
+					TestManager.assertNotNull(this.getContext(), this, null, filePath);
 
 					File file = new File(filePath);
-					TestManager.assertNotNull(this.getContext(), null, file);
+					TestManager.assertNotNull(this.getContext(), this, null, file);
 
 					Date fileDate = new Date(file.lastModified());
-					TestManager.assertNotNull(this.getContext(), null, fileDate);
+					TestManager.assertNotNull(this.getContext(), this, null, fileDate);
 
 					boolean resultBoolean = fileDate.after(daysToKeepDate);
-					TestManager.assertTrue(this.getContext(), null, resultBoolean);
+					TestManager.assertTrue(this.getContext(), this, null, resultBoolean);
 				}
 			}
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
 		}
 	}
 
@@ -1075,14 +1087,14 @@ public class TestContainerMedia extends TestContainer
 			// Create a list of media resources
 			for (String identifier : mediaResourceIdentifiers)
 			{
-				TestManager.assertNotNull(this.getContext(), null, identifier);
+				TestManager.assertNotNull(this.getContext(), this, null, identifier);
 				if (identifier == null || identifier.length() == 0) continue;
 
 				ResourceContainer mediaContainerProvisional = new ResourceContainer(identifier);
-				TestManager.assertNotNull(this.getContext(), null, mediaContainerProvisional);
+				TestManager.assertNotNull(this.getContext(), this, null, mediaContainerProvisional);
 
 				ResourceContainerMedia mediaContainer = ResourceManager.media(this.getContext(), mediaContainerProvisional.getGroup(), mediaContainerProvisional.getName());
-				TestManager.assertNotNull(this.getContext(), null, mediaContainer);
+				TestManager.assertNotNull(this.getContext(), this, null, mediaContainer);
 				if (mediaContainer == null) continue;
 
 				mediaResources.add(mediaContainer);
@@ -1100,7 +1112,7 @@ public class TestContainerMedia extends TestContainer
 
 			String additionalText = "--> Tried to read the directory for the media files to process during test";
 			additionalText += "\n--> Please set the test configuration parameter '" + configuration.getRecourceIdentifier() + "' for the application '" + this.getContext().getCodeName() + "'";
-			TestManager.assertNotNull(this.getContext(), additionalText, uploadFilePath);
+			TestManager.assertNotNull(this.getContext(), this, additionalText, uploadFilePath);
 
 			// Get file List
 			List<String> fileList = FileUtilFunctions.directorySearchForFiles(uploadFilePath, "*.jpg");
@@ -1109,13 +1121,13 @@ public class TestContainerMedia extends TestContainer
 			// No file list
 			if (fileList == null)
 			{
-				TestManager.assertNotNull(this.getContext(), additionalText, fileList);
+				TestManager.assertNotNull(this.getContext(), this, additionalText, fileList);
 				return;
 			}
 
 			if (fileList.size() == 0)
 			{
-				TestManager.assertGreaterThan(this.getContext(), additionalText, fileList.size(), 0);
+				TestManager.assertGreaterThan(this.getContext(), this, additionalText, fileList.size(), 0);
 				return;
 			}
 
@@ -1139,44 +1151,44 @@ public class TestContainerMedia extends TestContainer
 					{
 						// Get media file to copy
 						int index = FileUtilFunctions.generalGetRandomValue(0, fileList.size() - 1);
-						TestManager.assertEqualsRange(this.getContext(), null, 0, fileList.size() - 1, index);
+						TestManager.assertEqualsRange(this.getContext(), this, null, 0, fileList.size() - 1, index);
 
 						String uploadFileName = fileList.get(index);
-						TestManager.assertNotEmpty(this.getContext(), null, uploadFileName);
+						TestManager.assertNotEmpty(this.getContext(), this, null, uploadFileName);
 
 						String fileType = FileUtilFunctions.fileGetFileTypePart(uploadFileName);
-						TestManager.assertNotEmpty(this.getContext(), null, fileType);
+						TestManager.assertNotEmpty(this.getContext(), this, null, fileType);
 
 						// Upload the file
 						this.doUploadFile(mediaResource.getGroup(), mediaResource.getName(), dataIdentifier, uploadFileName);
 
 						// Set a 'modified date' in a range of x days
 						int daySetting = FileUtilFunctions.generalGetRandomValue(0, dayRange);
-						TestManager.assertEqualsRange(this.getContext(), null, 0, dayRange, daySetting);
+						TestManager.assertEqualsRange(this.getContext(), this, null, 0, dayRange, daySetting);
 
 						Date modifiedDate = FileUtilFunctions.generalAddTimeDiff(currentDate, -daySetting, -1, minuteCounter--, secondCounter--);
-						TestManager.assertNotEmpty(this.getContext(), null, fileType);
+						TestManager.assertNotEmpty(this.getContext(), this, null, fileType);
 
 						MediaContainer mediaContainer = new MediaContainer(this.getContext(), mediaResource, dataIdentifier);
-						TestManager.assertNotNull(this.getContext(), additionalText, mediaContainer);
+						TestManager.assertNotNull(this.getContext(), this, additionalText, mediaContainer);
 
 						if (mediaContainer != null)
 						{
 							// Bind media object
 							boolean booleanResult = mediaContainer.bindMedia();
-							TestManager.assertTrue(this.getContext(), additionalText + "\n--> Error on binding media file", booleanResult);
+							TestManager.assertTrue(this.getContext(), this, additionalText + "\n--> Error on binding media file", booleanResult);
 
 							// Get regular file name
 							String uploadedFilePath = mediaContainer.getOriginalMediaFilePath();
-							TestManager.assertNotEmpty(this.getContext(), null, uploadedFilePath);
+							TestManager.assertNotEmpty(this.getContext(), this, null, uploadedFilePath);
 
 							// Set modified date
 							int resultInteger = FileUtilFunctions.fileSetLastModifiedRetry(uploadedFilePath, modifiedDate);
-							TestManager.assertGreaterThan(this.getContext(), null, resultInteger, 0);
+							TestManager.assertGreaterThan(this.getContext(), this, null, resultInteger, 0);
 
 							// Release media file
 							booleanResult = mediaContainer.releaseMedia();
-							TestManager.assertTrue(this.getContext(), additionalText + "\n--> Error on releasing media file", booleanResult);
+							TestManager.assertTrue(this.getContext(), this, additionalText + "\n--> Error on releasing media file", booleanResult);
 						}
 					}
 				}
@@ -1197,12 +1209,12 @@ public class TestContainerMedia extends TestContainer
 
 				String regularMediaFilesDirectory = mediaResource.getMediaRegularFilePath(this.getContext());
 				List<String> fileRegularList = FileUtilFunctions.directorySearchForFiles(regularMediaFilesDirectory, "*");
-				TestManager.assertNotNull(this.getContext(), null, fileRegularList);
-				TestManager.assertGreaterThan(this.getContext(), null, fileRegularList.size(), 0);
+				TestManager.assertNotNull(this.getContext(), this, null, fileRegularList);
+				TestManager.assertGreaterThan(this.getContext(), this, null, fileRegularList.size(), 0);
 				if (fileRegularList != null) nuOfFilesCreated = nuOfFilesCreated + fileRegularList.size();
 			}
 
-			TestManager.assertGreaterThan(this.getContext(), null, nuOfFilesCreated, 0);
+			TestManager.assertGreaterThan(this.getContext(), this, null, nuOfFilesCreated, 0);
 
 			// Modify this parameter to ensure that no 'deleted' files were
 			// removed in this test case.
@@ -1212,11 +1224,11 @@ public class TestContainerMedia extends TestContainer
 			// Invoke regular clean function of the media manager
 			int nuOfDeletedFiles = this.getContext().getMediaManager().cleanAll(this.getContext());
 
-			TestManager.assertGreaterThan(this.getContext(), null, nuOfDeletedFiles, 0);
-			TestManager.assertLowerThan(this.getContext(), null, nuOfDeletedFiles, nuOfFilesCreated);
+			TestManager.assertGreaterThan(this.getContext(), this, null, nuOfDeletedFiles, 0);
+			TestManager.assertLowerThan(this.getContext(), this, null, nuOfDeletedFiles, nuOfFilesCreated);
 
-			TestManager.assertGreaterThan(this.getContext(), null, nuOfDeletedFiles, 0);
-			TestManager.assertLowerThan(this.getContext(), null, nuOfDeletedFiles, nuOfFilesCreated);
+			TestManager.assertGreaterThan(this.getContext(), this, null, nuOfDeletedFiles, 0);
+			TestManager.assertLowerThan(this.getContext(), this, null, nuOfDeletedFiles, nuOfFilesCreated);
 
 			// Undo modifying this parameter to ensure that no 'deleted' files
 			// were removed in this test case.
@@ -1233,13 +1245,13 @@ public class TestContainerMedia extends TestContainer
 
 				String regularMediaFilesDirectory = mediaResource.getMediaRegularFilePath(this.getContext());
 				List<String> fileRegularList = FileUtilFunctions.directorySearchForFiles(regularMediaFilesDirectory, "*");
-				TestManager.assertNotNull(this.getContext(), null, fileRegularList);
-				TestManager.assertGreaterThan(this.getContext(), null, fileRegularList.size(), 0);
+				TestManager.assertNotNull(this.getContext(), this, null, fileRegularList);
+				TestManager.assertGreaterThan(this.getContext(), this, null, fileRegularList.size(), 0);
 				if (fileRegularList != null) nuOfRemainingFiles = nuOfRemainingFiles + fileRegularList.size();
 			}
 
-			TestManager.assertGreaterThan(this.getContext(), null, nuOfRemainingFiles, 0);
-			TestManager.assertLowerThan(this.getContext(), null, nuOfRemainingFiles, nuOfFilesCreated);
+			TestManager.assertGreaterThan(this.getContext(), this, null, nuOfRemainingFiles, 0);
+			TestManager.assertLowerThan(this.getContext(), this, null, nuOfRemainingFiles, nuOfFilesCreated);
 
 			// Check result
 			additionalText = "--> Mismatch about the number of created files, the number of deleted files and the number of remaining files.";
@@ -1247,11 +1259,11 @@ public class TestContainerMedia extends TestContainer
 			additionalText += "\n--> nuOfFilesCreated: '" + String.valueOf(nuOfFilesCreated) + "'";
 			additionalText += "\n--> nuOfDeletedFiles: '" + String.valueOf(nuOfDeletedFiles) + "'";
 			additionalText += "\n--> nuOfRemainingFiles: '" + String.valueOf(nuOfRemainingFiles) + "'";
-			TestManager.assertEquals(this.getContext(), additionalText, nuOfRemainingFiles + nuOfDeletedFiles, nuOfFilesCreated);
+			TestManager.assertEquals(this.getContext(), this, additionalText, nuOfRemainingFiles + nuOfDeletedFiles, nuOfFilesCreated);
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
 		}
 	}
 

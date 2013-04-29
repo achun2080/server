@@ -123,7 +123,7 @@ public class WatchdogServer extends Thread
 		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "Starting WATCHDOG server [" + context.getCodeName() + "]: " + this.toString());
 
 		// Read configuration items
-		if (context.getWatchdogManager().loadConfiguration() == false) return false;
+		if (context.getWatchdogManager().readConfiguration() == false) return false;
 
 		// Start server
 		try
@@ -207,6 +207,9 @@ public class WatchdogServer extends Thread
 		 * Start of processing
 		 */
 
+		// Configuration already read?
+		if (!this.watchdogManager.isConfigurationDone()) return true;
+
 		// Something to do?
 		if (this.watchdogManager.getNumberOfWatchdogElements() <= 0) return true;
 
@@ -233,15 +236,15 @@ public class WatchdogServer extends Thread
 				WatchdogCommand watchdogCommand = this.watchdogManager.getWatchdogCommand();
 				if (watchdogCommand == null) break;
 
-				// Check if WATCHDOG can be processed.
-				if (this.watchdogManager.isWatchdogActive() == false || this.watchdogManager.isEmailActive() == false) break;
+				// Check if WATCHDOG and EMAIL is active 
+				if (this.watchdogManager.isWatchdogActive() == false || this.watchdogManager.isEmailActive() == false) continue;
 
 				// Get Email list to send
-				Set<String> distributionList = WatchdogManager.getDistributionListToNotifiy(this.watchdogManager.getContext(), this.watchdogManager.getWatchdogDistributionList(), watchdogCommand.getResourceIdentifier(), watchdogCommand.getContextIdentifier());
-				if (distributionList == null || distributionList.isEmpty()) continue;
+				Set<String> emailDistributionList = WatchdogManager.getEmailDistributionListToNotifiy(this.watchdogManager.getContext(), this.watchdogManager.getWatchdogDistributionList(), watchdogCommand.getResourceIdentifier(), watchdogCommand.getContextIdentifier());
+				if (emailDistributionList == null || emailDistributionList.isEmpty()) continue;
 
 				// Check Email list and processes all email recipients
-				for (String emailAddress : distributionList)
+				for (String emailAddress : emailDistributionList)
 				{
 					// Open Email connection, first time before an Email is
 					// really to be sent

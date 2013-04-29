@@ -58,10 +58,10 @@ public class WatchdogManager
 	private boolean emailActive = false;
 
 	// Configuration parameter: MaxNuOfItemsInCommandQueue
-	private int watchdogMaxNuOfItemsInCommandQueue = 0;
+	private int watchdogMaxNuOfItemsInCommandQueue = 10000;
 
 	// Configuration parameter: SecondsToWaitBetweenWatchdogProcessing
-	private int secondsToWaitBetweenWatchdogProcessing = 0;
+	private int secondsToWaitBetweenWatchdogProcessing = 5;
 
 	// EMAIL configuration parameter
 	private String smtpHost = "";
@@ -211,7 +211,7 @@ public class WatchdogManager
 	 * 
 	 * @return Returns the mailing addresses as a Set list or an empty list.
 	 */
-	static Set<String> getDistributionListToNotifiy(Context context, HashMap<String, Set<String>> watchdogDistributionList, String resourceIdentifier, String contextIdentifier)
+	static Set<String> getEmailDistributionListToNotifiy(Context context, HashMap<String, Set<String>> watchdogDistributionList, String resourceIdentifier, String contextIdentifier)
 	{
 		// Initialize
 		Set<String> distributionList = new HashSet<String>();
@@ -483,12 +483,12 @@ public class WatchdogManager
 	}
 
 	/**
-	 * Load all configuration parameter regarding the WATCHDOG functions.
+	 * Read all configuration parameter regarding the WATCHDOG functions.
 	 * 
 	 * @return Returns <TT>true</TT> if all parameter could be read, otherwise
 	 *         <TT>false</TT>.
 	 */
-	public boolean loadConfiguration()
+	public boolean readConfiguration()
 	{
 		// Initialize
 		String errorText = "";
@@ -617,7 +617,7 @@ public class WatchdogManager
 	 */
 	private static boolean checkWatchdogCondition(Context context, HashMap<String, Set<String>> watchdogDistributionList, String resourceIdentifier, String contextIdentifier)
 	{
-		Set<String> emailList = WatchdogManager.getDistributionListToNotifiy(context, watchdogDistributionList, resourceIdentifier, contextIdentifier);
+		Set<String> emailList = WatchdogManager.getEmailDistributionListToNotifiy(context, watchdogDistributionList, resourceIdentifier, contextIdentifier);
 
 		if (emailList == null || emailList.isEmpty())
 		{
@@ -656,9 +656,6 @@ public class WatchdogManager
 	 */
 	public void addWatchdogCommand(Context callerContext, String resourceIdentifier, String messageText, String additionalText, String resourceDocumentationText, String exceptionText, Date messageDate)
 	{
-		// Do not add if the test mode of the application is set
-		if (callerContext.isRunningInTestMode()) return;
-
 		// Lock message processing
 		if (this.lockMessageHandling("Watchdog", resourceIdentifier) == true) return;
 
@@ -704,7 +701,7 @@ public class WatchdogManager
 				// avoid WATCHDOG overflow. Please notice: The error messages
 				// fired inside this block can't be notified via WATCHDOG.
 				// You only can see them in log files and on console.
-				if (this.getNumberOfWatchdogElements() >= this.watchdogMaxNuOfItemsInCommandQueue)
+				if (this.configurationDone == true && this.getNumberOfWatchdogElements() >= this.watchdogMaxNuOfItemsInCommandQueue)
 				{
 					// Error: MaximumNumberOfCommandsExceeded
 					String errorText = "--> Maximum number allowed: '" + String.valueOf(this.watchdogMaxNuOfItemsInCommandQueue) + "'";
@@ -1114,4 +1111,11 @@ public class WatchdogManager
 		return emailActive;
 	}
 
+	/**
+	 * Getter
+	 */
+	public boolean isConfigurationDone()
+	{
+		return configurationDone;
+	}
 }
