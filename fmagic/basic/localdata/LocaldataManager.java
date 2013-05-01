@@ -233,6 +233,7 @@ public class LocaldataManager implements ManagerInterface
 	{
 		// Check parameters
 		if (resourceContainer == null) return;
+		if (value == null) value = "";
 
 		// Lock configuration processing
 		if (this.lockMessageHandling("LocalDataAdd", resourceContainer.getRecourceIdentifier()) == true) return;
@@ -311,7 +312,7 @@ public class LocaldataManager implements ManagerInterface
 
 			// Set resource identifier documentation
 			String resourceDocumentationText = null;
-			resourceDocumentationText = context.getResourceManager().getResource(context, identifier).printManual(context);
+			resourceDocumentationText = context.getResourceManager().getResourceContainer(context, identifier).printManual(context);
 
 			if (context.getWatchdogManager() != null) context.getWatchdogManager().addWatchdogCommand(context, identifier, messageText, additionalText, resourceDocumentationText, null, new Date());
 		}

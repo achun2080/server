@@ -297,7 +297,7 @@ public class LicenseManager implements ManagerInterface
 
 			// Set resource identifier documentation
 			String resourceDocumentationText = null;
-			resourceDocumentationText = context.getResourceManager().getResource(context, identifier).printManual(context);
+			resourceDocumentationText = context.getResourceManager().getResourceContainer(context, identifier).printManual(context);
 
 			if (context.getWatchdogManager() != null) context.getWatchdogManager().addWatchdogCommand(context, identifier, messageText, additionalText, resourceDocumentationText, null, new Date());
 		}
@@ -1148,7 +1148,7 @@ public class LicenseManager implements ManagerInterface
 		try
 		{
 			// Get the alias name of the license model
-			ResourceContainer licenseModelResourceContainer = context.getResourceManager().getResource(context, licenseModelIdentifier);
+			ResourceContainer licenseModelResourceContainer = context.getResourceManager().getResourceContainer(context, licenseModelIdentifier);
 			if (licenseModelResourceContainer == null) return false;
 
 			String licenseModelName = licenseModelResourceContainer.getAliasName();
@@ -1186,7 +1186,7 @@ public class LicenseManager implements ManagerInterface
 					{
 						// Get and print template documentation
 						String documentationText = null;
-						ResourceContainer licenseItemResourceContainer = context.getResourceManager().getResource(context, licenseItem);
+						ResourceContainer licenseItemResourceContainer = context.getResourceManager().getResourceContainer(context, licenseItem);
 						if (licenseItemResourceContainer != null) documentationText = licenseItemResourceContainer.printTemplate(context, false);
 
 						if (documentationText != null)

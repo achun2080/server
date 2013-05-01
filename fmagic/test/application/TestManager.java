@@ -143,7 +143,7 @@ public class TestManager implements ManagerInterface
 		String errorText = testContainer.getAssertionErrorProtocol().get(errorFileName);
 		if (errorText == null) errorText = "";
 		if (assertText != null && assertText.length() > 0) errorText += "\n" + assertText;
-		if (additionalText != null && additionalText.length() > 0) errorText += additionalText;
+		if (additionalText != null && additionalText.length() > 0) errorText += "\n" + additionalText;
 		testContainer.getAssertionErrorProtocol().put(errorFileName, errorText);
 		testContainer.increaseAssertionNumberOfErrors();
 
@@ -154,7 +154,7 @@ public class TestManager implements ManagerInterface
 		errorText = testRunner.getAssertionErrorProtocol().get(errorFileName);
 		if (errorText == null) errorText = "";
 		if (assertText != null && assertText.length() > 0) errorText += "\n" + assertText;
-		if (additionalText != null && additionalText.length() > 0) errorText += additionalText;
+		if (additionalText != null && additionalText.length() > 0) errorText += "\n" + additionalText;
 		testRunner.getAssertionErrorProtocol().put(errorFileName, errorText);
 		testRunner.increaseAssertionNumberOfErrors();
 
@@ -165,7 +165,7 @@ public class TestManager implements ManagerInterface
 		errorText = testSuite.getAssertionErrorProtocol().get(errorFileName);
 		if (errorText == null) errorText = "";
 		if (assertText != null && assertText.length() > 0) errorText += "\n" + assertText;
-		if (additionalText != null && additionalText.length() > 0) errorText += additionalText;
+		if (additionalText != null && additionalText.length() > 0) errorText += "\n" + additionalText;
 		testSuite.getAssertionErrorProtocol().put(errorFileName, errorText);
 		testSuite.increaseAssertionNumberOfErrors();
 	}

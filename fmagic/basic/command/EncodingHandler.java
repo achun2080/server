@@ -97,7 +97,7 @@ public class EncodingHandler
 		{
 			commandJson = gson.toJson(container);
 			commandJson = ENCODING_CODE_PLAIN_JSON_ONLY + commandJson;
-			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.CODE, "JSON command STRING (" + commandJson.length() + ")\n[\n" + commandJson + "\n]");
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.CODE, "JSON command STRING (" + commandJson.length() + ")\n[\n" + commandJson.substring(0, Math.min(commandJson.length() - 1, 300)) + "\n]");
 		}
 		catch (Exception e)
 		{
@@ -132,7 +132,7 @@ public class EncodingHandler
 			commandJson = gson.toJson(container);
 			commandJson = ENCODING_CODE_PLAIN_JSON_ONLY + commandJson;
 
-			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.CODE, "JSON command STRING (" + commandJson.length() + ")\n[\n" + commandJson + "\n]");
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.CODE, "JSON command STRING (" + commandJson.length() + ")\n[\n" + commandJson.substring(0, Math.min(commandJson.length() - 1, 300)) + "\n]");
 		}
 		catch (Exception e)
 		{
@@ -208,7 +208,7 @@ public class EncodingHandler
 			commandZipped = ENCODING_CODE_ZIPPED + commandZipped;
 
 			// Logging
-			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.CODE, "ZIPPED command BASE64 (" + commandZipped.length() + ")\n[\n" + commandZipped + "\n]");
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.CODE, "ZIPPED command BASE64 (" + commandZipped.length() + ")\n[\n" + commandZipped.substring(0, Math.min(commandZipped.length() - 1, 20)) + "\n]");
 		}
 		catch (Exception e)
 		{
@@ -272,7 +272,7 @@ public class EncodingHandler
 			commandEncrypted = ENCODING_CODE_CRYPTED + commandEncrypted;
 
 			// Logging
-			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.CODE, "ENCRYPTED command BASE64 (" + commandEncrypted.length() + ")\n[\n" + commandEncrypted + "\n]");
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.CODE, "ENCRYPTED command BASE64 (" + commandEncrypted.length() + ")\n[\n" + commandEncrypted.substring(0, Math.min(commandEncrypted.length() - 1, 20)) + "\n]");
 		}
 		catch (Exception e)
 		{
@@ -333,7 +333,7 @@ public class EncodingHandler
 				commandDecrypted = Base64.encodeBase64String(commandToDecryptByteArray);
 
 				// Logging
-				context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.CODE, "DECRYPTED BASE64 command (" + commandDecrypted.length() + ")\n[\n" + commandDecrypted + "\n]");
+				context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.CODE, "DECRYPTED BASE64 command (" + commandDecrypted.length() + ")\n[\n" + commandDecrypted.substring(0, Math.min(commandDecrypted.length() - 1, 20)) + "\n]");
 			}
 			// Copy the command string only, because it is NOT encrypted
 			else
@@ -410,7 +410,7 @@ public class EncodingHandler
 				zipOutputStream.close();
 
 				// Logging
-				context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.CODE, "UNZIPPED STRING command (" + commandUnzipped.length() + ")\n[\n" + commandUnzipped + "\n]");
+				context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.CODE, "UNZIPPED STRING command (" + commandUnzipped.length() + ")\n[\n" + commandUnzipped.substring(0, Math.min(commandUnzipped.length() - 1, 20)) + "\n]");
 			}
 			// Copy the command string only, because it is NOT ZIPPED
 			else
@@ -454,7 +454,7 @@ public class EncodingHandler
 			{
 				container = gson.fromJson(commandJson.substring(1), RequestContainer.class);
 
-				context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.CODE, "JSON command STRING (" + commandJson.length() + ")\n[\n" + commandJson + "\n]");
+				context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.CODE, "JSON command STRING (" + commandJson.length() + ")\n[\n" + commandJson.substring(0, Math.min(commandJson.length() - 1, 300)) + "\n]");
 			}
 			// All commands have to be set to JSON
 			else
@@ -498,7 +498,7 @@ public class EncodingHandler
 			{
 				container = gson.fromJson(commandJson.substring(1), ResponseContainer.class);
 
-				context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.CODE, "JSON command STRING (" + commandJson.length() + ")\n[\n" + commandJson + "\n]");
+				context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.CODE, "JSON command STRING (" + commandJson.length() + ")\n[\n" + commandJson.substring(0, Math.min(commandJson.length() - 1, 300)) + "\n]");
 			}
 			// All commands have to be set to JSON
 			else

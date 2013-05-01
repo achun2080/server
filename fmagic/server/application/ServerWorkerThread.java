@@ -144,7 +144,7 @@ public class ServerWorkerThread implements Runnable
 
 			// Set resource identifier documentation
 			String resourceDocumentationText = null;
-			resourceDocumentationText = context.getResourceManager().getResource(context, requestContainer.getCommandIdentifier()).printManual(context);
+			resourceDocumentationText = context.getResourceManager().getResourceContainer(context, requestContainer.getCommandIdentifier()).printManual(context);
 
 			if (context.getWatchdogManager() != null) context.getWatchdogManager().addWatchdogCommand(context, requestContainer.getCommandIdentifier(), messageText, additionalText, resourceDocumentationText, null, new Date());
 		}
@@ -331,7 +331,7 @@ public class ServerWorkerThread implements Runnable
 		try
 		{
 			// Get class name of class to invoke
-			commandClazzName = "fmagic.server." + this.context.getResourceManager().getResource(context, requestContainer.getCommandIdentifier()).getAliasName();
+			commandClazzName = "fmagic.server.command." + this.context.getResourceManager().getResourceContainer(context, requestContainer.getCommandIdentifier()).getAliasName();
 
 			// Set an own class loader to define specific directory to search
 			// for

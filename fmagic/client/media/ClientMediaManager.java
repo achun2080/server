@@ -199,5 +199,4 @@ public class ClientMediaManager extends MediaManager
 
 		return encodingEnabled;
 	}
-
 }

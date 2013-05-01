@@ -481,7 +481,7 @@ public class LabelManager implements ManagerInterface
 
 			// Set resource identifier documentation
 			String resourceDocumentationText = null;
-			resourceDocumentationText = context.getResourceManager().getResource(context, identifier).printManual(context);
+			resourceDocumentationText = context.getResourceManager().getResourceContainer(context, identifier).printManual(context);
 
 			if (context.getWatchdogManager() != null) context.getWatchdogManager().addWatchdogCommand(context, identifier, messageText, additionalText, resourceDocumentationText, null, new Date());
 		}
@@ -666,7 +666,7 @@ public class LabelManager implements ManagerInterface
 			{
 				// Get actual resource
 				String identifier = iterIdentifier.next();
-				ResourceContainer label = context.getResourceManager().getResource(context, identifier);
+				ResourceContainer label = context.getResourceManager().getResourceContainer(context, identifier);
 
 				// Generate default template text
 				String resourceTemplateText = label.printTemplate(context, false);

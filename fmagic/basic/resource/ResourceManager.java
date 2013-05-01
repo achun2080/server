@@ -187,7 +187,7 @@ public class ResourceManager implements ManagerInterface
 	 *         <TT>null</TT> if there was no resource found.
 	 * 
 	 */
-	public ResourceContainer getResource(Context context, String identifier)
+	public ResourceContainer getResourceContainer(Context context, String identifier)
 	{
 		// Lock message processing
 		if (this.lockMessageHandling("GetResourceItem", identifier) == true) return null;
@@ -401,7 +401,7 @@ public class ResourceManager implements ManagerInterface
 
 	/**
 	 * Check an item if there is a duplicate ALIAS name set in another resource
-	 * identifier of the same Type/Usage.
+	 * identifier of the same Type/Usage/Group.
 	 * 
 	 * @param context
 	 *            The context to use.
@@ -448,13 +448,16 @@ public class ResourceManager implements ManagerInterface
 			String usage = resourceContainer.getUsage();
 			if (usage == null || usage.length() == 0) return false;
 
-			String identifier = type + "/" + usage + "=" + aliasName;
+			String group = resourceContainer.getGroup();
+			if (group == null || group.length() == 0) return false;
+
+			String identifier = type + "/" + usage + "/" + group + "=" + aliasName;
 
 			// Check duplicate
 			if (this.aliasNameIdentifierList.containsKey(identifier))
 			{
-				String errorString = "--> Duplicate Alias name found, based on the same Type/Usage.";
-				errorString += "\n--> Type/Usage: '" + type + "/" + usage + "'";
+				String errorString = "--> Duplicate Alias name found, based on the same Type/Usage/Group.";
+				errorString += "\n--> Type/Usage/Group: '" + type + "/" + usage + "/" + group  + "'";
 				errorString += "\n--> Alias name: '" + aliasName + "'";
 				errorString += "\n--> In file: '" + fileName + "'";
 				errorString += "\n--> Line number: '" + String.valueOf(lineNumber) + "'";
@@ -696,7 +699,7 @@ public class ResourceManager implements ManagerInterface
 		String resourceIdentifier = ResourceContainer.composeResourceIdentifierString(type, application, origin, usage, group, name);
 
 		// Get resource from list
-		ResourceContainer resourceContainer = this.getResource(context, resourceIdentifier);
+		ResourceContainer resourceContainer = this.getResourceContainer(context, resourceIdentifier);
 
 		// Return
 		return resourceContainer;
@@ -1506,7 +1509,7 @@ public class ResourceManager implements ManagerInterface
 				}
 
 				// Get resource container from list
-				resourceContainer = context.getResourceManager().getResource(context, fullIdentifier);
+				resourceContainer = context.getResourceManager().getResourceContainer(context, fullIdentifier);
 
 				// Break
 				break;
@@ -1607,7 +1610,7 @@ public class ResourceManager implements ManagerInterface
 	}
 
 	/**
-	 * Get resource object from Type "CommandManager" by Group and Name.
+	 * Get resource object from Type "Command" (Identifier) by Group and Name.
 	 * 
 	 * @param context
 	 *            The context to use.
@@ -1622,6 +1625,26 @@ public class ResourceManager implements ManagerInterface
 	 *         occurred.
 	 */
 	public static ResourceContainer command(Context context, String group, String name)
+	{
+		return ResourceManager.getResourceContainerByTypeGroupName(context, ResourceContainer.TypeEnum.Command.toString(), group, name);
+	}
+
+	/**
+	 * Get resource object from Type "Command" (Parameter) by Group and Name.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param group
+	 *            The group of the resource as String.
+	 * 
+	 * @param name
+	 *            The name of the resource as String.
+	 * 
+	 * @return Returns the resource container, or <TT>null</TT> if an error
+	 *         occurred.
+	 */
+	public static ResourceContainer commandParameter(Context context, String group, String name)
 	{
 		return ResourceManager.getResourceContainerByTypeGroupName(context, ResourceContainer.TypeEnum.Command.toString(), group, name);
 	}

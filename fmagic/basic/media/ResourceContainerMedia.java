@@ -595,7 +595,7 @@ public class ResourceContainerMedia extends ResourceContainer
 	/**
 	 * Extract and get the data identifier of a real media file name.
 	 * <p>
-	 * Example: <TT>20130403-155909-625-seniorcitizen-ap1-[0001].png</TT>
+	 * Example: <TT>seniorcitizen-room-00001234-s00-5101646c.*</TT>
 	 * 
 	 * @param context
 	 *            The context to use.
@@ -610,6 +610,26 @@ public class ResourceContainerMedia extends ResourceContainer
 	public String getMediaPartDataIdentifier(Context context, String filePath)
 	{
 		return getMediaPartByPosition(context, filePath, 2);
+	}
+
+	/**
+	 * Extract and get the hash value of a real media file name.
+	 * <p>
+	 * Example: <TT>seniorcitizen-room-00001234-s00-5101646c.*</TT>
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param filePath
+	 *            The file path to analyze.
+	 * 
+	 * @return Returns the extracted hash value or <TT>null</TT> if an
+	 *         error occurred.
+	 * 
+	 */
+	public String getMediaPartHashValue(Context context, String filePath)
+	{
+		return getMediaPartByPosition(context, filePath, 4);
 	}
 
 	/**

@@ -24,7 +24,7 @@ public class RequestContainer
 	private String clientSessionIdentifier = "";
 
 	// CommandManager data
-	final private String commandIdentifier;
+	private String commandIdentifier;
 	final private HashMap<String, String> properties;
 
 	/**
@@ -162,6 +162,14 @@ public class RequestContainer
 	}
 
 	/**
+	 * Setter
+	 */
+	public void setCommandIdentifier(String commandIdentifier)
+	{
+		this.commandIdentifier = commandIdentifier;
+	}
+
+	/**
 	 * To string
 	 */
 	@Override
@@ -198,7 +206,19 @@ public class RequestContainer
 			{
 				String identifier = iterManual.next();
 				String value = this.properties.get(identifier);
-				outputString += "\n" + identifier + " = " + value;
+				outputString += "\n" + identifier + " = ";
+				
+				if (value != null)
+				{
+					if (value.length() > 100)
+					{
+						outputString += value.substring(0, 100) + " (...)";
+					}
+					else
+					{
+						outputString += value;
+					}
+				}
 			}
 		}
 

@@ -278,7 +278,19 @@ public class ResponseContainer
 			{
 				String identifier = iterManual.next();
 				String value = this.properties.get(identifier);
-				outputString += "\n" + identifier + " = " + value;
+				outputString += "\n" + identifier + " = ";
+				
+				if (value != null)
+				{
+					if (value.length() > 100)
+					{
+						outputString += value.substring(0, 100) + " (...)";
+					}
+					else
+					{
+						outputString += value;
+					}
+				}
 			}
 		}
 
@@ -343,5 +355,15 @@ public class ResponseContainer
 	public String getServerApplicationIdentifier()
 	{
 		return serverApplicationIdentifier;
+	}
+
+	/**
+	 * Getter
+	 */
+	public boolean isError()
+	{
+		if (this.getErrorCode() == null) return false;
+		if (this.getErrorCode().length() == 0) return false;
+		return true;
 	}
 }

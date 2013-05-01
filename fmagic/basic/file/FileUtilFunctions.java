@@ -9,6 +9,8 @@ import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 
+import fmagic.basic.resource.ResourceManager;
+
 /**
  * This class contains UTIL functions needed in the FMAGIC system.
  * 
@@ -44,21 +46,30 @@ public class FileUtilFunctions
 		// Validate parameter
 		if (from == too) return from;
 
-		if (from < too)
+		if (from > too)
 		{
 			int temp = from;
 			from = too;
 			too = temp;
 		}
 
-		int range = too - from;
+		try
+		{
+			double rangeDouble = (double) (too - from + 1);
 
-		// Compute
-		int index = (int) (Math.random() * range);
-		index = index + from;
+			// Compute
+			double randomDouble = Math.random();
+			double indexDouble = (randomDouble * rangeDouble);
 
-		// Return
-		return index;
+			int index = (int)indexDouble + from;
+
+			// Return
+			return index;
+		}
+		catch (Exception e)
+		{
+			return from;
+		}
 	}
 
 	/**
@@ -984,6 +995,47 @@ public class FileUtilFunctions
 	}
 
 	/**
+	 * Write a string, coded as "UTF-8", to a file as byte code.
+	 * <p>
+	 * If the file already exists it will be overridden.
+	 * 
+	 * @param filePath
+	 *            The path of the file to be written.
+	 * 
+	 * @param content
+	 *            The content to be written into the file.
+	 * 
+	 * @return Returns <TT>true</TT> if the content could be written into the
+	 *         file, otherwise <TT>false</TT>.
+	 */
+	public static boolean fileWriteFromString(String filePath, String content)
+	{
+		// Check parameters
+		if (filePath == null || filePath.length() == 0) return false;
+		if (content == null) content = "";
+
+		// Delete destination file if already exists
+		if (FileUtilFunctions.fileExists(filePath))
+		{
+			FileUtilFunctions.fileDelete(filePath);
+		}
+
+		// Create FILE objects
+		File file = new File(filePath);
+
+		// Read file content
+		try
+		{
+			FileUtils.writeStringToFile(file, content, "UTF-8");
+			return true;
+		}
+		catch (Exception e)
+		{
+			return false;
+		}
+	}
+
+	/**
 	 * Delete all files of a file list, but for the newest one. If some files
 	 * have the same timestamp, delete all but the first one.
 	 * 
@@ -1468,10 +1520,10 @@ public class FileUtilFunctions
 				{
 					// Check number of days
 					File file = new File(currentDirectory + "/" + currentFileName);
-					
+
 					// Pass through all sub directories
 					if (file.isDirectory()) return true;
-					
+
 					// Check file name mask
 					if (!currentFileName.matches(fileNameMask)) return false;
 

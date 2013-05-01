@@ -86,4 +86,20 @@ public class ClientCommandHandshake extends ClientCommand
 		// Return
 		return true;
 	}
+
+	@Override
+	protected boolean processResults()
+	{
+		try
+		{
+		}
+		catch (Exception e)
+		{
+			this.context.getNotificationManager().notifyError(this.context, ResourceManager.notification(this.context, "Command", "ErrorOnProcessingCommand"), null, e);
+			return false;
+		}
+
+		// Return
+		return true;
+	}
 }

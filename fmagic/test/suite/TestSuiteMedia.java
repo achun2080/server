@@ -1,7 +1,8 @@
 package fmagic.test.suite;
 
-import fmagic.test.container.TestContainerMedia;
+import fmagic.test.container.TestContainerMediaLocal;
 import fmagic.test.runner.TestRunnerMediaClient;
+import fmagic.test.runner.TestRunnerMediaCommand;
 
 /**
  * This class executes tests regarding media.
@@ -26,32 +27,10 @@ public class TestSuiteMedia extends TestSuite
 	{
 		try
 		{
-			TestRunnerMediaClient testRunner = new TestRunnerMediaClient(this, "aaaaaaaaaa");
+			TestRunnerMediaCommand testRunner = new TestRunnerMediaCommand(this, "command");
 
 			testRunner.setup();
-
-			TestContainerMedia testContainer = new TestContainerMedia(testRunner);
-
-			// testContainer.setParameterResourceGroup("Apartment");
-			// testContainer.setParameterResourceName("Room");
-			// testContainer.setParameterDataIdentifierTestUpload("5678");
-			// testContainer.setParameterDataIdentifierTestObsolete("5679");
-			// testContainer.setParameterTestCycleNumberOfFiles(100);
-			// testContainer.setParameterTestCycleDataIdentifierFrom(1);
-			// testContainer.setParameterTestCycleDataIdentifierToo(40);
-			//
-			// testRunner.executeComponentTest();
-			// testRunner.executeSingleFunctionTest(testContainer,
-			// "testExpiredPendingFiles");
-			// testRunner.executeSingleFunctionTest(testContainer,
-			// "testExpiredDeletedFiles");
-			// testRunner.executeSingleFunctionTest(testContainer,
-			// "testExpiredObsoleteFiles");
-			// testRunner.executeSingleFunctionTest(testContainer,
-			// "testCleaningAll");
-
-			testRunner.executeSingleFunctionTest(testContainer, "xxxxxxxxxx");
-
+			testRunner.executeComponentTest();
 			testRunner.cleanup();
 		}
 		catch (Exception e)

@@ -15,7 +15,7 @@ import fmagic.basic.resource.ResourceManager;
 import fmagic.test.application.TestManager;
 import fmagic.test.runner.TestRunner;
 
-public class TestContainerMedia extends TestContainer
+public class TestContainerMediaLocal extends TestContainer
 {
 	private String parameterResourceGroup = "Apartment";
 	private String parameterResourceName = "Room";
@@ -46,7 +46,7 @@ public class TestContainerMedia extends TestContainer
 	 *            in a concurrent environment with other parallel threads or
 	 *            applications, otherwise to <TT>false</TT>.
 	 */
-	public TestContainerMedia(Context context, TestRunner testRunner, boolean concurrentAccess)
+	public TestContainerMediaLocal(Context context, TestRunner testRunner, boolean concurrentAccess)
 	{
 		super(context, testRunner, concurrentAccess);
 	}
@@ -58,7 +58,7 @@ public class TestContainerMedia extends TestContainer
 	 *            The test runner that holds this container, or <TT>null</TT> if
 	 *            no test runner is available.
 	 */
-	public TestContainerMedia(TestRunner testRunner)
+	public TestContainerMediaLocal(TestRunner testRunner)
 	{
 		super(null, testRunner, false);
 	}
@@ -141,7 +141,7 @@ public class TestContainerMedia extends TestContainer
 			// Test
 			this.testMediaAttribute();
 			this.testMediaResource();
-			this.testUploadFile();
+			this.testUploadFileLocal();
 			this.testObsoleteFile();
 			this.testExpiredPendingFiles();
 			this.testExpiredDeletedFiles();
@@ -294,7 +294,7 @@ public class TestContainerMedia extends TestContainer
 	/**
 	 * Test: Upload File
 	 */
-	public void testUploadFile()
+	public void testUploadFileLocal()
 	{
 		TestManager.servicePrintHeader(this.getContext(), "===> testUploadFile()", null);
 
@@ -555,7 +555,7 @@ public class TestContainerMedia extends TestContainer
 			additionalText += "\n--> Upload file? '" + uploadFileName + "'";
 			additionalText += "\n--> Data identifier? '" + dataIdentifierString + "'";
 
-			boolean booleanResult = this.getContext().getMediaManager().operationUpload(this.getContext(), mediaResource, uploadFileName, dataIdentifierString);
+			boolean booleanResult = this.getContext().getMediaManager().operationStoreLocal(this.getContext(), mediaResource, uploadFileName, dataIdentifierString);
 			TestManager.assertTrue(this.getContext(), this, additionalText, booleanResult);
 
 			// Check if file content can be read

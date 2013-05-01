@@ -62,6 +62,24 @@ public abstract class ClientCommand extends CommandManager
 	}
 
 	/**
+	 * Prepare all parameters and resources of the command
+	 * 
+	 * @return Returns <TT>true</TT> if the command could be prepared, or
+	 *         <TT>false</TT> if an error occurred.
+	 */
+	abstract protected boolean prepareRequestContainer();
+
+	/**
+	 * Evaluates the results of the remote call.
+	 */
+	abstract protected boolean evaluateResults();
+
+	/**
+	 * Process results of the remote call on the client.
+	 */
+	abstract protected boolean processResults();
+
+	/**
 	 * Get the last known client session identifier from the persistence manager
 	 * and set it as the current session identifier.
 	 * <p>
@@ -103,7 +121,7 @@ public abstract class ClientCommand extends CommandManager
 		// Create a new identifier
 		String clientSessionIdentifier = this.requestContainer.createClientSessionIdentifier();
 		
-		// Save the identifier to the persistance manager
+		// Save the identifier to the persistence manager
 		client.saveLastKnownClientSessionIdentifier(clientSessionIdentifier);
 
 		// Set the known identifier on the request container
@@ -157,16 +175,24 @@ public abstract class ClientCommand extends CommandManager
 			return this.responseContainer;
 		}
 
+		// Process the results of the command call on client side.
+		if (this.responseContainer.getErrorCode() != null) { return this.responseContainer; }
+
+		if (this.processResults() == false)
+		{
+			// Get resource container
+			ResourceContainer resourceContainer = ResourceManager.notification(this.context, "Application", "ErrorOnProcessingCommandOnClient");
+			String enumIdentifier = "";
+			if (resourceContainer != null) enumIdentifier = resourceContainer.getRecourceIdentifier();
+
+			// Notify error
+			this.setErrorMessage(this.context, this.responseContainer, enumIdentifier);
+			if (this.responseContainer.getErrorCode() != null) this.context.getNotificationManager().flushDump(this.context);
+			return this.responseContainer;
+		}
+
 		return this.responseContainer;
 	}
-
-	/**
-	 * Prepare all parameters and resources of the command
-	 * 
-	 * @return Returns <TT>true</TT> if the command could be prepared, or
-	 *         <TT>false</TT> if an error occurred.
-	 */
-	abstract protected boolean prepareRequestContainer();
 
 	/**
 	 * Process the command on application server.
@@ -184,11 +210,6 @@ public abstract class ClientCommand extends CommandManager
 		// An error occurred
 		return false;
 	}
-
-	/**
-	 * Evaluates the results of the remote call.
-	 */
-	abstract protected boolean evaluateResults();
 
 	/**
 	 * Getter
@@ -229,5 +250,13 @@ public abstract class ClientCommand extends CommandManager
 		responseContainer.setErrorTechnicalDescription(context.getNotificationManager().getDump(context));
 
 		return responseContainer;
+	}
+
+	/**
+	 * Getter
+	 */
+	public Context getContext()
+	{
+		return context;
 	}
 }

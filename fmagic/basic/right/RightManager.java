@@ -134,7 +134,7 @@ public class RightManager implements ManagerInterface
 
 			// Set resource identifier documentation
 			String resourceDocumentationText = null;
-			resourceDocumentationText = context.getResourceManager().getResource(context, identifier).printManual(context);
+			resourceDocumentationText = context.getResourceManager().getResourceContainer(context, identifier).printManual(context);
 
 			if (context.getWatchdogManager() != null) context.getWatchdogManager().addWatchdogCommand(context, identifier, messageText, additionalText, resourceDocumentationText, null, new Date());
 		}
