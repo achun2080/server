@@ -2,6 +2,7 @@ package fmagic.client.command;
 
 import fmagic.basic.application.ApplicationManager;
 import fmagic.basic.context.Context;
+import fmagic.basic.resource.ResourceContainer;
 import fmagic.basic.resource.ResourceManager;
 import fmagic.client.application.ClientManager;
 
@@ -34,7 +35,7 @@ public class ClientCommandMediaFileCheck extends ClientCommand
 			ApplicationManager client, String  mediaResourceIdentifier, String fileType, String dataIdentifier,
 			String hashValue)
 	{
-		super(context, (ClientManager) client, ResourceManager.command(context, "Processing", "MediaFileCheck").getRecourceIdentifier());
+		super(context, (ClientManager) client, ResourceManager.command(context, "MediaFileCheck").getRecourceIdentifier());
 
 		this.mediaResourceIdentifier = mediaResourceIdentifier;
 		this.fileType = fileType;
@@ -61,7 +62,9 @@ public class ClientCommandMediaFileCheck extends ClientCommand
 		}
 		catch (Exception e)
 		{
-			this.context.getNotificationManager().notifyError(this.context, ResourceManager.notification(this.context, "Command", "ErrorOnProcessingCommand"), null, e);
+			ResourceContainer errorCode = ResourceManager.notification(this.context, "Command", "ErrorOnProcessingCommand");
+			this.context.getNotificationManager().notifyError(this.context, errorCode, null, e);
+			this.responseContainer.setErrorCode(errorCode.getRecourceIdentifier());
 			return false;
 		}
 
@@ -81,7 +84,27 @@ public class ClientCommandMediaFileCheck extends ClientCommand
 		}
 		catch (Exception e)
 		{
-			this.context.getNotificationManager().notifyError(this.context, ResourceManager.notification(this.context, "Command", "ErrorOnProcessingCommand"), null, e);
+			ResourceContainer errorCode = ResourceManager.notification(this.context, "Command", "ErrorOnProcessingCommand");
+			this.context.getNotificationManager().notifyError(this.context, errorCode, null, e);
+			this.responseContainer.setErrorCode(errorCode.getRecourceIdentifier());
+			return false;
+		}
+
+		// Return
+		return true;
+	}
+
+	@Override
+	protected boolean processResults()
+	{
+		try
+		{
+		}
+		catch (Exception e)
+		{
+			ResourceContainer errorCode = ResourceManager.notification(this.context, "Command", "ErrorOnProcessingCommand");
+			this.context.getNotificationManager().notifyError(this.context, errorCode, null, e);
+			this.responseContainer.setErrorCode(errorCode.getRecourceIdentifier());
 			return false;
 		}
 
@@ -99,21 +122,5 @@ public class ClientCommandMediaFileCheck extends ClientCommand
 	public Boolean isMediaFileExisting()
 	{
 		return this.isExisting;
-	}
-
-	@Override
-	protected boolean processResults()
-	{
-		try
-		{
-		}
-		catch (Exception e)
-		{
-			this.context.getNotificationManager().notifyError(this.context, ResourceManager.notification(this.context, "Command", "ErrorOnProcessingCommand"), null, e);
-			return false;
-		}
-
-		// Return
-		return true;
 	}
 }

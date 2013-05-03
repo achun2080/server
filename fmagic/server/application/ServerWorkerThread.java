@@ -10,9 +10,7 @@ import fmagic.basic.command.ResponseContainer;
 import fmagic.basic.command.SessionContainer;
 import fmagic.basic.command.SocketHandler;
 import fmagic.basic.context.Context;
-import fmagic.basic.label.LabelManager;
 import fmagic.basic.notification.NotificationManager;
-import fmagic.basic.resource.ResourceContainer;
 import fmagic.basic.resource.ResourceManager;
 import fmagic.server.command.ServerCommand;
 
@@ -64,13 +62,14 @@ public class ServerWorkerThread implements Runnable
 		this.context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "Server request started.");
 
 		// Create server response container as default response
-		ResponseContainer responseContainer = new ResponseContainer(serverManager.getApplicationIdentifier().toString(), serverManager.getApplicationVersion());
+		ResponseContainer responseContainer = new ResponseContainer(serverManager.getApplicationIdentifier().toString(), serverManager.getApplicationVersion(), null);
 
 		// Read raw client data from the socket
 		String commandToDecrypt = this.workstepReadSocketData(responseContainer);
 
 		// Decode raw data onto a client request container
 		RequestContainer requestContainer = this.workstepConvertSocketDataToRequestContainer(commandToDecrypt, responseContainer);
+		if (requestContainer != null) this.context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.CODE, requestContainer.toString());
 
 		// Instantiate server command object
 		ServerCommand serverCommand = workstepGetServerCommandObjectInstance(requestContainer, responseContainer);
@@ -85,7 +84,7 @@ public class ServerWorkerThread implements Runnable
 		this.workstepTransferContainerData(requestContainer, responseContainer);
 
 		// Encode server response container
-		String commandEncoded = this.workstepConvertResponseContainerObjectToSocketData(responseContainer);
+		StringBuffer commandEncoded = this.workstepConvertResponseContainerObjectToSocketData(responseContainer);
 
 		// Write response container to the socket
 		if (commandEncoded != null) socketConnector.writeData(commandEncoded);
@@ -155,52 +154,6 @@ public class ServerWorkerThread implements Runnable
 	}
 
 	/**
-	 * Set error message on Response Container
-	 * 
-	 * @param context
-	 *            Current context
-	 * 
-	 * @param responseContainer
-	 *            Response container to fill with error message.
-	 * 
-	 * @param errorCode
-	 *            Error code to notify.
-	 */
-	private void setErrorMessageOnTechnicalError(Context context, ResponseContainer responseContainer, String errorCode)
-	{
-		responseContainer.clearErrorCode();
-		responseContainer.setErrorCode(errorCode);
-		responseContainer.setErrorHeadLine(LabelManager.getLabelText(context, ResourceManager.label(context, "CommonError", "errorHeadLine")));
-		responseContainer.setErrorMessagePart1(LabelManager.getLabelText(context, ResourceManager.label(context, "CommonError", "errorMessagePart1")));
-		responseContainer.setErrorMessagePart2(LabelManager.getLabelText(context, ResourceManager.label(context, "CommonError", "errorMessagePart2")));
-		responseContainer.setErrorMessagePart3(LabelManager.getLabelText(context, ResourceManager.label(context, "Basic", "Contact")));
-		responseContainer.setErrorTechnicalDescription(context.getNotificationManager().getDump(context));
-	}
-
-	/**
-	 * Set error message on Response Container
-	 * 
-	 * @param context
-	 *            Current context
-	 * 
-	 * @param responseContainer
-	 *            Response container to fill with error message.
-	 * 
-	 * @param errorCode
-	 *            Error code to notify.
-	 */
-	private void setErrorMessageOnValidationError(Context context, ResponseContainer responseContainer, String errorCode)
-	{
-		responseContainer.clearErrorCode();
-		responseContainer.setErrorCode(errorCode);
-		responseContainer.setErrorHeadLine(LabelManager.getLabelText(context, ResourceManager.label(context, "OnConnectingToServer", "ErrorHeadLine")));
-		responseContainer.setErrorMessagePart1(LabelManager.getLabelText(context, ResourceManager.label(context, "OnConnectingToServer", "ErrorMessagePart1")));
-		responseContainer.setErrorMessagePart2(LabelManager.getLabelText(context, ResourceManager.label(context, "OnConnectingToServer", "ErrorMessagePart2")));
-		responseContainer.setErrorMessagePart3(LabelManager.getLabelText(context, ResourceManager.label(context, "OnConnectingToServer", "ErrorMessagePart3")));
-		responseContainer.setErrorTechnicalDescription(context.getNotificationManager().getDump(context));
-	}
-
-	/**
 	 * Read raw data from socket.
 	 * <p>
 	 * if an error occurred, the error message is set automatically by this
@@ -232,15 +185,7 @@ public class ServerWorkerThread implements Runnable
 		// An error occurred
 		if (commandToDecrypt == null || commandToDecrypt.length() == 0)
 		{
-			// Get resource container
-			ResourceContainer resourceContainer = ResourceManager.notification(this.context, "Application", "ErrorOnProcessingRequestFromClient");
-			String enumIdentifier = "";
-			if (resourceContainer != null) enumIdentifier = resourceContainer.getRecourceIdentifier();
-
-			// Notify error
-			this.setErrorMessageOnTechnicalError(this.context, responseContainer, enumIdentifier);
-
-			// Return
+			responseContainer.notifyError(this.context, "Application", "ErrorOnProcessingRequestFromClient", null, null);
 			return null;
 		}
 
@@ -286,15 +231,7 @@ public class ServerWorkerThread implements Runnable
 		// An error occurred
 		if (requestContainer == null)
 		{
-			// Get resource container
-			ResourceContainer resourceContainer = ResourceManager.notification(this.context, "Application", "ErrorOnProcessingRequestFromClient");
-			String enumIdentifier = "";
-			if (resourceContainer != null) enumIdentifier = resourceContainer.getRecourceIdentifier();
-
-			// Notify error
-			this.setErrorMessageOnTechnicalError(this.context, responseContainer, enumIdentifier);
-
-			// Return
+			responseContainer.notifyError(this.context, "Application", "ErrorOnProcessingRequestFromClient", null, null);
 			return null;
 		}
 
@@ -333,9 +270,8 @@ public class ServerWorkerThread implements Runnable
 			// Get class name of class to invoke
 			commandClazzName = "fmagic.server.command." + this.context.getResourceManager().getResourceContainer(context, requestContainer.getCommandIdentifier()).getAliasName();
 
-			// Set an own class loader to define specific directory to search
-			// for
-			// classes
+			// Set an own class loader to define a specific directory to search
+			// for classes
 			ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
 
 			String serverClassPath = "file://" + ServerCommand.class.getResource("").getPath();
@@ -352,26 +288,18 @@ public class ServerWorkerThread implements Runnable
 			SessionContainer sessionContainer = this.serverManager.sessionGetClientSession(clientSessionIdentifier);
 			this.context.setServerSession(sessionContainer);
 			serverCommand.setContext(this.context);
+			serverCommand.setCommandIdentifier(this.context);
 
 			// Initialize server command
-			serverCommand.createResponseContainer(serverManager.getApplicationIdentifier().toString(), this.serverManager.getApplicationVersion());
+			serverCommand.createResponseContainer(serverManager.getApplicationIdentifier().toString(), this.serverManager.getApplicationVersion(), serverCommand.getCommandIdentifier());
 			serverCommand.setServer(this.serverManager);
 			serverCommand.setRequestContainer(requestContainer);
 		}
 		catch (Exception exception)
 		{
-			// Get resource container
-			ResourceContainer resourceContainer = ResourceManager.notification(this.context, "Application", "ErrorOnInvokingCommand");
-			String enumIdentifier = "";
-			if (resourceContainer != null) enumIdentifier = resourceContainer.getRecourceIdentifier();
-
-			// Notify error
 			String errorText = "--> CommandManager class not found";
 			errorText += "\n--> CommandManager class name: '" + commandClazzName + "'";
-			this.context.getNotificationManager().notifyError(this.context, resourceContainer, errorText, exception);
-			this.setErrorMessageOnTechnicalError(this.context, responseContainer, enumIdentifier);
-
-			// Return
+			responseContainer.notifyError(this.context, "Application", "ErrorOnInvokingCommand", errorText, exception);
 			return null;
 		}
 
@@ -409,32 +337,15 @@ public class ServerWorkerThread implements Runnable
 		}
 		catch (Exception exception)
 		{
-			// Get resource container
-			ResourceContainer resourceContainer = ResourceManager.notification(this.context, "Application", "ErrorOnInvokingCommand");
-			String enumIdentifier = "";
-			if (resourceContainer != null) enumIdentifier = resourceContainer.getRecourceIdentifier();
-
-			// Notify error
 			String errorText = "--> Error on executing command class";
 			errorText += "\n--> CommandManager class name: '" + serverCommand.toString() + "'";
-			this.context.getNotificationManager().notifyError(this.context, resourceContainer, errorText, exception);
-			this.setErrorMessageOnTechnicalError(this.context, parameterResponseContainer, enumIdentifier);
-
-			// Return
+			parameterResponseContainer.notifyError(this.context, "Application", "ErrorOnInvokingCommand", errorText, exception);
 			return parameterResponseContainer;
 		}
 
 		if (newResponseContainer == null)
 		{
-			// Get resource container
-			ResourceContainer resourceContainer = ResourceManager.notification(this.context, "Application", "ErrorOnProcessingRequestFromClient");
-			String enumIdentifier = "";
-			if (resourceContainer != null) enumIdentifier = resourceContainer.getRecourceIdentifier();
-
-			// Notify error
-			this.setErrorMessageOnTechnicalError(context, parameterResponseContainer, enumIdentifier);
-
-			// Return
+			parameterResponseContainer.notifyError(this.context, "Application", "ErrorOnProcessingRequestFromClient", null, null);
 			return parameterResponseContainer;
 		}
 
@@ -467,18 +378,9 @@ public class ServerWorkerThread implements Runnable
 		}
 		catch (Exception exception)
 		{
-			// Get resource container
-			ResourceContainer resourceContainer = ResourceManager.notification(this.context, "Application", "ErrorOnInvokingCommand");
-			String enumIdentifier = "";
-			if (resourceContainer != null) enumIdentifier = resourceContainer.getRecourceIdentifier();
-
-			// Notify error
 			String errorText = "--> Error on executing command class";
 			errorText += "\n--> CommandManager class name: '" + requestContainer.getCommandIdentifier() + "'";
-			this.context.getNotificationManager().notifyError(this.context, resourceContainer, errorText, exception);
-			this.setErrorMessageOnTechnicalError(this.context, responseContainer, enumIdentifier);
-
-			// Return
+			responseContainer.notifyError(this.context, "Application", "ErrorOnInvokingCommand", errorText, exception);
 			return;
 		}
 
@@ -500,13 +402,13 @@ public class ServerWorkerThread implements Runnable
 	 *         occurred.
 	 * 
 	 */
-	private String workstepConvertResponseContainerObjectToSocketData(ResponseContainer responseContainer)
+	private StringBuffer workstepConvertResponseContainerObjectToSocketData(ResponseContainer responseContainer)
 	{
 		// Validate parameter
 		if (responseContainer == null) return null;
 
 		// Convert a response container
-		String commandEncoded = null;
+		StringBuffer commandEncoded = null;
 		EncodingHandler encodingUitility = new EncodingHandler();
 
 		try
@@ -549,50 +451,22 @@ public class ServerWorkerThread implements Runnable
 		{
 			if (!requestContainer.getClientApplicationIdentifier().equals(responseContainer.getServerApplicationIdentifier()))
 			{
-				// Get resource container
-				ResourceContainer resourceContainer = ResourceManager.notification(this.context, "Application", "WrongClientApplication");
-				String enumIdentifier = "";
-				if (resourceContainer != null) enumIdentifier = resourceContainer.getRecourceIdentifier();
-
-				// Notify error
-				String errorText = "--> Requesting client application: '" + requestContainer.getClientApplicationIdentifier() + "'";
-				this.context.getNotificationManager().notifyError(this.context, resourceContainer, errorText, null);
-				this.setErrorMessageOnValidationError(this.context, responseContainer, enumIdentifier);
-
-				// Return
+				responseContainer.notifyError(this.context, "Application", "WrongClientApplication", null, null);
 				return false;
 			}
 		}
 		catch (Exception exception)
 		{
-			// Get resource container
-			ResourceContainer resourceContainer = ResourceManager.notification(this.context, "Application", "WrongClientApplication");
-			String enumIdentifier = "";
-			if (resourceContainer != null) enumIdentifier = resourceContainer.getRecourceIdentifier();
-
-			// Notify error
 			String errorText = "--> Requesting client application: '" + requestContainer.getClientApplicationIdentifier() + "'";
-			this.context.getNotificationManager().notifyError(this.context, resourceContainer, errorText, exception);
-			this.setErrorMessageOnValidationError(this.context, responseContainer, enumIdentifier);
-
-			// Return
+			responseContainer.notifyError(this.context, "Application", "WrongClientApplication", errorText, exception);
 			return false;
 		}
 
 		// Check client version
 		if (requestContainer.getClientVersion() != responseContainer.getServerVersion())
 		{
-			// Get resource container
-			ResourceContainer resourceContainer = ResourceManager.notification(this.context, "Application", "WrongClientVersion");
-			String enumIdentifier = "";
-			if (resourceContainer != null) enumIdentifier = resourceContainer.getRecourceIdentifier();
-
-			// Notify error
 			String errorText = "--> Requesting client version: '" + requestContainer.getClientVersion() + "'";
-			this.context.getNotificationManager().notifyError(this.context, resourceContainer, errorText, null);
-			this.setErrorMessageOnValidationError(this.context, responseContainer, enumIdentifier);
-
-			// Return
+			responseContainer.notifyError(this.context, "Application", "WrongClientVersion", errorText, null);
 			return false;
 		}
 
@@ -604,38 +478,20 @@ public class ServerWorkerThread implements Runnable
 			 * 'ClientCommandCreateSession' to execute, the test regarding the
 			 * client session is switched off.
 			 */
-			if (!requestContainer.getCommandIdentifier().equals(ResourceManager.command(context, "Processing", "CreateSession").getRecourceIdentifier()))
+			if (!requestContainer.getCommandIdentifier().equals(ResourceManager.command(context, "CreateSession").getRecourceIdentifier()))
 			{
 				if (this.serverManager.sessionCheckClientSession(requestContainer.getClientSessionIdentifier()) == false)
 				{
-					// Get resource container
-					ResourceContainer resourceContainer = ResourceManager.notification(this.context, "Application", "ClientSessionDoesNotExistOnServer");
-					String enumIdentifier = "";
-					if (resourceContainer != null) enumIdentifier = resourceContainer.getRecourceIdentifier();
-
-					// Notify error
 					String errorText = "--> Requesting client session identifier: '" + requestContainer.getClientSessionIdentifier() + "'";
-					this.context.getNotificationManager().notifyError(this.context, resourceContainer, errorText, null);
-					this.setErrorMessageOnValidationError(this.context, responseContainer, enumIdentifier);
-
-					// Return
+					responseContainer.notifyError(this.context, "Application", "ClientSessionDoesNotExistOnServer", errorText, null);
 					return false;
 				}
 			}
 		}
 		catch (Exception exception)
 		{
-			// Get resource container
-			ResourceContainer resourceContainer = ResourceManager.notification(this.context, "Application", "ClientSessionDoesNotExistOnServer");
-			String enumIdentifier = "";
-			if (resourceContainer != null) enumIdentifier = resourceContainer.getRecourceIdentifier();
-
-			// Notify error
 			String errorText = "--> Requesting client session identifier: '" + requestContainer.getClientSessionIdentifier() + "'";
-			this.context.getNotificationManager().notifyError(this.context, resourceContainer, errorText, exception);
-			this.setErrorMessageOnValidationError(this.context, responseContainer, enumIdentifier);
-
-			// Return
+			responseContainer.notifyError(this.context, "Application", "ClientSessionDoesNotExistOnServer", errorText, exception);
 			return false;
 		}
 

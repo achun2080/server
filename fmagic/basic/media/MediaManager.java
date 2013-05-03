@@ -1591,7 +1591,7 @@ public abstract class MediaManager implements ManagerInterface
 		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "\n--> UPLOAD FROM CLIENT TO SERVER: Media file uploaded on server: '" + pendingFileName + "'");
 
 		/*
-		 *  Delete pending file
+		 * Delete pending file
 		 */
 		FileUtilFunctions.fileDelete(pendingFileName);
 
@@ -1738,9 +1738,10 @@ public abstract class MediaManager implements ManagerInterface
 	 *            The identifier of the concrete media item to use for the
 	 *            destination file.
 	 * 
-	 * @return Returns the file path to the media file read, or <TT>null</TT> if the media file couldn|t be read or an error occurred.
+	 * @return Returns <TT>true</TT> if the media file could be read, otherwise
+	 *         <TT>false</TT>.
 	 */
-	public String commandReadOnServer(Context context, ResourceContainerMedia mediaResourceContainer, String dataIdentifier)
+	public boolean commandReadOnServer(Context context, ResourceContainerMedia mediaResourceContainer, String dataIdentifier)
 	{
 		/*
 		 * Check variables and conditions
@@ -1752,7 +1753,7 @@ public abstract class MediaManager implements ManagerInterface
 			String errorString = "--> READ FROM SERVER: Media resource container not set (NULL value).";
 			if (dataIdentifier != null) errorString += "\n--> Data identifier of media: '" + dataIdentifier + "'";
 			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnReadingFileFromServer"), errorString, null);
-			return null;
+			return false;
 		}
 
 		// Check data identifier
@@ -1762,7 +1763,7 @@ public abstract class MediaManager implements ManagerInterface
 			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
 			if (dataIdentifier != null) errorString += "\n--> Data identifier of media: '" + dataIdentifier + "'";
 			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnReadingFileFromServer"), errorString, null);
-			return null;
+			return false;
 		}
 
 		/*
@@ -1777,7 +1778,7 @@ public abstract class MediaManager implements ManagerInterface
 			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
 			if (dataIdentifier != null) errorString += "\n--> Data identifier of media: '" + dataIdentifier + "'";
 			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnReadingFileFromServer"), errorString, null);
-			return null;
+			return false;
 		}
 
 		if (responseContainer.isError())
@@ -1788,39 +1789,41 @@ public abstract class MediaManager implements ManagerInterface
 			if (dataIdentifier != null) errorString += "\n--> Data identifier of media: '" + dataIdentifier + "'";
 			errorString += responseContainer.toString();
 			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnReadingFileFromServer"), errorString, null);
-			return null;
+			return false;
 		}
 
 		String logText = "\n--> READ FROM SERVER: Result values 'Media File exists?': '" + command.isMediaFileExisting() + "'";
 		logText += "\n--> Media File exists on server: '" + command.isMediaFileExisting() + "'";
 		logText += "\n--> Media File could be read: '" + command.isMediaFileRead() + "'";
 		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
-		
-		if (command.isMediaFileRead() == false) return null;
+
+		if (command.isMediaFileRead() == false) return false;
 
 		/*
-		 *  Extract media content into a pending file
+		 * Extract media content into a pending file
 		 */
-		
+
 		// Get file type
 		String fileType = command.getFileType();
-		
+
 		if (fileType == null || fileType.length() == 0)
 		{
 			String errorString = "--> READ FROM SERVER: Missing file type of media file read";
 			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
 			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Command", "ErrorOnProcessingCommand"), errorString, null);
-			return null;
+			return false;
 		}
-		
-		// Get pending file name
+
+		/*
+		 * Extract media file to pending file
+		 */
 		String pendingFileName = FileLocationFunctions.compileFilePath(mediaResourceContainer.getMediaPendingFilePath(context), mediaResourceContainer.getMediaPendingFileName(context, fileType));
-		
+
 		logText = "\n--> READ FROM SERVER: Pending file name created";
 		logText += "\n--> Pending file name: '" + pendingFileName + "'";
 		logText += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
 		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
-		
+
 		// Store file content into the pending file
 		if (FileUtilFunctions.fileWriteFromString(pendingFileName, command.getMediaContent()) == false)
 		{
@@ -1828,9 +1831,9 @@ public abstract class MediaManager implements ManagerInterface
 			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
 			errorString += "\n--> Pending file name: '" + pendingFileName + "'";
 			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Command", "ErrorOnProcessingCommand"), errorString, null);
-			return null;
+			return false;
 		}
-		
+
 		logText = "\n--> READ FROM SERVER: Media content stored in pending file";
 		logText += "\n--> Pending file name: '" + pendingFileName + "'";
 		logText += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
@@ -1838,9 +1841,43 @@ public abstract class MediaManager implements ManagerInterface
 		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
 
 		/*
+		 * Store media file in local media repository
+		 */
+		if (this.operationStoreLocal(context, mediaResourceContainer, pendingFileName, dataIdentifier) == false)
+		{
+			String errorString = "--> READ FROM SERVER: Error on storing media content in local media repository";
+			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+			errorString += "\n--> Pending file name: '" + pendingFileName + "'";
+			errorString += "\n--> Data identifier: '" + dataIdentifier + "'";
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Command", "ErrorOnProcessingCommand"), errorString, null);
+			return false;
+		}
+
+		logText = "\n--> READ FROM SERVER: Media content stored in local media repository";
+		logText += "\n--> Pending file name: '" + pendingFileName + "'";
+		logText += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+		logText += "\n--> Data identifier: '" + dataIdentifier + "'";
+		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
+
+		/*
+		 * Delete pending file
+		 */
+		if (FileUtilFunctions.fileDelete(pendingFileName) == false)
+		{
+			String errorString = "--> READ FROM SERVER: Error on deleting pending file";
+			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+			errorString += "\n--> Pending file name: '" + pendingFileName + "'";
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Command", "ErrorOnProcessingCommand"), errorString, null);
+
+			// Nevertheless return with 'true' because the media file could be
+			// stored
+			return true;
+		}
+
+		/*
 		 * Return
 		 */
-		return pendingFileName;
+		return true;
 	}
 
 	/**
@@ -2246,6 +2283,290 @@ public abstract class MediaManager implements ManagerInterface
 		catch (Exception e)
 		{
 			return null;
+		}
+	}
+
+	/**
+	 * Check if a media file already exists, using the following criteria: media
+	 * resource container, data identifier, file type and hash value.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param mediaResourceContainer
+	 *            The media resource container to consider.
+	 * 
+	 * @param dataIdentifier
+	 *            The data identifier of the media.
+	 * 
+	 * @param fileType
+	 *            The file type to consider.
+	 * 
+	 * @param hashValue
+	 *            The hash value to consider.
+	 * 
+	 * @return Returns <TT>true</TT> if the media file exists, otherwise
+	 *         <TT>false</TT>.
+	 * 
+	 */
+	public boolean doCheckIfMediaFileExists(Context context, ResourceContainerMedia mediaResourceContainer, String dataIdentifier, String fileType, String hashValue)
+	{
+		try
+		{
+			// Get all values from server
+			String currentFileName = mediaResourceContainer.getMediaRealFileName(context, dataIdentifier);
+
+			if (currentFileName == null || currentFileName.length() == 0) { return false; }
+
+			// Compare file type
+			String currentFileType = FileUtilFunctions.fileGetFileTypePart(currentFileName);
+
+			if (currentFileType == null || !currentFileType.equals(fileType)) { return false; }
+
+			// Compare hash value
+			String currentHashValue = mediaResourceContainer.getMediaPartHashValue(context, currentFileName);
+
+			if (currentHashValue == null || !currentHashValue.equals(hashValue)) { return false; }
+
+			// Return
+			return true;
+		}
+		catch (Exception e)
+		{
+			return false;
+		}
+	}
+
+	/**
+	 * Check if a media file already exists, using the following criteria: media
+	 * resource container and data identifier.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param mediaResourceContainer
+	 *            The media resource container to consider.
+	 * 
+	 * @param dataIdentifier
+	 *            The data identifier of the media.
+	 * 
+	 * @return Returns <TT>true</TT> if the media file exists, otherwise
+	 *         <TT>false</TT>.
+	 * 
+	 */
+	public boolean doCheckIfMediaFileExists(Context context, ResourceContainerMedia mediaResourceContainer, String dataIdentifier)
+	{
+		try
+		{
+			// Get all values from server
+			String currentFileName = mediaResourceContainer.getMediaRealFileName(context, dataIdentifier);
+
+			if (currentFileName == null || currentFileName.length() == 0) { return false; }
+
+			// Return
+			return true;
+		}
+		catch (Exception e)
+		{
+			return false;
+		}
+	}
+
+	/**
+	 * Get the file type of a media file.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param mediaResourceContainer
+	 *            The media resource container to consider.
+	 * 
+	 * @param dataIdentifier
+	 *            The data identifier of the media.
+	 * 
+	 * @return Returns the file type as string, or <TT>null</TT> if the media
+	 *         file doesn't exist.
+	 * 
+	 */
+	public String doGetFileTypeOfMediaFile(Context context, ResourceContainerMedia mediaResourceContainer, String dataIdentifier)
+	{
+		try
+		{
+			// Get the current file name of the most recent media file
+			String currentFileName = mediaResourceContainer.getMediaRealFileName(context, dataIdentifier);
+
+			if (currentFileName == null || currentFileName.length() == 0) { return null; }
+
+			// Extract the file type
+			String fileType = FileUtilFunctions.fileGetFileTypePart(currentFileName);
+
+			if (fileType == null || fileType.length() == 0) { return null; }
+
+			// Return
+			return fileType;
+		}
+		catch (Exception e)
+		{
+			return null;
+		}
+	}
+
+	/**
+	 * Read the content of a media file as a string.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param mediaResourceContainer
+	 *            The media resource container to consider.
+	 * 
+	 * @param dataIdentifier
+	 *            The data identifier of the media.
+	 * 
+	 * @return Returns the media content as string, or <TT>null</TT> if the
+	 *         media file doesn't exist or couldn't be read.
+	 * 
+	 */
+	public String doReadMediaContent(Context context, ResourceContainerMedia mediaResourceContainer, String dataIdentifier)
+	{
+		try
+		{
+			// Create media container
+			MediaContainer mediaContainer = new MediaContainer(context, mediaResourceContainer, dataIdentifier);
+
+			if (mediaContainer.bindMedia() == false)
+			{
+				String errorString = "--> READ MEDIA CONTENT: Error on binding media container";
+				errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+				errorString += "\n--> Data identifier: '" + dataIdentifier + "'";
+				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnStoringFileLocally"), errorString, null);
+				return null;
+			}
+
+			// Read file content
+			String mediaContent = mediaContainer.readMediaContentAsString();
+
+			if (mediaContent == null)
+			{
+				String errorString = "--> READ MEDIA CONTENT: Error on reading media content";
+				errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+				errorString += "\n--> Data identifier: '" + dataIdentifier + "'";
+				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnStoringFileLocally"), errorString, null);
+				return null;
+			}
+
+			// Release media file
+			if (mediaContainer.releaseMedia() == false)
+			{
+				String errorString = "--> READ MEDIA CONTENT: Error on releasing media container";
+				errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+				errorString += "\n--> Data identifier: '" + dataIdentifier + "'";
+				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnStoringFileLocally"), errorString, null);
+				// No return, because the media content could be read successfully
+			}
+			
+			// Return
+			return mediaContent;
+		}
+		catch (Exception e)
+		{
+			return null;
+		}
+	}
+
+	/**
+	 * Push a media file into the system.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param mediaResourceContainer
+	 *            The media resource container to consider.
+	 * 
+	 * @param dataIdentifier
+	 *            The data identifier of the media.
+	 * 
+	 * @param fileType
+	 *            The file type to consider.
+	 *            
+	 * @return Returns <TT>true</TT> if the media file could be pushed, otherwise
+	 *         <TT>false</TT>.
+	 * 
+	 */
+	public boolean doPushMediaContentToMediaFile(Context context, ResourceContainerMedia mediaResourceContainer, String dataIdentifier, String fileType, String mediaContent)
+	{
+		try
+		{
+			/*
+			 *  Extract media content into a pending file
+			 */
+			String pendingFileName = FileLocationFunctions.compileFilePath(mediaResourceContainer.getMediaPendingFilePath(context), mediaResourceContainer.getMediaPendingFileName(context, fileType));
+			
+			String logText = "\n--> PUSH MEDIA CONTENT: Pending file name created";
+			logText += "\n--> Pending file name: '" + pendingFileName + "'";
+			logText += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
+			
+			if (FileUtilFunctions.fileWriteFromString(pendingFileName, mediaContent) == false)
+			{
+				String errorString = "--> PUSH MEDIA CONTENT: Error on writing media content into the pending file";
+				errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+				errorString += "\n--> Pending file name: '" + pendingFileName + "'";
+				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnStoringFileLocally"), errorString, null);
+				return false;
+			}
+			
+			logText = "\n--> PUSH MEDIA CONTENT: Media content stored into pending file";
+			logText += "\n--> Pending file name: '" + pendingFileName + "'";
+			logText += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+			logText += "\n--> Data identifier: '" + dataIdentifier + "'";
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
+			
+			/*
+			 *  Upload pending file into the system as a regular media file
+			 */
+			if (context.getMediaManager().operationStoreLocal(context, mediaResourceContainer, pendingFileName, dataIdentifier) == false)
+			{
+				String errorString = "--> PUSH MEDIA CONTENT: Error on storing pending file as regular media file";
+				errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+				errorString += "\n--> Pending file to be stored: '" + pendingFileName + "'";
+				errorString += "\n--> Data identifier: '" + dataIdentifier + "'";
+				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnStoringFileLocally"), errorString, null);
+				return false;
+			}
+			
+			
+			logText = "\n--> PUSH MEDIA CONTENT: Pending file stored into regular media file";
+			logText += "\n--> Pending file name: '" + pendingFileName + "'";
+			logText += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+			logText += "\n--> Data identifier: '" + dataIdentifier + "'";
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
+			
+			/*
+			 *  Delete pending file
+			 */
+			if (FileUtilFunctions.fileDelete(pendingFileName) == false)
+			{
+				String errorString = "--> PUSH MEDIA CONTENT: Error on deleting pending file";
+				errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+				errorString += "\n--> Pending file to be deleted: '" + pendingFileName + "'";
+				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnStoringFileLocally"), errorString, null);
+				// No return, because the media content could be pushed successfully
+			}
+			
+			logText = "\n--> PUSH MEDIA CONTENT: Pending file deleted";
+			logText += "\n--> Pending file name: '" + pendingFileName + "'";
+			logText += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
+			
+			/*
+			 * Return
+			 */
+			return true;
+		}
+		catch (Exception e)
+		{
+			return false;
 		}
 	}
 

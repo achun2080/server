@@ -46,7 +46,8 @@ public class TestContainerMediaLocal extends TestContainer
 	 *            in a concurrent environment with other parallel threads or
 	 *            applications, otherwise to <TT>false</TT>.
 	 */
-	public TestContainerMediaLocal(Context context, TestRunner testRunner, boolean concurrentAccess)
+	public TestContainerMediaLocal(Context context, TestRunner testRunner,
+			boolean concurrentAccess)
 	{
 		super(context, testRunner, concurrentAccess);
 	}
@@ -72,7 +73,7 @@ public class TestContainerMediaLocal extends TestContainer
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this, "Unexpected Exception", e);
 		}
 	}
 
@@ -85,7 +86,7 @@ public class TestContainerMediaLocal extends TestContainer
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this, "Unexpected Exception", e);
 		}
 	}
 
@@ -98,7 +99,7 @@ public class TestContainerMediaLocal extends TestContainer
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this, "Unexpected Exception", e);
 		}
 	}
 
@@ -124,7 +125,7 @@ public class TestContainerMediaLocal extends TestContainer
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this, "Unexpected Exception", e);
 		}
 	}
 
@@ -154,7 +155,7 @@ public class TestContainerMediaLocal extends TestContainer
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this, "Unexpected Exception", e);
 		}
 	}
 
@@ -180,7 +181,7 @@ public class TestContainerMediaLocal extends TestContainer
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this, "Unexpected Exception", e);
 		}
 	}
 
@@ -193,7 +194,7 @@ public class TestContainerMediaLocal extends TestContainer
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this, "Unexpected Exception", e);
 		}
 	}
 
@@ -228,7 +229,7 @@ public class TestContainerMediaLocal extends TestContainer
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this, "Unexpected Exception", e);
 		}
 	}
 
@@ -246,7 +247,7 @@ public class TestContainerMediaLocal extends TestContainer
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this, "Unexpected Exception", e);
 		}
 	}
 
@@ -287,7 +288,7 @@ public class TestContainerMediaLocal extends TestContainer
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this, "Unexpected Exception", e);
 		}
 	}
 
@@ -392,7 +393,7 @@ public class TestContainerMediaLocal extends TestContainer
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this, "Unexpected Exception", e);
 		}
 	}
 
@@ -535,7 +536,7 @@ public class TestContainerMediaLocal extends TestContainer
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this, "Unexpected Exception", e);
 		}
 
 		return;
@@ -550,7 +551,9 @@ public class TestContainerMediaLocal extends TestContainer
 		{
 			ResourceContainerMedia mediaResource = ResourceManager.media(this.getContext(), ResourceGroup, resourceName);
 
-			// Upload a file
+			/*
+			 * Upload a file
+			 */
 			String additionalText = "--> Tried to upload a file";
 			additionalText += "\n--> Upload file? '" + uploadFileName + "'";
 			additionalText += "\n--> Data identifier? '" + dataIdentifierString + "'";
@@ -558,7 +561,9 @@ public class TestContainerMediaLocal extends TestContainer
 			boolean booleanResult = this.getContext().getMediaManager().operationStoreLocal(this.getContext(), mediaResource, uploadFileName, dataIdentifierString);
 			TestManager.assertTrue(this.getContext(), this, additionalText, booleanResult);
 
-			// Check if file content can be read
+			/*
+			 * Check if file content can be read
+			 */
 			additionalText = "--> Tried to read file content of an uploaded file";
 			additionalText += "\n--> Upload file? '" + uploadFileName + "'";
 			additionalText += "\n--> Data identifier? '" + dataIdentifierString + "'";
@@ -566,43 +571,38 @@ public class TestContainerMediaLocal extends TestContainer
 			MediaContainer mediaContainer = new MediaContainer(this.getContext(), mediaResource, dataIdentifierString);
 			TestManager.assertNotNull(this.getContext(), this, additionalText, mediaContainer);
 
-			if (mediaContainer != null)
+			// Bind media object
+			booleanResult = mediaContainer.bindMedia();
+			TestManager.assertTrue(this.getContext(), this, additionalText + "\n--> Error on binding media file", booleanResult);
+
+			// Compare check sum of source file and destination file
+			if (!this.isConcurrentAccess())
 			{
-				// Bind media object
-				booleanResult = mediaContainer.bindMedia();
-				TestManager.assertTrue(this.getContext(), this, additionalText + "\n--> Error on binding media file", booleanResult);
+				// Check always: If the checksum of the uploaded file and
+				// the working file are the same, all the same if the media
+				// files are encoded.
+				TestManager.assertEqualsFile(this.getContext(), this, additionalText, uploadFileName, mediaContainer.getWorkingMediaFilePath());
 
-				// Compare check sum of source file and destination file
-				if (!this.isConcurrentAccess())
+				// Check if encoding is enabled: If the checksum of
+				// the uploaded file and the original file are different.
+				if (this.getContext().getMediaManager().isEncodingEnabled(this.getContext(), mediaResource) == true)
 				{
-					// Check always: If the checksum of the uploaded file and
-					// the working file are the same, all the same if the media
-					// files are encoded.
-					TestManager.assertEqualsFile(this.getContext(), this, additionalText, uploadFileName, mediaContainer.getWorkingMediaFilePath());
-
-					// Check if encoding is enabled encoding: If the checksum of
-					// the uploaded file and
-					// the original file are different.
-					if (this.getContext().getMediaManager().isEncodingEnabled(this.getContext(), mediaResource) == true)
-					{
-						TestManager.assertNotEqualsFile(this.getContext(), this, additionalText, uploadFileName, mediaContainer.getOriginalMediaFilePath());
-					}
+					TestManager.assertNotEqualsFile(this.getContext(), this, additionalText, uploadFileName, mediaContainer.getOriginalMediaFilePath());
 				}
-
-				// Read file content
-				byte[] contentAsByteBuffer = mediaContainer.readMediaContentAsByteArray();
-				TestManager.assertNotNull(this.getContext(), this, additionalText + "\n--> Error on reading media file content", contentAsByteBuffer);
-				TestManager.assertGreaterThan(this.getContext(), this, additionalText, contentAsByteBuffer.length, 0);
-
-				// Release media file
-				booleanResult = mediaContainer.releaseMedia();
-				TestManager.assertTrue(this.getContext(), this, additionalText + "\n--> Error on releasing media file", booleanResult);
 			}
 
+			// Read file content
+			byte[] contentAsByteBuffer = mediaContainer.readMediaContentAsByteArray();
+			TestManager.assertNotNull(this.getContext(), this, additionalText + "\n--> Error on reading media file content", contentAsByteBuffer);
+			TestManager.assertGreaterThan(this.getContext(), this, additionalText, contentAsByteBuffer.length, 0);
+
+			// Release media file
+			booleanResult = mediaContainer.releaseMedia();
+			TestManager.assertTrue(this.getContext(), this, additionalText + "\n--> Error on releasing media file", booleanResult);
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this, "Unexpected Exception", e);
 		}
 	}
 
@@ -627,7 +627,7 @@ public class TestContainerMediaLocal extends TestContainer
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this, "Unexpected Exception", e);
 		}
 	}
 
@@ -651,7 +651,7 @@ public class TestContainerMediaLocal extends TestContainer
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this, "Unexpected Exception", e);
 		}
 	}
 
@@ -675,7 +675,7 @@ public class TestContainerMediaLocal extends TestContainer
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this, "Unexpected Exception", e);
 		}
 	}
 
@@ -699,7 +699,7 @@ public class TestContainerMediaLocal extends TestContainer
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this, "Unexpected Exception", e);
 		}
 	}
 
@@ -721,7 +721,7 @@ public class TestContainerMediaLocal extends TestContainer
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this, "Unexpected Exception", e);
 		}
 	}
 
@@ -903,7 +903,7 @@ public class TestContainerMediaLocal extends TestContainer
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this, "Unexpected Exception", e);
 		}
 	}
 
@@ -1065,7 +1065,7 @@ public class TestContainerMediaLocal extends TestContainer
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this, "Unexpected Exception", e);
 		}
 	}
 
@@ -1269,7 +1269,7 @@ public class TestContainerMediaLocal extends TestContainer
 		}
 		catch (Exception e)
 		{
-			TestManager.servicePrintException(this.getContext(), this,  "Unexpected Exception", e);
+			TestManager.servicePrintException(this.getContext(), this, "Unexpected Exception", e);
 		}
 	}
 

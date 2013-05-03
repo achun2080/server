@@ -1,7 +1,6 @@
 package fmagic.server.command;
 
-import fmagic.basic.file.FileUtilFunctions;
-import fmagic.basic.media.MediaContainer;
+import fmagic.basic.context.Context;
 import fmagic.basic.media.ResourceContainerMedia;
 import fmagic.basic.resource.ResourceContainer;
 import fmagic.basic.resource.ResourceManager;
@@ -24,11 +23,25 @@ public class ServerCommandMediaFileRead extends ServerCommand
 	private String mediaContent = null;
 
 	/**
-	 * Constructor
+	 * Constructor 1
 	 */
 	public ServerCommandMediaFileRead()
 	{
 		super();
+	}
+
+	/**
+	 * Constructor 2
+	 */
+	public ServerCommandMediaFileRead(Context context, String commandIdentifier)
+	{
+		super(context, commandIdentifier);
+	}
+	
+	@Override
+	public void setCommandIdentifier(Context context)
+	{
+		this.commandIdentifier = ResourceManager.command(context, "MediaFileRead").getRecourceIdentifier();
 	}
 
 	@Override
@@ -76,14 +89,13 @@ public class ServerCommandMediaFileRead extends ServerCommand
 			// Fire error message
 			if (isError == true)
 			{
-				this.context.getNotificationManager().notifyError(this.context, ResourceManager.notification(this.context, "Command", "ErrorOnProcessingCommand"), errorText, null);
-				this.setErrorMessageTechnicalError(this.context, this.responseContainer, errorText);
+				this.notifyError("Command", "IntegrityError", errorText, null);
 				return false;
 			}
 		}
 		catch (Exception e)
 		{
-			this.context.getNotificationManager().notifyError(this.context, ResourceManager.notification(this.context, "Command", "ErrorOnProcessingCommand"), null, e);
+			this.notifyError("Command", "ErrorOnProcessingCommand", null, e);
 			return false;
 		}
 
@@ -96,100 +108,52 @@ public class ServerCommandMediaFileRead extends ServerCommand
 	{
 		try
 		{
-			/*
-			 * Organizational stuff
-			 */
-			this.responseContainer.clearErrorCode();
-			this.responseContainer.setCommandIdentifier(this.requestContainer.getCommandIdentifier());
-
-			/*
-			 * Get recent media file name, if existing
-			 */
-			String currentFileName = this.mediaResourceContainer.getMediaRealFileName(this.getContext(), this.dataIdentifier);
-
-			if (currentFileName == null)
+			// Check if media file exists
+			if (this.getContext().getMediaManager().doCheckIfMediaFileExists(this.getContext(), this.mediaResourceContainer, this.dataIdentifier) == false)
 			{
 				this.isExisting = false;
 				this.isRead = false;
 				return true;
 			}
+			else
+			{
+				this.isExisting = true;
+			}
 
-			// File exists on server
-			this.isExisting = true;
-
-			/*
-			 * Get file type of media file
-			 */
-			this.fileType = FileUtilFunctions.fileGetFileTypePart(currentFileName);
+			// Get file type of media file
+			this.fileType = this.getContext().getMediaManager().doGetFileTypeOfMediaFile(this.getContext(), this.mediaResourceContainer, this. dataIdentifier);
 
 			if (this.fileType == null || this.fileType.length() == 0)
 			{
-				String errorText = "\n--> Media file has no file type";
-				errorText += "\n--> Media resource identifier: '" + this.mediaResourceContainer.getRecourceIdentifier() + "'";
-				errorText += "\n--> Data identifier: '" + this.dataIdentifier + "'";
-				this.context.getNotificationManager().notifyError(this.context, ResourceManager.notification(this.context, "Command", "ErrorOnProcessingCommand"), errorText, null);
-				this.setErrorMessageTechnicalError(this.context, this.responseContainer, errorText);
-				
 				this.isRead = false;
-				
-				return false;
+				return true;
 			}
 
-			/*
-			 * Read file content from media file
-			 */
-			MediaContainer mediaContainer = new MediaContainer(this.getContext(), this.mediaResourceContainer, this.dataIdentifier);
-
-			if (mediaContainer.bindMedia() == false)
-			{
-				String errorText = "\n--> Error on binding media file";
-				errorText += "\n--> Media resource identifier: '" + this.mediaResourceContainer.getRecourceIdentifier() + "'";
-				errorText += "\n--> Data identifier: '" + this.dataIdentifier + "'";
-				this.context.getNotificationManager().notifyError(this.context, ResourceManager.notification(this.context, "Command", "ErrorOnProcessingCommand"), errorText, null);
-				this.setErrorMessageTechnicalError(this.context, this.responseContainer, errorText);
-				return false;
-			}
-
-			// Read file content
-			this.mediaContent = mediaContainer.readMediaContentAsString();
+			// Read content from media file
+			this.mediaContent = this.getContext().getMediaManager().doReadMediaContent(this.context, this.mediaResourceContainer, this.dataIdentifier);
 
 			if (this.mediaContent == null)
 			{
-				String errorText = "\n--> Error on reading media file content";
-				errorText += "\n--> Media resource identifier: '" + this.mediaResourceContainer.getRecourceIdentifier() + "'";
-				errorText += "\n--> Data identifier: '" + this.dataIdentifier + "'";
-				this.context.getNotificationManager().notifyError(this.context, ResourceManager.notification(this.context, "Command", "ErrorOnProcessingCommand"), errorText, null);
-				this.setErrorMessageTechnicalError(this.context, this.responseContainer, errorText);
-				return false;
+				this.isRead = false;
+				return true;
 			}
-
-			// Release media file
-
-			if (mediaContainer.releaseMedia() == false)
+			else
 			{
-				String errorText = "\n--> Error on releasing media file";
-				errorText += "\n--> Media resource identifier: '" + this.mediaResourceContainer.getRecourceIdentifier() + "'";
-				errorText += "\n--> Data identifier: '" + this.dataIdentifier + "'";
-				this.context.getNotificationManager().notifyError(this.context, ResourceManager.notification(this.context, "Command", "ErrorOnProcessingCommand"), errorText, null);
-				this.setErrorMessageTechnicalError(this.context, this.responseContainer, errorText);
-				return false;
+				this.isRead = true;
 			}
-
-			// File could be read
-			this.isRead = true;
 
 			// Return
 			return true;
 		}
 		catch (Exception e)
 		{
-			this.context.getNotificationManager().notifyError(this.context, ResourceManager.notification(this.context, "Command", "ErrorOnProcessingCommand"), null, e);
+			this.notifyError("Command", "ErrorOnProcessingCommand", null, e);
 			return false;
 		}
 	}
 
 	@Override
-	protected boolean evaluateResults()
+	protected boolean arrangeResults()
 	{
 		try
 		{
@@ -210,7 +174,7 @@ public class ServerCommandMediaFileRead extends ServerCommand
 		}
 		catch (Exception e)
 		{
-			this.context.getNotificationManager().notifyError(this.context, ResourceManager.notification(this.context, "Command", "ErrorOnProcessingCommand"), null, e);
+			this.notifyError("Command", "ErrorOnProcessingCommand", null, e);
 			return false;
 		}
 	}

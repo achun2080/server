@@ -5,6 +5,7 @@ import java.util.List;
 import fmagic.basic.command.ResponseContainer;
 import fmagic.basic.context.Context;
 import fmagic.basic.file.FileUtilFunctions;
+import fmagic.basic.media.MediaContainer;
 import fmagic.basic.media.ResourceContainerMedia;
 import fmagic.basic.resource.ResourceContainer;
 import fmagic.basic.resource.ResourceManager;
@@ -12,7 +13,6 @@ import fmagic.client.application.ClientManager;
 import fmagic.client.command.ClientCommand;
 import fmagic.client.command.ClientCommandCreateSession;
 import fmagic.client.command.ClientCommandHandshake;
-import fmagic.client.context.ClientContext;
 import fmagic.test.application.TestManager;
 import fmagic.test.runner.TestRunner;
 
@@ -140,7 +140,7 @@ public class TestContainerMediaCommand extends TestContainer
 			this.setupComponentTestIntern();
 
 			// Test
-			this.testUploadFileFromClientToServer();
+			this.testPushFileFromClientToServer();
 
 			// Cleanup
 			this.cleanupComponentTestIntern();
@@ -185,7 +185,7 @@ public class TestContainerMediaCommand extends TestContainer
 	/**
 	 * Test: Upload File
 	 */
-	public void testUploadFileFromClientToServer()
+	public void testPushFileFromClientToServer()
 	{
 		try
 		{
@@ -203,14 +203,18 @@ public class TestContainerMediaCommand extends TestContainer
 			List<String> fileList = FileUtilFunctions.directorySearchForFiles(uploadFilePath, "*.jpg");
 
 			additionalText = "--> Tried to read media files in directory '" + uploadFilePath + "'";
+			additionalText = "--> No appropriate files found in this directory, or directory doesn't exist";
 			TestManager.assertNotNull(this.getContext(), this, additionalText, fileList);
-			if (fileList != null) TestManager.assertGreaterThan(this.getContext(), this, additionalText, fileList.size(), 0);
+			
+			if (fileList == null) return;
+				
+			TestManager.assertGreaterThan(this.getContext(), this, additionalText, fileList.size(), 0);
 
 			// Try some uploads
-			for (int i = 0; i < 20; i++)
+			for (int i = 0; i < 100000; i++)
 			{
 				int index = FileUtilFunctions.generalGetRandomValue(0, fileList.size() - 1);
-				this.doUploadFileFromClientToServer(this.parameterResourceGroup, this.parameterResourceName, this.parameterDataIdentifierTestUpload, fileList.get(index));
+				this.doPushFileFromClientToServer(this.parameterResourceGroup, this.parameterResourceName, this.parameterDataIdentifierTestUpload, fileList.get(index));
 			}
 		}
 		catch (Exception e)
@@ -251,7 +255,7 @@ public class TestContainerMediaCommand extends TestContainer
 			// COMMAND Handshake
 			command = new ClientCommandHandshake(parameterClient.getContext(), parameterClient);
 			responseContainer = command.execute();
-
+			
 			additionalText = "--> Tried to handshake the application server";
 			TestManager.assertNotNull(this.getContext(), this, additionalText, responseContainer);
 
@@ -287,7 +291,7 @@ public class TestContainerMediaCommand extends TestContainer
 	/**
 	 * Test: Upload File
 	 */
-	private void doUploadFileFromClientToServer(String resourceGroup, String resourceName, String dataIdentifierString, String uploadFileName)
+	private void doPushFileFromClientToServer(String resourceGroup, String resourceName, String dataIdentifierString, String uploadFileName)
 	{
 		try
 		{
@@ -321,35 +325,58 @@ public class TestContainerMediaCommand extends TestContainer
 			TestManager.assertTrue(this.getContext(), this, additionalText, resultBoolean);
 
 			/*
-			 *  Read the uploaded file from server
+			 *  Read the uploaded file from server and store it in the local media repository
 			 */
 			additionalText = "--> Media file couldn't be read from server";
 			additionalText += "\n--> Media resource: '" + mediaResource.getRecourceIdentifier() + "'";
 			additionalText += "\n--> Upload file name: '" + uploadFileName + "'";
 			additionalText += "\n--> Data identifier: '" + dataIdentifierString + "'";
 
-			String pendingFileName = this.getContext().getMediaManager().commandReadOnServer(this.getContext(), mediaResource, dataIdentifierString);
-			TestManager.assertNotNull(this.getContext(), this, additionalText, pendingFileName);
+			boolean booleanResult = this.getContext().getMediaManager().commandReadOnServer(this.getContext(), mediaResource, dataIdentifierString);
+			TestManager.assertTrue(this.getContext(), this, additionalText, booleanResult);
+			
+			// Return after error
+			if (booleanResult == false) return;
 
 			/*
-			 *  Compare read file with the original uploaded file
+			 * Check if file content can be read
 			 */
-			if (pendingFileName != null && !this.isConcurrentAccess())
+			additionalText = "--> Tried to read file content of an uploaded file";
+			additionalText += "\n--> Media resource: '" + mediaResource.getRecourceIdentifier() + "'";
+			additionalText += "\n--> Upload file name: '" + uploadFileName + "'";
+			additionalText += "\n--> Data identifier? '" + dataIdentifierString + "'";
+
+			MediaContainer mediaContainer = new MediaContainer(this.getContext(), mediaResource, dataIdentifierString);
+			TestManager.assertNotNull(this.getContext(), this, additionalText, mediaContainer);
+
+			// Bind media object
+			booleanResult = mediaContainer.bindMedia();
+			TestManager.assertTrue(this.getContext(), this, additionalText + "\n--> Error on binding media file", booleanResult);
+
+			// Compare check sum of source file and destination file
+			if (!this.isConcurrentAccess())
 			{
-				additionalText = "--> Original uploaded file and reread file are NOT equal";
-				additionalText += "\n--> Media resource: '" + mediaResource.getRecourceIdentifier() + "'";
-				additionalText += "\n--> Data identifier: '" + dataIdentifierString + "'";
-				additionalText += "\n--> Uploaded file name: '" + uploadFileName + "'";
-				additionalText += "\n--> Reread file name: '" + pendingFileName + "'";
-				
-				TestManager.assertEqualsFile(this.getContext(), this, additionalText, uploadFileName, pendingFileName);
+				// Check always: If the checksum of the uploaded file and
+				// the working file are the same, all the same if the media
+				// files are encoded.
+				TestManager.assertEqualsFile(this.getContext(), this, additionalText, uploadFileName, mediaContainer.getWorkingMediaFilePath());
+
+				// Check if encoding is enabled: If the checksum of
+				// the uploaded file and the original file are different.
+				if (this.getContext().getMediaManager().isEncodingEnabled(this.getContext(), mediaResource) == true)
+				{
+					TestManager.assertNotEqualsFile(this.getContext(), this, additionalText, uploadFileName, mediaContainer.getOriginalMediaFilePath());
+				}
 			}
 
-			/*
-			 *  Delete pending file
-			 */
-			FileUtilFunctions.fileDelete(pendingFileName);
-			
+			// Read file content
+			byte[] contentAsByteBuffer = mediaContainer.readMediaContentAsByteArray();
+			TestManager.assertNotNull(this.getContext(), this, additionalText + "\n--> Error on reading media file content", contentAsByteBuffer);
+			TestManager.assertGreaterThan(this.getContext(), this, additionalText, contentAsByteBuffer.length, 0);
+
+			// Release media file
+			booleanResult = mediaContainer.releaseMedia();
+			TestManager.assertTrue(this.getContext(), this, additionalText + "\n--> Error on releasing media file", booleanResult);
 		}
 		catch (Exception e)
 		{

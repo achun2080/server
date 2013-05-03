@@ -1,8 +1,8 @@
 package fmagic.server.command;
 
-import fmagic.basic.file.FileLocationFunctions;
-import fmagic.basic.file.FileUtilFunctions;
-import fmagic.basic.notification.NotificationManager;
+import fmagic.basic.context.Context;
+import fmagic.basic.media.ResourceContainerMedia;
+import fmagic.basic.resource.ResourceContainer;
 import fmagic.basic.resource.ResourceManager;
 
 /**
@@ -12,31 +12,98 @@ import fmagic.basic.resource.ResourceManager;
  * 
  * @changed FW 30.04.2013 - Created
  */
-public class ServerCommandMediaFileUpload extends ServerCommandMediaFileCheck
+public class ServerCommandMediaFileUpload extends ServerCommand
 {
+	protected ResourceContainerMedia mediaResourceContainer;
+	protected String fileType;
+	protected String dataIdentifier;
+	protected String hashValue;
 	private String mediaContent = null;
-	
+
+	private Boolean isExisting = null;
 	private Boolean isUploaded = null;
 
 	/**
-	 * Constructor
+	 * Constructor 1
 	 */
 	public ServerCommandMediaFileUpload()
 	{
 		super();
 	}
 
+	/**
+	 * Constructor 2
+	 */
+	public ServerCommandMediaFileUpload(Context context, String commandIdentifier)
+	{
+		super(context, commandIdentifier);
+	}
+	
+	@Override
+	public void setCommandIdentifier(Context context)
+	{
+		this.commandIdentifier = ResourceManager.command(context, "MediaFileUpload").getRecourceIdentifier();
+	}
+
 	@Override
 	protected boolean validateRequestContainer()
 	{
-		// Process functions of 'ServerCommandMediaFileCheck'
-		super.validateRequestContainer();
-		
-		// Handle own stuff
 		try
 		{
 			String errorText = "--> Error on validating command parameter";
 			boolean isError = false;
+
+			// Get: Media Resource Identifier
+			String mediaResourceIdentifier = this.requestContainer.getProperty(ResourceManager.commandParameter(this.getContext(), "MediaFileUpload", "MediaResourceIdentifier").getAliasName(), null);
+
+			if (mediaResourceIdentifier == null || mediaResourceIdentifier.length() == 0)
+			{
+				errorText += "\n--> Missing value 'MediaResourceIdentifier'";
+				isError = true;
+			}
+
+			ResourceContainer resourceContainer = this.getContext().getResourceManager().getResourceContainer(this.getContext(), mediaResourceIdentifier);
+
+			if (resourceContainer == null)
+			{
+				errorText += "\n--> Error on creating media resource container, on using resource identifier: '" + mediaResourceIdentifier + "'";
+				isError = true;
+			}
+
+			this.mediaResourceContainer = ResourceManager.media(this.getContext(), resourceContainer.getGroup(), resourceContainer.getName());
+
+			if (this.mediaResourceContainer == null)
+			{
+				errorText += "\n--> Error on creating media resource container, on using resource identifier: '" + mediaResourceIdentifier + "'";
+				isError = true;
+			}
+
+			// Get: File type
+			this.fileType = this.requestContainer.getProperty(ResourceManager.commandParameter(this.getContext(), "MediaFileUpload", "FileType").getAliasName(), null);
+
+			if (this.fileType == null || this.fileType.length() == 0)
+			{
+				errorText += "\n--> Missing value 'FileType'";
+				isError = true;
+			}
+
+			// Get: Data identifier
+			this.dataIdentifier = this.requestContainer.getProperty(ResourceManager.commandParameter(this.getContext(), "MediaFileUpload", "DataIdentifier").getAliasName(), null);
+
+			if (this.dataIdentifier == null || this.dataIdentifier.length() == 0)
+			{
+				errorText += "\n--> Missing value 'DataIdentifier'";
+				isError = true;
+			}
+
+			// Get: Hash value
+			this.hashValue = this.requestContainer.getProperty(ResourceManager.commandParameter(this.getContext(), "MediaFileUpload", "HashValue").getAliasName(), null);
+
+			if (this.hashValue == null || this.hashValue.length() == 0)
+			{
+				errorText += "\n--> Missing value 'HashValue'";
+				isError = true;
+			}
 
 			// Get: Media Content
 			this.mediaContent = this.requestContainer.getProperty(ResourceManager.commandParameter(this.getContext(), "MediaFileUpload", "MediaContent").getAliasName(), null);
@@ -50,14 +117,13 @@ public class ServerCommandMediaFileUpload extends ServerCommandMediaFileCheck
 			// Fire error message
 			if (isError == true)
 			{
-				this.context.getNotificationManager().notifyError(this.context, ResourceManager.notification(this.context, "Command", "ErrorOnProcessingCommand"), errorText, null);
-				this.setErrorMessageTechnicalError(this.context, this.responseContainer, errorText);
+				this.notifyError("Command", "IntegrityError", errorText, null);
 				return false;
 			}
 		}
 		catch (Exception e)
 		{
-			this.context.getNotificationManager().notifyError(this.context, ResourceManager.notification(this.context, "Command", "ErrorOnProcessingCommand"), null, e);
+			this.notifyError("Command", "ErrorOnProcessingCommand", null, e);
 			return false;
 		}
 
@@ -68,94 +134,33 @@ public class ServerCommandMediaFileUpload extends ServerCommandMediaFileCheck
 	@Override
 	protected boolean processOnServer()
 	{
-		// Process functions of 'ServerCommandMediaFileCheck'
-		super.processOnServer();
-		
-		// Handle own stuff
 		try
 		{
-			/*
-			 *  Extract media content into a pending file
-			 */
-			String pendingFileName = FileLocationFunctions.compileFilePath(this.mediaResourceContainer.getMediaPendingFilePath(this.context), this.mediaResourceContainer.getMediaPendingFileName(this.context, this.fileType));
+			// Check if file already exists
+			this.isExisting = this.context.getMediaManager().doCheckIfMediaFileExists(this.context, this.mediaResourceContainer, this.dataIdentifier, this.fileType, this.hashValue);
 			
-			String logText = "\n--> COMMAND SERVER MEDIA FILE UPLOAD: Pending file name created";
-			logText += "\n--> Pending file name: '" + pendingFileName + "'";
-			logText += "\n--> Media resource identifier: '" + this.mediaResourceContainer.getRecourceIdentifier() + "'";
-			this.context.getNotificationManager().notifyLogMessage(this.context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
-			
-			if (FileUtilFunctions.fileWriteFromString(pendingFileName, this.mediaContent) == false)
-			{
-				String errorString = "--> COMMAND SERVER MEDIA FILE UPLOAD: Error on writing media content into the pending file";
-				errorString += "\n--> Media resource identifier: '" + this.mediaResourceContainer.getRecourceIdentifier() + "'";
-				errorString += "\n--> Pending file name: '" + pendingFileName + "'";
-				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Command", "ErrorOnProcessingCommand"), errorString, null);
-				return false;
-			}
-			
-			logText = "\n--> COMMAND SERVER MEDIA FILE UPLOAD: Media content stored in pending file";
-			logText += "\n--> Pending file name: '" + pendingFileName + "'";
-			logText += "\n--> Media resource identifier: '" + this.mediaResourceContainer.getRecourceIdentifier() + "'";
-			logText += "\n--> Data identifier: '" + this.dataIdentifier + "'";
-			logText += "\n--> Hash value: '" + this.hashValue + "'";
-			this.context.getNotificationManager().notifyLogMessage(this.context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
-			
-			/*
-			 *  Upload pending file into the system as regular media file
-			 */
-			if (this.context.getMediaManager().operationStoreLocal(this.context, this.mediaResourceContainer, pendingFileName, this.dataIdentifier) == false)
-			{
-				String errorString = "--> COMMAND SERVER MEDIA FILE UPLOAD: Error on storing pending file as regular media file";
-				errorString += "\n--> Media resource identifier: '" + this.mediaResourceContainer.getRecourceIdentifier() + "'";
-				errorString += "\n--> Pending file to be stored: '" + pendingFileName + "'";
-				errorString += "\n--> Data identifier: '" + this.dataIdentifier + "'";
-				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Command", "ErrorOnProcessingCommand"), errorString, null);
-				return false;
-			}
-			
-			
-			logText = "\n--> COMMAND SERVER MEDIA FILE UPLOAD: Pending file stored in regular media file";
-			logText += "\n--> Pending file name: '" + pendingFileName + "'";
-			logText += "\n--> Media resource identifier: '" + this.mediaResourceContainer.getRecourceIdentifier() + "'";
-			logText += "\n--> Data identifier: '" + this.dataIdentifier + "'";
-			this.context.getNotificationManager().notifyLogMessage(this.context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
-			
-			/*
-			 *  Delete pending file
-			 */
-			if (FileUtilFunctions.fileDelete(pendingFileName) == false)
-			{
-				String errorString = "--> COMMAND SERVER MEDIA FILE UPLOAD: Error on deleting pending file";
-				errorString += "\n--> Media resource identifier: '" + this.mediaResourceContainer.getRecourceIdentifier() + "'";
-				errorString += "\n--> Pending file to be deleted: '" + pendingFileName + "'";
-				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Command", "ErrorOnProcessingCommand"), errorString, null);
-				return false;
-			}
-			
-			logText = "\n--> COMMAND SERVER MEDIA FILE UPLOAD: Pending file deleted";
-			logText += "\n--> Pending file name: '" + pendingFileName + "'";
-			logText += "\n--> Media resource identifier: '" + this.mediaResourceContainer.getRecourceIdentifier() + "'";
-			this.context.getNotificationManager().notifyLogMessage(this.context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
-			
-			// File already exists
-			this.isUploaded = true;
+			// Get media content
+			this.isUploaded = this.getContext().getMediaManager().doPushMediaContentToMediaFile(this.getContext(), this.mediaResourceContainer, this.dataIdentifier, this.fileType, this.mediaContent);
 		
 			// Return
 			return true;
 		}
 		catch (Exception e)
 		{
-			this.context.getNotificationManager().notifyError(this.context, ResourceManager.notification(this.context, "Command", "ErrorOnProcessingCommand"), null, e);
+			this.notifyError("Command", "ErrorOnProcessingCommand", null, e);
 			return false;
 		}
 	}
 
 	@Override
-	protected boolean evaluateResults()
+	protected boolean arrangeResults()
 	{
 		try
 		{
-			// Set parameter: MediaResourceIdentifier
+			// Set result value: IsExisting
+			this.responseContainer.addProperty(ResourceManager.commandParameter(this.getContext(), "MediaFileUpload", "IsExisting").getAliasName(), this.isExisting.toString());
+			
+			// Set result value: IsUploaded
 			this.responseContainer.addProperty(ResourceManager.commandParameter(this.getContext(), "MediaFile", "IsUploaded").getAliasName(), this.isUploaded.toString());
 			
 			// Return
@@ -163,7 +168,7 @@ public class ServerCommandMediaFileUpload extends ServerCommandMediaFileCheck
 		}
 		catch (Exception e)
 		{
-			this.context.getNotificationManager().notifyError(this.context, ResourceManager.notification(this.context, "Command", "ErrorOnProcessingCommand"), null, e);
+			this.notifyError("Command", "ErrorOnProcessingCommand", null, e);
 			return false;
 		}
 	}

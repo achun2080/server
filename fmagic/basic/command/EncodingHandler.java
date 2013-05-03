@@ -97,7 +97,7 @@ public class EncodingHandler
 		{
 			commandJson = gson.toJson(container);
 			commandJson = ENCODING_CODE_PLAIN_JSON_ONLY + commandJson;
-			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.CODE, "JSON command STRING (" + commandJson.length() + ")\n[\n" + commandJson.substring(0, Math.min(commandJson.length() - 1, 300)) + "\n]");
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.CODE, "JSON command STRING (" + commandJson.length() + ")\n[\n" + commandJson.substring(0, Math.min(commandJson.length() - 1, 1000)) + "\n]");
 		}
 		catch (Exception e)
 		{
@@ -132,7 +132,7 @@ public class EncodingHandler
 			commandJson = gson.toJson(container);
 			commandJson = ENCODING_CODE_PLAIN_JSON_ONLY + commandJson;
 
-			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.CODE, "JSON command STRING (" + commandJson.length() + ")\n[\n" + commandJson.substring(0, Math.min(commandJson.length() - 1, 300)) + "\n]");
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.CODE, "JSON command STRING (" + commandJson.length() + ")\n[\n" + commandJson.substring(0, Math.min(commandJson.length() - 1, 1000)) + "\n]");
 		}
 		catch (Exception e)
 		{
@@ -454,7 +454,7 @@ public class EncodingHandler
 			{
 				container = gson.fromJson(commandJson.substring(1), RequestContainer.class);
 
-				context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.CODE, "JSON command STRING (" + commandJson.length() + ")\n[\n" + commandJson.substring(0, Math.min(commandJson.length() - 1, 300)) + "\n]");
+				context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.CODE, "JSON command STRING (" + commandJson.length() + ")\n[\n" + commandJson.substring(0, Math.min(commandJson.length() - 1, 1000)) + "\n]");
 			}
 			// All commands have to be set to JSON
 			else
@@ -498,7 +498,7 @@ public class EncodingHandler
 			{
 				container = gson.fromJson(commandJson.substring(1), ResponseContainer.class);
 
-				context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.CODE, "JSON command STRING (" + commandJson.length() + ")\n[\n" + commandJson.substring(0, Math.min(commandJson.length() - 1, 300)) + "\n]");
+				context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.CODE, "JSON command STRING (" + commandJson.length() + ")\n[\n" + commandJson.substring(0, Math.min(commandJson.length() - 1, 1000)) + "\n]");
 			}
 			// All commands have to be set to JSON
 			else
@@ -535,7 +535,7 @@ public class EncodingHandler
 	 *         occurred.
 	 * 
 	 */
-	public String encodeRequestContainer(Context context, RequestContainer container, boolean doZipping, boolean doEncrypting, String serverPublicKey)
+	public StringBuffer encodeRequestContainer(Context context, RequestContainer container, boolean doZipping, boolean doEncrypting, String serverPublicKey)
 	{
 		// Convert to JSON
 		String commandJson = this.convertRequestContainerToJson(context, container);
@@ -550,7 +550,7 @@ public class EncodingHandler
 		if (commandEncrypted == null) return null;
 
 		// Return
-		return commandEncrypted;
+		return new StringBuffer(commandEncrypted);
 	}
 
 	/**
@@ -626,7 +626,7 @@ public class EncodingHandler
 	 *         occurred.
 	 * 
 	 */
-	public String encodeResponseContainer(Context context, ResponseContainer container, boolean doZipping, boolean doEncrypting, String clientPublicKey)
+	public StringBuffer encodeResponseContainer(Context context, ResponseContainer container, boolean doZipping, boolean doEncrypting, String clientPublicKey)
 	{
 		String commandJson = this.convertResponseContainerToJson(context, container);
 		if (commandJson == null) return null;
@@ -637,7 +637,7 @@ public class EncodingHandler
 		String commandEncrypted = this.convertEncrypt(context, commandZipped, doEncrypting, clientPublicKey);
 		if (commandEncrypted == null) return null;
 
-		return commandEncrypted;
+		return new StringBuffer(commandEncrypted);
 	}
 
 	/**
@@ -653,7 +653,7 @@ public class EncodingHandler
 	 *         occurred.
 	 * 
 	 */
-	public String encodeResponseContainer(Context context, ResponseContainer container, String clientPrivateKey)
+	public StringBuffer encodeResponseContainer(Context context, ResponseContainer container, String clientPrivateKey)
 	{
 		return encodeResponseContainer(context, container, false, false, clientPrivateKey);
 	}
@@ -671,7 +671,7 @@ public class EncodingHandler
 	 *         occurred.
 	 * 
 	 */
-	public String encodeRequestContainer(Context context, RequestContainer container, String serverPublicKey)
+	public StringBuffer encodeRequestContainer(Context context, RequestContainer container, String serverPublicKey)
 	{
 		return encodeRequestContainer(context, container, false, false, serverPublicKey);
 	}

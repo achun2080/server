@@ -457,7 +457,7 @@ public class ResourceManager implements ManagerInterface
 			if (this.aliasNameIdentifierList.containsKey(identifier))
 			{
 				String errorString = "--> Duplicate Alias name found, based on the same Type/Usage/Group.";
-				errorString += "\n--> Type/Usage/Group: '" + type + "/" + usage + "/" + group  + "'";
+				errorString += "\n--> Type/Usage/Group: '" + type + "/" + usage + "/" + group + "'";
 				errorString += "\n--> Alias name: '" + aliasName + "'";
 				errorString += "\n--> In file: '" + fileName + "'";
 				errorString += "\n--> Line number: '" + String.valueOf(lineNumber) + "'";
@@ -764,113 +764,121 @@ public class ResourceManager implements ManagerInterface
 	{
 		String manualText = "";
 
-		// Sorting the keys alphabetically
-		List<String> sortedListManual = new ArrayList<String>();
-		sortedListManual.addAll(this.resources.keySet());
-		Collections.sort(sortedListManual);
-
-		// List all items
-		Iterator<String> iterManual = sortedListManual.iterator();
-
-		while (iterManual.hasNext())
+		try
 		{
-			// Get ENUM
-			String identifier = iterManual.next();
-			ResourceContainer resourceContainer = this.resources.get(identifier);
+			// Sorting the keys alphabetically
+			List<String> sortedListManual = new ArrayList<String>();
+			sortedListManual.addAll(this.resources.keySet());
+			Collections.sort(sortedListManual);
 
-			// Check typeList
-			if (typeList != null)
+			// List all items
+			Iterator<String> iterManual = sortedListManual.iterator();
+
+			while (iterManual.hasNext())
 			{
-				boolean criteriaFound = false;
+				// Get ENUM
+				String identifier = iterManual.next();
+				ResourceContainer resourceContainer = this.resources.get(identifier);
 
-				for (int i = 0; i < typeList.length; i++)
+				// Check typeList
+				if (typeList != null)
 				{
-					if (typeList[i].equalsIgnoreCase(resourceContainer.getType()))
+					boolean criteriaFound = false;
+
+					for (int i = 0; i < typeList.length; i++)
 					{
-						criteriaFound = true;
-						break;
+						if (typeList[i] != null && typeList[i].equalsIgnoreCase(resourceContainer.getType()))
+						{
+							criteriaFound = true;
+							break;
+						}
 					}
+
+					if (criteriaFound == false) continue;
 				}
 
-				if (criteriaFound == false) continue;
-			}
-
-			// Check applicationList
-			if (applicationList != null)
-			{
-				boolean criteriaFound = false;
-
-				for (int i = 0; i < applicationList.length; i++)
+				// Check applicationList
+				if (applicationList != null)
 				{
-					if (applicationList[i].equalsIgnoreCase(resourceContainer.getApplication()))
+					boolean criteriaFound = false;
+
+					for (int i = 0; i < applicationList.length; i++)
 					{
-						criteriaFound = true;
-						break;
+						if (applicationList[i] != null && applicationList[i].equalsIgnoreCase(resourceContainer.getApplication()))
+						{
+							criteriaFound = true;
+							break;
+						}
 					}
+
+					if (criteriaFound == false) continue;
 				}
 
-				if (criteriaFound == false) continue;
-			}
-
-			// Check originList
-			if (originList != null)
-			{
-				boolean criteriaFound = false;
-
-				for (int i = 0; i < originList.length; i++)
+				// Check originList
+				if (originList != null)
 				{
-					if (originList[i].equalsIgnoreCase(resourceContainer.getOrigin()))
+					boolean criteriaFound = false;
+
+					for (int i = 0; i < originList.length; i++)
 					{
-						criteriaFound = true;
-						break;
+						if (originList[i] != null && originList[i].equalsIgnoreCase(resourceContainer.getOrigin()))
+						{
+							criteriaFound = true;
+							break;
+						}
 					}
+
+					if (criteriaFound == false) continue;
 				}
 
-				if (criteriaFound == false) continue;
-			}
-
-			// Check usageList
-			if (usageList != null)
-			{
-				boolean criteriaFound = false;
-
-				for (int i = 0; i < usageList.length; i++)
+				// Check usageList
+				if (usageList != null)
 				{
-					if (usageList[i].equalsIgnoreCase(resourceContainer.getUsage()))
+					boolean criteriaFound = false;
+
+					for (int i = 0; i < usageList.length; i++)
 					{
-						criteriaFound = true;
-						break;
+						if (usageList[i] != null && usageList[i].equalsIgnoreCase(resourceContainer.getUsage()))
+						{
+							criteriaFound = true;
+							break;
+						}
 					}
+
+					if (criteriaFound == false) continue;
 				}
 
-				if (criteriaFound == false) continue;
-			}
-
-			// Check groupList
-			if (groupList != null)
-			{
-				boolean criteriaFound = false;
-
-				for (int i = 0; i < groupList.length; i++)
+				// Check groupList
+				if (groupList != null)
 				{
-					if (groupList[i].equalsIgnoreCase(resourceContainer.getGroup()))
+					boolean criteriaFound = false;
+
+					for (int i = 0; i < groupList.length; i++)
 					{
-						criteriaFound = true;
-						break;
+						if (groupList[i] != null && groupList[i].equalsIgnoreCase(resourceContainer.getGroup()))
+						{
+							criteriaFound = true;
+							break;
+						}
 					}
+
+					if (criteriaFound == false) continue;
 				}
 
-				if (criteriaFound == false) continue;
+				// Print resource to manual
+				if (resourceContainer != null)
+				{
+					manualText += "\n\n############################################################";
+					manualText += "\n### " + resourceContainer.getRecourceIdentifier();
+					manualText += "\n############################################################";
+					manualText += resourceContainer.printManual(context);
+				}
 			}
-
-			// Print resource to manual
-			if (resourceContainer != null)
-			{
-				manualText += "\n\n############################################################";
-				manualText += "\n### " + resourceContainer.getRecourceIdentifier();
-				manualText += "\n############################################################";
-				manualText += resourceContainer.printManual(context);
-			}
+		}
+		catch (Exception e)
+		{
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Resource", "IntegrityError"), null, e);
+			return manualText;
 		}
 
 		// Return
@@ -913,110 +921,118 @@ public class ResourceManager implements ManagerInterface
 	{
 		String manualText = "";
 
-		// Sorting the keys alphabetically
-		List<String> sortedListManual = new ArrayList<String>();
-		sortedListManual.addAll(this.resources.keySet());
-		Collections.sort(sortedListManual);
-
-		// List all items
-		Iterator<String> iterManual = sortedListManual.iterator();
-
-		while (iterManual.hasNext())
+		try
 		{
-			// Get ENUM
-			String identifier = iterManual.next();
-			ResourceContainer resourceContainer = this.resources.get(identifier);
+			// Sorting the keys alphabetically
+			List<String> sortedListManual = new ArrayList<String>();
+			sortedListManual.addAll(this.resources.keySet());
+			Collections.sort(sortedListManual);
 
-			// Check typeList
-			if (typeList != null)
+			// List all items
+			Iterator<String> iterManual = sortedListManual.iterator();
+
+			while (iterManual.hasNext())
 			{
-				boolean criteriaFound = false;
+				// Get ENUM
+				String identifier = iterManual.next();
+				ResourceContainer resourceContainer = this.resources.get(identifier);
 
-				for (int i = 0; i < typeList.length; i++)
+				// Check typeList
+				if (typeList != null)
 				{
-					if (typeList[i].equalsIgnoreCase(resourceContainer.getType()))
+					boolean criteriaFound = false;
+
+					for (int i = 0; i < typeList.length; i++)
 					{
-						criteriaFound = true;
-						break;
+						if (typeList[i] != null && typeList[i].equalsIgnoreCase(resourceContainer.getType()))
+						{
+							criteriaFound = true;
+							break;
+						}
 					}
+
+					if (criteriaFound == false) continue;
 				}
 
-				if (criteriaFound == false) continue;
-			}
-
-			// Check applicationList
-			if (applicationList != null)
-			{
-				boolean criteriaFound = false;
-
-				for (int i = 0; i < applicationList.length; i++)
+				// Check applicationList
+				if (applicationList != null)
 				{
-					if (applicationList[i].equalsIgnoreCase(resourceContainer.getApplication()))
+					boolean criteriaFound = false;
+
+					for (int i = 0; i < applicationList.length; i++)
 					{
-						criteriaFound = true;
-						break;
+						if (applicationList[i] != null && applicationList[i].equalsIgnoreCase(resourceContainer.getApplication()))
+						{
+							criteriaFound = true;
+							break;
+						}
 					}
+
+					if (criteriaFound == false) continue;
 				}
 
-				if (criteriaFound == false) continue;
-			}
-
-			// Check originList
-			if (originList != null)
-			{
-				boolean criteriaFound = false;
-
-				for (int i = 0; i < originList.length; i++)
+				// Check originList
+				if (originList != null)
 				{
-					if (originList[i].equalsIgnoreCase(resourceContainer.getOrigin()))
+					boolean criteriaFound = false;
+
+					for (int i = 0; i < originList.length; i++)
 					{
-						criteriaFound = true;
-						break;
+						if (originList[i] != null && originList[i].equalsIgnoreCase(resourceContainer.getOrigin()))
+						{
+							criteriaFound = true;
+							break;
+						}
 					}
+
+					if (criteriaFound == false) continue;
 				}
 
-				if (criteriaFound == false) continue;
-			}
-
-			// Check usageList
-			if (usageList != null)
-			{
-				boolean criteriaFound = false;
-
-				for (int i = 0; i < usageList.length; i++)
+				// Check usageList
+				if (usageList != null)
 				{
-					if (usageList[i].equalsIgnoreCase(resourceContainer.getUsage()))
+					boolean criteriaFound = false;
+
+					for (int i = 0; i < usageList.length; i++)
 					{
-						criteriaFound = true;
-						break;
+						if (usageList[i] != null && usageList[i].equalsIgnoreCase(resourceContainer.getUsage()))
+						{
+							criteriaFound = true;
+							break;
+						}
 					}
+
+					if (criteriaFound == false) continue;
 				}
 
-				if (criteriaFound == false) continue;
-			}
-
-			// Check groupList
-			if (groupList != null)
-			{
-				boolean criteriaFound = false;
-
-				for (int i = 0; i < groupList.length; i++)
+				// Check groupList
+				if (groupList != null)
 				{
-					if (groupList[i].equalsIgnoreCase(resourceContainer.getGroup()))
+					boolean criteriaFound = false;
+
+					for (int i = 0; i < groupList.length; i++)
 					{
-						criteriaFound = true;
-						break;
+						if (groupList[i] != null && groupList[i].equalsIgnoreCase(resourceContainer.getGroup()))
+						{
+							criteriaFound = true;
+							break;
+						}
 					}
+
+					if (criteriaFound == false) continue;
 				}
 
-				if (criteriaFound == false) continue;
+				// Print resource to manual
+				if (resourceContainer != null)
+				{
+					manualText += resourceContainer.printTemplate(context, includingResourceIdentifiers);
+				}
 			}
-
-			// Print resource to manual
-			if (resourceContainer != null)
-			{
-				manualText += resourceContainer.printTemplate(context, includingResourceIdentifiers);
-			}
+		}
+		catch (Exception e)
+		{
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Resource", "IntegrityError"), null, e);
+			return manualText;
 		}
 
 		// Return
@@ -1060,110 +1076,118 @@ public class ResourceManager implements ManagerInterface
 	{
 		String listText = "";
 
-		// Sorting the keys alphabetically
-		List<String> sortedListManual = new ArrayList<String>();
-		sortedListManual.addAll(this.resources.keySet());
-		Collections.sort(sortedListManual);
-
-		// List all items
-		Iterator<String> iterManual = sortedListManual.iterator();
-
-		while (iterManual.hasNext())
+		try
 		{
-			// Get ENUM
-			String identifier = iterManual.next();
-			ResourceContainer resourceContainer = this.resources.get(identifier);
+			// Sorting the keys alphabetically
+			List<String> sortedListManual = new ArrayList<String>();
+			sortedListManual.addAll(this.resources.keySet());
+			Collections.sort(sortedListManual);
 
-			// Check typeList
-			if (typeList != null)
+			// List all items
+			Iterator<String> iterManual = sortedListManual.iterator();
+
+			while (iterManual.hasNext())
 			{
-				boolean criteriaFound = false;
+				// Get ENUM
+				String identifier = iterManual.next();
+				ResourceContainer resourceContainer = this.resources.get(identifier);
 
-				for (int i = 0; i < typeList.length; i++)
+				// Check typeList
+				if (typeList != null)
 				{
-					if (typeList[i].equalsIgnoreCase(resourceContainer.getType()))
+					boolean criteriaFound = false;
+
+					for (int i = 0; i < typeList.length; i++)
 					{
-						criteriaFound = true;
-						break;
+						if (typeList[i] != null && typeList[i].equalsIgnoreCase(resourceContainer.getType()))
+						{
+							criteriaFound = true;
+							break;
+						}
 					}
+
+					if (criteriaFound == false) continue;
 				}
 
-				if (criteriaFound == false) continue;
-			}
-
-			// Check applicationList
-			if (applicationList != null)
-			{
-				boolean criteriaFound = false;
-
-				for (int i = 0; i < applicationList.length; i++)
+				// Check applicationList
+				if (applicationList != null)
 				{
-					if (applicationList[i].equalsIgnoreCase(resourceContainer.getApplication()))
+					boolean criteriaFound = false;
+
+					for (int i = 0; i < applicationList.length; i++)
 					{
-						criteriaFound = true;
-						break;
+						if (applicationList[i] != null && applicationList[i].equalsIgnoreCase(resourceContainer.getApplication()))
+						{
+							criteriaFound = true;
+							break;
+						}
 					}
+
+					if (criteriaFound == false) continue;
 				}
 
-				if (criteriaFound == false) continue;
-			}
-
-			// Check originList
-			if (originList != null)
-			{
-				boolean criteriaFound = false;
-
-				for (int i = 0; i < originList.length; i++)
+				// Check originList
+				if (originList != null)
 				{
-					if (originList[i].equalsIgnoreCase(resourceContainer.getOrigin()))
+					boolean criteriaFound = false;
+
+					for (int i = 0; i < originList.length; i++)
 					{
-						criteriaFound = true;
-						break;
+						if (originList[i] != null && originList[i].equalsIgnoreCase(resourceContainer.getOrigin()))
+						{
+							criteriaFound = true;
+							break;
+						}
 					}
+
+					if (criteriaFound == false) continue;
 				}
 
-				if (criteriaFound == false) continue;
-			}
-
-			// Check usageList
-			if (usageList != null)
-			{
-				boolean criteriaFound = false;
-
-				for (int i = 0; i < usageList.length; i++)
+				// Check usageList
+				if (usageList != null)
 				{
-					if (usageList[i].equalsIgnoreCase(resourceContainer.getUsage()))
+					boolean criteriaFound = false;
+
+					for (int i = 0; i < usageList.length; i++)
 					{
-						criteriaFound = true;
-						break;
+						if (usageList[i] != null && usageList[i].equalsIgnoreCase(resourceContainer.getUsage()))
+						{
+							criteriaFound = true;
+							break;
+						}
 					}
+
+					if (criteriaFound == false) continue;
 				}
 
-				if (criteriaFound == false) continue;
-			}
-
-			// Check groupList
-			if (groupList != null)
-			{
-				boolean criteriaFound = false;
-
-				for (int i = 0; i < groupList.length; i++)
+				// Check groupList
+				if (groupList != null)
 				{
-					if (groupList[i].equalsIgnoreCase(resourceContainer.getGroup()))
+					boolean criteriaFound = false;
+
+					for (int i = 0; i < groupList.length; i++)
 					{
-						criteriaFound = true;
-						break;
+						if (groupList[i] != null && groupList[i].equalsIgnoreCase(resourceContainer.getGroup()))
+						{
+							criteriaFound = true;
+							break;
+						}
 					}
+
+					if (criteriaFound == false) continue;
 				}
 
-				if (criteriaFound == false) continue;
+				// Print resource to manual
+				if (resourceContainer != null)
+				{
+					listText += resourceContainer.getRecourceIdentifier() + "\n";
+				}
 			}
-
-			// Print resource to manual
-			if (resourceContainer != null)
-			{
-				listText += resourceContainer.getRecourceIdentifier() + "\n";
-			}
+		}
+		catch (Exception e)
+		{
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Resource", "IntegrityError"), null, e);
+			return listText;
 		}
 
 		// Return
@@ -1206,110 +1230,118 @@ public class ResourceManager implements ManagerInterface
 	{
 		List<String> resultList = new ArrayList<String>();
 
-		// Sorting the keys alphabetically
-		List<String> sortedListManual = new ArrayList<String>();
-		sortedListManual.addAll(this.resources.keySet());
-		Collections.sort(sortedListManual);
-
-		// List all items
-		Iterator<String> iterManual = sortedListManual.iterator();
-
-		while (iterManual.hasNext())
+		try
 		{
-			// Get ENUM
-			String identifier = iterManual.next();
-			ResourceContainer resourceContainer = this.resources.get(identifier);
+			// Sorting the keys alphabetically
+			List<String> sortedListManual = new ArrayList<String>();
+			sortedListManual.addAll(this.resources.keySet());
+			Collections.sort(sortedListManual);
 
-			// Check typeList
-			if (typeList != null)
+			// List all items
+			Iterator<String> iterManual = sortedListManual.iterator();
+
+			while (iterManual.hasNext())
 			{
-				boolean criteriaFound = false;
+				// Get ENUM
+				String identifier = iterManual.next();
+				ResourceContainer resourceContainer = this.resources.get(identifier);
 
-				for (int i = 0; i < typeList.length; i++)
+				// Check typeList
+				if (typeList != null)
 				{
-					if (typeList[i].equalsIgnoreCase(resourceContainer.getType()))
+					boolean criteriaFound = false;
+
+					for (int i = 0; i < typeList.length; i++)
 					{
-						criteriaFound = true;
-						break;
+						if (typeList[i] != null && typeList[i].equalsIgnoreCase(resourceContainer.getType()))
+						{
+							criteriaFound = true;
+							break;
+						}
 					}
+
+					if (criteriaFound == false) continue;
 				}
 
-				if (criteriaFound == false) continue;
-			}
-
-			// Check applicationList
-			if (applicationList != null)
-			{
-				boolean criteriaFound = false;
-
-				for (int i = 0; i < applicationList.length; i++)
+				// Check applicationList
+				if (applicationList != null)
 				{
-					if (applicationList[i].equalsIgnoreCase(resourceContainer.getApplication()))
+					boolean criteriaFound = false;
+
+					for (int i = 0; i < applicationList.length; i++)
 					{
-						criteriaFound = true;
-						break;
+						if (applicationList[i] != null && applicationList[i].equalsIgnoreCase(resourceContainer.getApplication()))
+						{
+							criteriaFound = true;
+							break;
+						}
 					}
+
+					if (criteriaFound == false) continue;
 				}
 
-				if (criteriaFound == false) continue;
-			}
-
-			// Check originList
-			if (originList != null)
-			{
-				boolean criteriaFound = false;
-
-				for (int i = 0; i < originList.length; i++)
+				// Check originList
+				if (originList != null)
 				{
-					if (originList[i].equalsIgnoreCase(resourceContainer.getOrigin()))
+					boolean criteriaFound = false;
+
+					for (int i = 0; i < originList.length; i++)
 					{
-						criteriaFound = true;
-						break;
+						if (originList[i] != null && originList[i].equalsIgnoreCase(resourceContainer.getOrigin()))
+						{
+							criteriaFound = true;
+							break;
+						}
 					}
+
+					if (criteriaFound == false) continue;
 				}
 
-				if (criteriaFound == false) continue;
-			}
-
-			// Check usageList
-			if (usageList != null)
-			{
-				boolean criteriaFound = false;
-
-				for (int i = 0; i < usageList.length; i++)
+				// Check usageList
+				if (usageList != null)
 				{
-					if (usageList[i].equalsIgnoreCase(resourceContainer.getUsage()))
+					boolean criteriaFound = false;
+
+					for (int i = 0; i < usageList.length; i++)
 					{
-						criteriaFound = true;
-						break;
+						if (usageList[i] != null && usageList[i].equalsIgnoreCase(resourceContainer.getUsage()))
+						{
+							criteriaFound = true;
+							break;
+						}
 					}
+
+					if (criteriaFound == false) continue;
 				}
 
-				if (criteriaFound == false) continue;
-			}
-
-			// Check groupList
-			if (groupList != null)
-			{
-				boolean criteriaFound = false;
-
-				for (int i = 0; i < groupList.length; i++)
+				// Check groupList
+				if (groupList != null)
 				{
-					if (groupList[i].equalsIgnoreCase(resourceContainer.getGroup()))
+					boolean criteriaFound = false;
+
+					for (int i = 0; i < groupList.length; i++)
 					{
-						criteriaFound = true;
-						break;
+						if (groupList[i] != null && groupList[i].equalsIgnoreCase(resourceContainer.getGroup()))
+						{
+							criteriaFound = true;
+							break;
+						}
 					}
+
+					if (criteriaFound == false) continue;
 				}
 
-				if (criteriaFound == false) continue;
+				// Add to list
+				if (resourceContainer != null)
+				{
+					resultList.add(resourceContainer.getRecourceIdentifier());
+				}
 			}
-
-			// Add to list
-			if (resourceContainer != null)
-			{
-				resultList.add(resourceContainer.getRecourceIdentifier());
-			}
+		}
+		catch (Exception e)
+		{
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Resource", "IntegrityError"), null, e);
+			return resultList;
 		}
 
 		// Return
@@ -1624,9 +1656,9 @@ public class ResourceManager implements ManagerInterface
 	 * @return Returns the resource container, or <TT>null</TT> if an error
 	 *         occurred.
 	 */
-	public static ResourceContainer command(Context context, String group, String name)
+	public static ResourceContainer command(Context context, String groupAndName)
 	{
-		return ResourceManager.getResourceContainerByTypeGroupName(context, ResourceContainer.TypeEnum.Command.toString(), group, name);
+		return ResourceManager.getResourceContainerByTypeGroupName(context, ResourceContainer.TypeEnum.Command.toString(), groupAndName, groupAndName);
 	}
 
 	/**
@@ -1839,7 +1871,7 @@ public class ResourceManager implements ManagerInterface
 
 		// Set File name
 		String fileName = null;
-		
+
 		if (otherFileName != null && otherFileName.length() > 0)
 		{
 			fileName = otherFileName;

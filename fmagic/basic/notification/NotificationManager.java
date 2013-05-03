@@ -333,7 +333,7 @@ public class NotificationManager implements ManagerInterface
 			// Processing message text
 			if (isError == true)
 			{
-				System.out.println(formattedString);
+				System.err.println(formattedString);
 			}
 			else
 			{
@@ -345,14 +345,22 @@ public class NotificationManager implements ManagerInterface
 			// Processing additional text
 			if (additionalText != null && additionalText.length() > 0)
 			{
-				System.out.println(additionalText);
+				if (isError == true)
+				{
+					System.err.println(additionalText);
+				}
+				else
+				{
+					System.out.println(additionalText);
+				}
+				
 				context.getNotificationManager().writeMessageToLogfile(context, "\n\n" + additionalText);
 			}
 
 			// Processing exceptional text
 			if (exceptionText != null && exceptionText.length() > 0)
 			{
-				System.out.println(exceptionText);
+				System.err.println(exceptionText);
 				context.getNotificationManager().writeMessageToLogfile(context, "\n\n" + exceptionText);
 			}
 		}

@@ -1,22 +1,21 @@
 package fmagic.server.application;
 
 import java.net.ServerSocket;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import fmagic.basic.application.ApplicationManager;
 import fmagic.basic.application.ApplicationServer;
 import fmagic.basic.command.SessionContainer;
 import fmagic.basic.file.FileUtilFunctions;
 import fmagic.basic.notification.NotificationManager;
-import fmagic.basic.resource.ResourceManager;
 import fmagic.basic.resource.ResourceContainer.OriginEnum;
+import fmagic.basic.resource.ResourceManager;
 
 /**
  * This class implements common functions of the application servers of the
@@ -30,7 +29,7 @@ import fmagic.basic.resource.ResourceContainer.OriginEnum;
 public abstract class ServerManager extends ApplicationManager
 {
 	// Specific data
-	final private int serverSocketPort;
+	private final int serverSocketPort;
 
 	// Socket data
 	private ServerSocket serverSocket = null;
@@ -41,10 +40,10 @@ public abstract class ServerManager extends ApplicationManager
 	private String serverPrivateKey = null;
 
 	// Thread pool
-	private ExecutorService executorService = null;
+	private final List<Thread> threadPool = new ArrayList<Thread>();
 
 	// Sessions
-	final private HashMap<String, SessionContainer> sessions = new HashMap<String, SessionContainer>();
+	private final HashMap<String, SessionContainer> sessions = new HashMap<String, SessionContainer>();
 	private Integer maxNuOfActiveSessions = null;
 	private Integer percentageRateOfSessionsToClean = null;
 
@@ -75,14 +74,15 @@ public abstract class ServerManager extends ApplicationManager
 	 *            is running in productive mode.
 	 * 
 	 * @param testSessionName
-	 *            Is to be set to the name of the test session, if the application
-	 *            is running in test mode, or <TT>null</TT> if the application
-	 *            is running in productive mode.
+	 *            Is to be set to the name of the test session, if the
+	 *            application is running in test mode, or <TT>null</TT> if the
+	 *            application is running in productive mode.
 	 */
 	protected ServerManager(
 			ApplicationManager.ApplicationIdentifierEnum applicationIdentifier,
 			int applicationVersion, String codeName, int serverSocketPort,
-			int timeoutTimeInMilliseconds, boolean runningInTestMode, String testCaseName, String testSessionName)
+			int timeoutTimeInMilliseconds, boolean runningInTestMode,
+			String testCaseName, String testSessionName)
 	{
 		// Instantiate super class
 		super(applicationIdentifier, applicationVersion, codeName, OriginEnum.Server, runningInTestMode, testCaseName, testSessionName);
@@ -119,10 +119,6 @@ public abstract class ServerManager extends ApplicationManager
 	@Override
 	protected boolean bindResources()
 	{
-		// Create Thread pool
-		this.executorService = Executors.newCachedThreadPool();
-		
-
 		// Open server socket
 		try
 		{
@@ -173,19 +169,7 @@ public abstract class ServerManager extends ApplicationManager
 		this.setStopRunning(true);
 
 		// Let the server some time to end running client requests
-		try
-		{
-			if (this.executorService != null)
-			{
-				this.executorService.shutdown();
-				this.executorService.awaitTermination(60, TimeUnit.SECONDS);
-				this.executorService.shutdownNow();
-			}
-		}
-		catch (InterruptedException e)
-		{
-			this.getContext().getNotificationManager().notifyError(this.getContext(), ResourceManager.notification(this.getContext(), "Application", "ErrorOnShutdownThreadPool"), null, e);
-		}
+		this.threadPoolShutDown();
 
 		// Release all resources
 		this.releaseResources();
@@ -377,15 +361,9 @@ public abstract class ServerManager extends ApplicationManager
 	@Override
 	protected void releaseResources()
 	{
-		// Shutdown all running command threads
-		try
-		{
-			if (this.executorService != null) this.executorService.shutdown();
-		}
-		catch (Exception e)
-		{
-			this.getContext().getNotificationManager().notifyError(this.getContext(), ResourceManager.notification(this.getContext(), "Application", "ErrorOnShutdownThreadPool"), null, e);
-		}
+		// Shutdown all running command threads.
+		// Let the server some time to end running client requests.
+		this.threadPoolShutDown();
 
 		// Close server socket
 		try
@@ -395,6 +373,67 @@ public abstract class ServerManager extends ApplicationManager
 		catch (Exception e)
 		{
 			this.getContext().getNotificationManager().notifyError(this.getContext(), ResourceManager.notification(this.getContext(), "Application", "ErrorOnServerSocket"), "--> on closing server socket port: '" + String.valueOf(this.getServerSocketPort()) + "'", e);
+		}
+	}
+
+	/**
+	 * Wait for the end of all treads of a thread list.
+	 */
+	public void threadPoolShutDown()
+	{
+		if (this.threadPool == null) return;
+		if (this.threadPool.size() == 0) return;
+
+		for (Thread thread : this.threadPool)
+		{
+			try
+			{
+				FileUtilFunctions.generalWaitForThreadTerminating(thread, 60);
+			}
+			catch (Exception exception)
+			{
+				// Be silent
+			}
+		}
+	}
+
+	/**
+	 * Create and start a new thread within the thread pool.
+	 * 
+	 * @param runable
+	 *            The object to start within a new thread.
+	 */
+	public void threadPoolExecuteNewThread(Runnable runnable)
+	{
+		if (this.threadPool == null) return;
+		
+		// Remove expired threads 
+		try
+		{
+			for (Thread thread : new ArrayList<Thread>(this.threadPool))
+			{
+				if (!thread.isAlive()) this.threadPool.remove(thread);
+			}
+		}
+		catch (Exception exception)
+		{
+			String errorText = "--> Error on removing expired threads from thread pool";
+			errorText += "\n--> Actual number of threads in pool: '" + String.valueOf(this.threadPool.size()) + "'";
+			this.getContext().getNotificationManager().notifyError(this.getContext(), ResourceManager.notification(this.getContext(), "Application", "ErrorOnServerSocket"), errorText, exception);
+		}
+
+		// Start new thread
+		try
+		{
+			Thread newTread = new Thread(runnable);
+			this.threadPool.add(newTread);
+			newTread.start();
+		}
+		catch (Exception exception)
+		{
+			String errorText = "--> Error on starting new thread within the thread pool";
+			errorText += "\n--> Actual number of threads in pool: '" + String.valueOf(this.threadPool.size()) + "'";
+			this.getContext().getNotificationManager().notifyError(this.getContext(), ResourceManager.notification(this.getContext(), "Application", "ErrorOnServerSocket"), errorText, exception);
 		}
 	}
 
@@ -436,13 +475,5 @@ public abstract class ServerManager extends ApplicationManager
 	public String getServerPrivateKey()
 	{
 		return serverPrivateKey;
-	}
-
-	/**
-	 * Getter
-	 */
-	public ExecutorService getExecutorService()
-	{
-		return executorService;
 	}
 }

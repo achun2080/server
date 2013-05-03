@@ -724,5 +724,4 @@ public abstract class ApplicationManager implements ManagerInterface
 	{
 		return clientApplication;
 	}
-	
 }

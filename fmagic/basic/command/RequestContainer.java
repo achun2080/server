@@ -24,7 +24,7 @@ public class RequestContainer
 	private String clientSessionIdentifier = "";
 
 	// CommandManager data
-	private String commandIdentifier;
+	final private String commandIdentifier;
 	final private HashMap<String, String> properties;
 
 	/**
@@ -159,14 +159,6 @@ public class RequestContainer
 	public HashMap<String, String> getProperties()
 	{
 		return properties;
-	}
-
-	/**
-	 * Setter
-	 */
-	public void setCommandIdentifier(String commandIdentifier)
-	{
-		this.commandIdentifier = commandIdentifier;
 	}
 
 	/**

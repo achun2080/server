@@ -1,81 +1,113 @@
 package fmagic.server.command;
 
-import fmagic.basic.resource.ResourceContainer;
+import fmagic.basic.context.Context;
 import fmagic.basic.resource.ResourceManager;
 
+/**
+ * COMMAND: Check if the connection to a server is available and works fine.
+ * <p>
+ * The client sends its public key <TT>ClientPublicKey</TT> to the server and
+ * get back the public key <TT>ServerPublicKey</TT> of the server.
+ * <p>
+ * Note: The handshake ends successfully only if the client session is already
+ * known on the server. Please use the COMMAND
+ * <TT>ClientCommandCreateSession</TT> first to create a client session on the
+ * server.
+ * 
+ * @author frank.wuensche (FW)
+ * 
+ * @changed FW 12.12.2012 - Created
+ */
 public class ServerCommandHandshake extends ServerCommand
 {
+	private String serverPublicKey = null;
+	private Boolean isSuccessful = null;
+
 	/**
-	 * Constructor
+	 * Constructor 1
 	 */
 	public ServerCommandHandshake()
 	{
 		super();
 	}
 
+	/**
+	 * Constructor 2
+	 */
+	public ServerCommandHandshake(Context context, String commandIdentifier)
+	{
+		super(context, commandIdentifier);
+	}
+
+	@Override
+	public void setCommandIdentifier(Context context)
+	{
+		this.commandIdentifier = ResourceManager.command(context, "Handshake").getRecourceIdentifier();
+	}
+
 	@Override
 	protected boolean validateRequestContainer()
 	{
-		// Get and check public key of the client
-		String clientPublicKey = this.getRequestContainer().getProperty("ClientPublicKey", null);
-
-		if (clientPublicKey != null && !clientPublicKey.equals(""))
+		try
 		{
-		}
-		else
-		{
-			// Get resource container
-			ResourceContainer resourceContainer = ResourceManager.notification(this.context, "Application", "PublicKeyOnClientNotSet");
-			String enumIdentifier = "";
-			if (resourceContainer != null) enumIdentifier = resourceContainer.getRecourceIdentifier();
+			// Get parameter: ClientPublicKey
+			String clientPublicKey = this.requestContainer.getProperty(ResourceManager.commandParameter(this.getContext(), "Handshake", "ClientPublicKey").getAliasName(), null);
 
-			// Notify error
-			this.context.getNotificationManager().notifyError(this.context, resourceContainer, null, null);
-			this.setErrorMessageTechnicalError(this.context, this.responseContainer, enumIdentifier);
+			if (clientPublicKey == null || clientPublicKey.length() == 0)
+			{
+				this.notifyError("Application", "PublicKeyOnClientNotSet", null, null);
+				return false;
+			}
 
 			// Return
+			return true;
+		}
+		catch (Exception e)
+		{
+			this.notifyError("Command", "ErrorOnProcessingCommand", null, e);
 			return false;
 		}
-
-		// Return
-		return true;
 	}
 
 	@Override
 	protected boolean processOnServer()
 	{
-		this.responseContainer.clearErrorCode();
+		try
+		{
+			// Get public key of the server
+			this.serverPublicKey = this.context.getConfigurationManager().getProperty(this.context, ResourceManager.configuration(this.context, "Application", "PublicKey"), null, true);
 
-		this.responseContainer.setCommandIdentifier(this.requestContainer.getCommandIdentifier());
+			// Set command to status successful
+			this.isSuccessful = true;
 
-		// Get public key of the server
-		String serverPublicKey = this.context.getConfigurationManager().getProperty(this.context, ResourceManager.configuration(this.context, "Application", "PublicKey"), null, true);
-		if (serverPublicKey != null && !serverPublicKey.equals("")) this.responseContainer.addProperty("ServerPublicKey", serverPublicKey);
-
-		// Return
-		return true;
+			// Return
+			return true;
+		}
+		catch (Exception e)
+		{
+			this.notifyError("Command", "ErrorOnProcessingCommand", null, e);
+			return false;
+		}
 	}
 
 	@Override
-	protected boolean evaluateResults()
+	protected boolean arrangeResults()
 	{
-		// Check if public key of the server is set
-		if (this.responseContainer.getProperty("ServerPublicKey", null) == null)
+		try
 		{
-			// Get resource container
-			ResourceContainer resourceContainer = ResourceManager.notification(this.context, "Application", "PublicKeyOnServerNotSet");
-			String enumIdentifier = "";
-			if (resourceContainer != null) enumIdentifier = resourceContainer.getRecourceIdentifier();
+			// Set parameter: IsSuccessful
+			this.responseContainer.addProperty(ResourceManager.commandParameter(this.getContext(), "Handshake", "IsSuccessful").getAliasName(), this.isSuccessful.toString());
 
-			// Notify error
-			this.context.getNotificationManager().notifyError(this.context, resourceContainer, null, null);
-			this.setErrorMessageTechnicalError(this.context, this.responseContainer, enumIdentifier);
+			// Set parameter: ServerPublicKey
+			this.responseContainer.addProperty(ResourceManager.commandParameter(this.getContext(), "Handshake", "ServerPublicKey").getAliasName(), this.serverPublicKey);
 
 			// Return
+			return true;
+		}
+		catch (Exception e)
+		{
+			this.notifyError("Command", "ErrorOnProcessingCommand", null, e);
 			return false;
 		}
-
-		// Return
-		return true;
 	}
 }

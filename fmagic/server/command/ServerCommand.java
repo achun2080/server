@@ -1,12 +1,9 @@
 package fmagic.server.command;
 
-import fmagic.basic.command.CommandManager;
+import fmagic.basic.command.Command;
 import fmagic.basic.command.RequestContainer;
 import fmagic.basic.command.ResponseContainer;
 import fmagic.basic.context.Context;
-import fmagic.basic.label.LabelManager;
-import fmagic.basic.resource.ResourceContainer;
-import fmagic.basic.resource.ResourceManager;
 import fmagic.server.application.ServerManager;
 
 /**
@@ -16,63 +13,67 @@ import fmagic.server.application.ServerManager;
  * 
  * @changed FW 24.11.2012 - Created
  */
-public abstract class ServerCommand extends CommandManager
+public abstract class ServerCommand extends Command
 {
-	// Current context
-	protected Context context = null;
-
 	// Current server application
 	protected ServerManager serverManager = null;
 
-	// Request container
-	protected RequestContainer requestContainer = null;
-
-	// Response container
-	protected ResponseContainer responseContainer = null;
-
 	/**
-	 * Constructor
+	 * Constructor 1
 	 */
 	public ServerCommand()
 	{
-		// Call super class
 		super();
 	}
 
-	@Override
-	public boolean validateResources(Context context)
+	/**
+	 * Constructor 2
+	 */
+	public ServerCommand(Context context, String commandIdentifier)
 	{
-		boolean isError = super.validateResources(context);
-		return isError;
+		super(context, commandIdentifier);
 	}
+
+	/**
+	 * Set command identifier from outside. Please implement this method with
+	 * the current command resource identifier.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 */
+	public abstract void setCommandIdentifier(Context context);
 
 	/**
 	 * Execute the command.
 	 */
 	public ResponseContainer execute()
 	{
-		if (this.validateRequestContainer() == false)
+		try
 		{
-			// Get resource container
-			ResourceContainer resourceContainer = ResourceManager.notification(this.context, "Application", "ErrorOnValidatingClientCommandOnServer");
-			String enumIdentifier = "";
-			if (resourceContainer != null) enumIdentifier = resourceContainer.getRecourceIdentifier();
+			if (this.validateRequestContainer() == false)
+			{
+				this.notifyError("Application", "ErrorOnValidatingClientCommandOnServer", null, null);
+				return this.responseContainer;
+			}
 
-			// Notify error
-			return setErrorMessageTechnicalError(this.context, this.responseContainer, enumIdentifier);
+			if (this.processOnServer() == false)
+			{
+				this.notifyError("Application", "ErrorOnProcessingRequestFromClient", null, null);
+				return this.responseContainer;
+			}
+
+			if (this.arrangeResults() == false)
+			{
+				this.notifyError("Application", "ErrorOnEvaluatingServerResults", null, null);
+				return this.responseContainer;
+			}
+
+			// Validate all return values of the command
+			if (this.validateCommandResults() == false) { return this.responseContainer; }
 		}
-
-		if (this.processOnServer() == false) { return this.responseContainer; }
-
-		if (this.evaluateResults() == false)
+		catch (Exception e)
 		{
-			// Get resource container
-			ResourceContainer resourceContainer = ResourceManager.notification(this.context, "Application", "ErrorOnEvaluatingServerResults");
-			String enumIdentifier = "";
-			if (resourceContainer != null) enumIdentifier = resourceContainer.getRecourceIdentifier();
-
-			// Notify error
-			return setErrorMessageTechnicalError(this.context, this.responseContainer, enumIdentifier);
+			this.notifyError("Command", "ErrorOnProcessingCommand", null, e);
 		}
 
 		// Return
@@ -95,7 +96,7 @@ public abstract class ServerCommand extends CommandManager
 	/**
 	 * Evaluates the results of the processed command.
 	 */
-	abstract protected boolean evaluateResults();
+	abstract protected boolean arrangeResults();
 
 	/**
 	 * Getter
@@ -154,67 +155,18 @@ public abstract class ServerCommand extends CommandManager
 	}
 
 	/**
-	 * Setter
+	 * Factory method for creating a response container.
+	 * <p>
+	 * The created response container is directly assigned to the class variable <TT>this.responseContainer</TT>.
+	 * 
+	 * @param serverApplicationIdentifier
+	 *            The identifier of the application.
+	 * 
+	 * @param serverVersion
+	 *            The version of the application.
 	 */
-	public void createResponseContainer(String serverApplicationIdentifier, int serverVersion)
+	public void createResponseContainer(String serverApplicationIdentifier, int serverVersion, String commandIdentifier)
 	{
-		// Create a response container with a default error message
-		this.responseContainer = new ResponseContainer(serverApplicationIdentifier, serverVersion);
-	}
-
-	/**
-	 * Set error message on Response Container
-	 * 
-	 * @param context
-	 *            Current context
-	 * 
-	 * @param responseContainer
-	 *            Response container to fill with error message.
-	 * 
-	 * @param errorCode
-	 *            Error code to notify.
-	 */
-	protected ResponseContainer setErrorMessageTechnicalError(Context context, ResponseContainer responseContainer, String errorCode)
-	{
-		responseContainer.clearErrorCode();
-		responseContainer.setErrorCode(errorCode);
-		responseContainer.setErrorHeadLine(LabelManager.getLabelText(context, ResourceManager.label(context, "CommonError", "errorHeadLine")));
-		responseContainer.setErrorMessagePart1(LabelManager.getLabelText(context, ResourceManager.label(context, "CommonError", "errorMessagePart1")));
-		responseContainer.setErrorMessagePart2(LabelManager.getLabelText(context, ResourceManager.label(context, "CommonError", "errorMessagePart2")));
-		responseContainer.setErrorMessagePart3(LabelManager.getLabelText(context, ResourceManager.label(context, "Basic", "Contact")));
-		this.responseContainer.setErrorTechnicalDescription(this.context.getNotificationManager().getDump(context));
-
-		return responseContainer;
-	}
-
-	/**
-	 * Set error message on Response Container
-	 * 
-	 * @param context
-	 *            The current context
-	 * 
-	 * @param responseContainer
-	 *            The response container to fill with the error message.
-	 * 
-	 * @param errorCode
-	 *            The error code to notify.
-	 * 
-	 * @param commandIdentifier
-	 *            The client command identifier (view) that has to be activated
-	 *            on the client.
-	 */
-	protected ResponseContainer setErrorMessageRuntimeError(Context context, ResponseContainer responseContainer, String errorCode, String commandIdentifier)
-	{
-		responseContainer.setCommandIdentifier(commandIdentifier);
-
-		responseContainer.clearErrorCode();
-		responseContainer.setErrorCode(errorCode);
-		responseContainer.setErrorHeadLine(LabelManager.getLabelText(context, ResourceManager.label(context, "CommonError", "errorHeadLine")));
-		responseContainer.setErrorMessagePart1(LabelManager.getLabelText(context, ResourceManager.label(context, "CommonError", "errorMessagePart1")));
-		responseContainer.setErrorMessagePart2(LabelManager.getLabelText(context, ResourceManager.label(context, "CommonError", "errorMessagePart2")));
-		responseContainer.setErrorMessagePart3(LabelManager.getLabelText(context, ResourceManager.label(context, "Basic", "Contact")));
-		this.responseContainer.setErrorTechnicalDescription(this.context.getNotificationManager().getDump(context));
-
-		return responseContainer;
+		this.responseContainer = new ResponseContainer(serverApplicationIdentifier, serverVersion, commandIdentifier);
 	}
 }

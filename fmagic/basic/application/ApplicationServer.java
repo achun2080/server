@@ -20,7 +20,7 @@ import fmagic.server.application.ServerWorkerThread;
  */
 public class ApplicationServer extends Thread
 {
-	final private ServerManager serverManager;
+	final private ServerManager server;
 	final private Context context;
 
 	/**
@@ -35,7 +35,7 @@ public class ApplicationServer extends Thread
 	public ApplicationServer(Context context,
 			ServerManager serverManager)
 	{
-		this.serverManager = serverManager;
+		this.server = serverManager;
 		this.context = context;
 	}
 
@@ -133,7 +133,7 @@ public class ApplicationServer extends Thread
 		// Execute the command via the thread pool
 		try
 		{
-			this.getServerManager().getExecutorService().execute(commandObject);
+			this.getServerManager().threadPoolExecuteNewThread(commandObject);
 			return true;
 		}
 		catch (Exception e)
@@ -201,7 +201,7 @@ public class ApplicationServer extends Thread
 		}
 		catch (Exception e)
 		{
-			String errorText = "--> On stopping application server";
+			String errorText = "--> Error on stopping application server";
 			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Application", "ErrorOnStoppingServer"), errorText, e);
 		}
 	}
@@ -211,7 +211,7 @@ public class ApplicationServer extends Thread
 	 */
 	public ServerManager getServerManager()
 	{
-		return serverManager;
+		return server;
 	}
 
 	/**

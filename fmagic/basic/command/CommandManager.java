@@ -29,7 +29,7 @@ public class CommandManager implements ManagerInterface
 	{
 		String dumpText = "";
 
-		String typeCriteria[] = { "CommandManager" };
+		String typeCriteria[] = { "Command" };
 		String applicationCriteria[] = null;
 		String originCriteria[] = null;
 		String usageCriteria[] = null;
@@ -45,7 +45,7 @@ public class CommandManager implements ManagerInterface
 	{
 		String dumpText = "";
 
-		String typeCriteria[] = { "CommandManager" };
+		String typeCriteria[] = { "Command" };
 		String applicationCriteria[] = null;
 		String originCriteria[] = null;
 		String usageCriteria[] = null;
@@ -61,7 +61,7 @@ public class CommandManager implements ManagerInterface
 	{
 		String dumpText = "";
 
-		String typeCriteria[] = { "CommandManager" };
+		String typeCriteria[] = { "Command" };
 		String applicationCriteria[] = null;
 		String originCriteria[] = null;
 		String usageCriteria[] = null;
@@ -112,7 +112,7 @@ public class CommandManager implements ManagerInterface
 		// Return
 		return isIntegrityError;
 	}
-	
+
 	@Override
 	public boolean readConfiguration(Context context)
 	{

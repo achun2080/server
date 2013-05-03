@@ -1,11 +1,9 @@
 package fmagic.client.command;
 
-import fmagic.basic.command.CommandManager;
+import fmagic.basic.command.Command;
 import fmagic.basic.command.RequestContainer;
 import fmagic.basic.command.ResponseContainer;
 import fmagic.basic.context.Context;
-import fmagic.basic.label.LabelManager;
-import fmagic.basic.resource.ResourceContainer;
 import fmagic.basic.resource.ResourceManager;
 import fmagic.client.application.ClientManager;
 
@@ -16,19 +14,10 @@ import fmagic.client.application.ClientManager;
  * 
  * @changed FW 24.11.2012 - Created
  */
-public abstract class ClientCommand extends CommandManager
+public abstract class ClientCommand extends Command
 {
-	// Current context
-	final protected Context context;
-
 	// Current client application
 	final protected ClientManager client;
-
-	// Request container
-	protected RequestContainer requestContainer = null;
-
-	// Response container
-	protected ResponseContainer responseContainer = null;
 
 	/**
 	 * Constructor
@@ -37,7 +26,7 @@ public abstract class ClientCommand extends CommandManager
 			String commandIdentifier)
 	{
 		// Call super class
-		super();
+		super(context, commandIdentifier);
 
 		// Create a SILENT dump context regarding the executing of a command on
 		// a client
@@ -51,14 +40,7 @@ public abstract class ClientCommand extends CommandManager
 		this.setClientSessionIdentifier();
 
 		// Create a response container with a default error message
-		this.responseContainer = new ResponseContainer(null, 0);
-	}
-
-	@Override
-	public boolean validateResources(Context context)
-	{
-		boolean isError = super.validateResources(context);
-		return isError;
+		this.responseContainer = new ResponseContainer(null, 0, null);
 	}
 
 	/**
@@ -80,8 +62,8 @@ public abstract class ClientCommand extends CommandManager
 	abstract protected boolean processResults();
 
 	/**
-	 * Get the last known client session identifier from the persistence manager
-	 * and set it as the current session identifier.
+	 * Get the last known client session identifier from local data and set it
+	 * as the current session identifier.
 	 * <p>
 	 * If no valid client session identifier was found, a new one will be
 	 * created.
@@ -91,44 +73,51 @@ public abstract class ClientCommand extends CommandManager
 		// Validate parameter
 		if (this.requestContainer == null) return;
 
-		// Get last known client session identifier from persistance manager
-		String clientSessionIdentifier = client.readLastKnownClientSessionIdentifier();
-
-		// Create a new identifier and save it to the persistance manager
-		if (clientSessionIdentifier == null || clientSessionIdentifier.equals(""))
+		try
 		{
-			clientSessionIdentifier = this.requestContainer.createClientSessionIdentifier();
-			client.saveLastKnownClientSessionIdentifier(clientSessionIdentifier);
-			return;
+			// Get last known client session identifier from local data
+			String clientSessionIdentifier = client.readLastKnownClientSessionIdentifier();
+
+			// Create a new identifier and save it to the local data
+			if (clientSessionIdentifier == null || clientSessionIdentifier.equals(""))
+			{
+				clientSessionIdentifier = this.requestContainer.createClientSessionIdentifier();
+				client.saveLastKnownClientSessionIdentifier(clientSessionIdentifier);
+				return;
+			}
+
+			// Set known the known identifier
+			this.requestContainer.setClientSessionIdentifier(clientSessionIdentifier);
 		}
-
-		// Set known the known identifier
-		this.requestContainer.setClientSessionIdentifier(clientSessionIdentifier);
-
-		// Return
-		return;
+		catch (Exception e)
+		{
+			this.notifyError("Command", "ErrorOnProcessingCommand", null, e);
+		}
 	}
 
 	/**
-	 * Create a new client session identifier and save it to the persistance
-	 * manager.
+	 * Create a new client session identifier and save it to local data.
 	 */
 	public void resetClientSessionIdentifier()
 	{
 		// Validate parameter
 		if (this.requestContainer == null) return;
 
-		// Create a new identifier
-		String clientSessionIdentifier = this.requestContainer.createClientSessionIdentifier();
-		
-		// Save the identifier to the persistence manager
-		client.saveLastKnownClientSessionIdentifier(clientSessionIdentifier);
+		try
+		{
+			// Create a new identifier
+			String clientSessionIdentifier = this.requestContainer.createClientSessionIdentifier();
 
-		// Set the known identifier on the request container
-		this.requestContainer.setClientSessionIdentifier(clientSessionIdentifier);
+			// Save the identifier to the persistence manager
+			client.saveLastKnownClientSessionIdentifier(clientSessionIdentifier);
 
-		// Return
-		return;
+			// Set the known identifier on the request container
+			this.requestContainer.setClientSessionIdentifier(clientSessionIdentifier);
+		}
+		catch (Exception e)
+		{
+			this.notifyError("Command", "ErrorOnProcessingCommand", null, e);
+		}
 	}
 
 	/**
@@ -136,61 +125,61 @@ public abstract class ClientCommand extends CommandManager
 	 */
 	public ResponseContainer execute()
 	{
-		// Prepare request container
-		if (this.prepareRequestContainer() == false)
+		try
 		{
-			// Get resource container
-			ResourceContainer resourceContainer = ResourceManager.notification(this.context, "Application", "ErrorOnPreparingCommandOnClient");
-			String enumIdentifier = "";
-			if (resourceContainer != null) enumIdentifier = resourceContainer.getRecourceIdentifier();
+			// Prepare request container
+			if (this.prepareRequestContainer() == false)
+			{
+				this.notifyError("Application", "ErrorOnPreparingCommandOnClient", null, null);
+				this.context.getNotificationManager().flushDump(this.context);
+				return this.responseContainer;
+			}
 
-			// Notify error
-			this.setErrorMessage(this.context, this.responseContainer, enumIdentifier);
-			if (this.responseContainer.getErrorCode() != null) this.context.getNotificationManager().flushDump(this.context);
-			
-			// Return
-			return this.responseContainer;
+			// Validate all parameters of the command
+			if (this.validateCommandParameters() == false)
+			{
+				this.context.getNotificationManager().flushDump(this.context);
+				return this.responseContainer;
+			}
+
+			// Process request container on a remote server as a COMMAND
+			if (this.processOnServer() == false)
+			{
+				this.notifyError("Application", "ErrorOnProcessingRequestOnServer", null, null);
+				this.context.getNotificationManager().flushDump(this.context);
+				return this.responseContainer;
+			}
+
+			// Check if there is an error code on the response container
+			if (this.responseContainer.getErrorCode() != null) { return this.responseContainer; }
+
+			if (this.evaluateResults() == false)
+			{
+				this.notifyError("Application", "ErrorOnEvaluatingCommandOnClient", null, null);
+				this.context.getNotificationManager().flushDump(this.context);
+				return this.responseContainer;
+			}
+
+			// Process the results of the command call on client side.
+			if (this.responseContainer.getErrorCode() != null)
+			{
+				this.context.getNotificationManager().flushDump(this.context);
+				return this.responseContainer;
+			}
+
+			if (this.processResults() == false)
+			{
+				this.notifyError("Application", "ErrorOnProcessingCommandOnClient", null, null);
+				this.context.getNotificationManager().flushDump(this.context);
+				return this.responseContainer;
+			}
+		}
+		catch (Exception e)
+		{
+			this.notifyError("Command", "ErrorOnProcessingCommand", null, e);
 		}
 
-		// Process request container on server as a COMMAND
-		if (this.processOnServer() == false)
-		{
-			if (this.responseContainer.getErrorCode() != null) this.context.getNotificationManager().flushDump(this.context);
-			return this.responseContainer;
-		}
-
-		// Check if there is an error code on the response container
-		if (this.responseContainer.getErrorCode() != null) { return this.responseContainer; }
-
-		if (this.evaluateResults() == false)
-		{
-			// Get resource container
-			ResourceContainer resourceContainer = ResourceManager.notification(this.context, "Application", "ErrorOnEvaluatingCommandOnClient");
-			String enumIdentifier = "";
-			if (resourceContainer != null) enumIdentifier = resourceContainer.getRecourceIdentifier();
-
-			// Notify error
-			this.setErrorMessage(this.context, this.responseContainer, enumIdentifier);
-			if (this.responseContainer.getErrorCode() != null) this.context.getNotificationManager().flushDump(this.context);
-			return this.responseContainer;
-		}
-
-		// Process the results of the command call on client side.
-		if (this.responseContainer.getErrorCode() != null) { return this.responseContainer; }
-
-		if (this.processResults() == false)
-		{
-			// Get resource container
-			ResourceContainer resourceContainer = ResourceManager.notification(this.context, "Application", "ErrorOnProcessingCommandOnClient");
-			String enumIdentifier = "";
-			if (resourceContainer != null) enumIdentifier = resourceContainer.getRecourceIdentifier();
-
-			// Notify error
-			this.setErrorMessage(this.context, this.responseContainer, enumIdentifier);
-			if (this.responseContainer.getErrorCode() != null) this.context.getNotificationManager().flushDump(this.context);
-			return this.responseContainer;
-		}
-
+		// Return
 		return this.responseContainer;
 	}
 
@@ -225,31 +214,6 @@ public abstract class ClientCommand extends CommandManager
 	public ResponseContainer getResponseContainer()
 	{
 		return this.responseContainer;
-	}
-
-	/**
-	 * Set error message on Response Container
-	 * 
-	 * @param context
-	 *            Current context
-	 * 
-	 * @param responseContainer
-	 *            Response container to fill with error message.
-	 * 
-	 * @param errorCode
-	 *            Error code to notify.
-	 */
-	private ResponseContainer setErrorMessage(Context context, ResponseContainer responseContainer, String errorCode)
-	{
-		responseContainer.clearErrorCode();
-		responseContainer.setErrorCode(errorCode);
-		responseContainer.setErrorHeadLine(LabelManager.getLabelText(context, ResourceManager.label(context, "CommonError", "errorHeadLine")));
-		responseContainer.setErrorMessagePart1(LabelManager.getLabelText(context, ResourceManager.label(context, "CommonError", "errorMessagePart1")));
-		responseContainer.setErrorMessagePart2(LabelManager.getLabelText(context, ResourceManager.label(context, "CommonError", "errorMessagePart2")));
-		responseContainer.setErrorMessagePart3(LabelManager.getLabelText(context, ResourceManager.label(context, "Basic", "Contact")));
-		responseContainer.setErrorTechnicalDescription(context.getNotificationManager().getDump(context));
-
-		return responseContainer;
 	}
 
 	/**

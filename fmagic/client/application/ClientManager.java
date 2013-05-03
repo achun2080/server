@@ -8,11 +8,9 @@ import fmagic.basic.command.RequestContainer;
 import fmagic.basic.command.ResponseContainer;
 import fmagic.basic.command.SocketHandler;
 import fmagic.basic.context.Context;
-import fmagic.basic.label.LabelManager;
 import fmagic.basic.notification.NotificationManager;
-import fmagic.basic.resource.ResourceContainer;
-import fmagic.basic.resource.ResourceManager;
 import fmagic.basic.resource.ResourceContainer.OriginEnum;
+import fmagic.basic.resource.ResourceManager;
 
 /**
  * This class implements common functions used by all clients of the FMAGIC
@@ -202,7 +200,7 @@ public abstract class ClientManager extends ApplicationManager
 		if (requestContainer != null) executingContext.getNotificationManager().notifyLogMessage(executingContext, NotificationManager.SystemLogLevelEnum.CODE, requestContainer.toString());
 
 		// Create server response container as default response
-		ResponseContainer responseContainer = new ResponseContainer(null, 0);
+		ResponseContainer responseContainer = new ResponseContainer(null, 0, null);
 
 		// Transfer some client request data to the server response data
 		this.workstepTransferContainerData(requestContainer, responseContainer);
@@ -211,7 +209,7 @@ public abstract class ClientManager extends ApplicationManager
 		String serverPublicKey = null;
 
 		// Encode request container
-		String commandEncrypted = workstepConvertRequestContainerObjectToSocketData(executingContext, requestContainer, serverPublicKey, responseContainer);
+		StringBuffer commandEncrypted = workstepConvertRequestContainerObjectToSocketData(executingContext, requestContainer, serverPublicKey, responseContainer);
 
 		// Open a socket connection to the server
 		SocketHandler socketHandler = workstepOpenSocketConnectionToServer(executingContext, responseContainer);
@@ -231,15 +229,8 @@ public abstract class ClientManager extends ApplicationManager
 			}
 			catch (SocketTimeoutException socketTimeoutException)
 			{
-				// Get resource container
-				ResourceContainer resourceContainer = ResourceManager.notification(this.getContext(), "Application", "SocketTimeout");
-				String enumIdentifier = "";
-				if (resourceContainer != null) enumIdentifier = resourceContainer.getRecourceIdentifier();
-
-				// Notify error
 				String errorText = "--> Timeout value: '" + socketHandler.getTimeoutTimeInMilliseconds() + "' Milliseconds";
-				executingContext.getNotificationManager().notifyError(executingContext, resourceContainer, errorText, socketTimeoutException);
-				this.setErrorMessageOnSocketConnection(executingContext, responseContainer, enumIdentifier);
+				responseContainer.notifyError(executingContext, "Application", "SocketTimeout", errorText, socketTimeoutException);
 			}
 
 			// Decode raw response data onto a response container
@@ -257,29 +248,6 @@ public abstract class ClientManager extends ApplicationManager
 
 		// Return
 		return responseContainer;
-	}
-
-	/**
-	 * Set error message on Response Container
-	 * 
-	 * @param context
-	 *            Current context
-	 * 
-	 * @param responseContainer
-	 *            Response container to fill with error message.
-	 * 
-	 * @param errorCode
-	 *            Error code to notify.
-	 */
-	private void setErrorMessageOnSocketConnection(Context context, ResponseContainer responseContainer, String errorCode)
-	{
-		responseContainer.clearErrorCode();
-		responseContainer.setErrorCode(errorCode);
-		responseContainer.setErrorHeadLine(LabelManager.getLabelText(context, ResourceManager.label(context, "OnConnectingToServer", "ErrorHeadLine")));
-		responseContainer.setErrorMessagePart1(LabelManager.getLabelText(context, ResourceManager.label(context, "OnConnectingToServer", "ErrorMessagePart1")));
-		responseContainer.setErrorMessagePart2(LabelManager.getLabelText(context, ResourceManager.label(context, "OnConnectingToServer", "ErrorMessagePart2")));
-		responseContainer.setErrorMessagePart3(LabelManager.getLabelText(context, ResourceManager.label(context, "OnConnectingToServer", "ErrorMessagePart3")));
-		responseContainer.setErrorTechnicalDescription(context.getNotificationManager().getDump(context));
 	}
 
 	/**
@@ -322,7 +290,7 @@ public abstract class ClientManager extends ApplicationManager
 	 *         occurred.
 	 * 
 	 */
-	private String workstepConvertRequestContainerObjectToSocketData(Context executingContext, RequestContainer requestContainer, String serverPublicKey, ResponseContainer responseContainer)
+	private StringBuffer workstepConvertRequestContainerObjectToSocketData(Context executingContext, RequestContainer requestContainer, String serverPublicKey, ResponseContainer responseContainer)
 	{
 		// Validate parameter
 		if (executingContext == null) return null;
@@ -330,7 +298,7 @@ public abstract class ClientManager extends ApplicationManager
 		if (responseContainer == null) return null;
 
 		// Convert a request container
-		String commandEncrypted = null;
+		StringBuffer commandEncrypted = null;
 		EncodingHandler encodingUitility = new EncodingHandler();
 
 		try
@@ -339,14 +307,7 @@ public abstract class ClientManager extends ApplicationManager
 		}
 		catch (Exception exception)
 		{
-			// Get resource container
-			ResourceContainer resourceContainer = ResourceManager.notification(this.getContext(), "Application", "ErrorOnProcessingRequestToServer");
-			String enumIdentifier = "";
-			if (resourceContainer != null) enumIdentifier = resourceContainer.getRecourceIdentifier();
-
-			// Notify error
-			executingContext.getNotificationManager().notifyError(executingContext, resourceContainer, null, exception);
-			this.setErrorMessageOnSocketConnection(executingContext, responseContainer, enumIdentifier);
+			responseContainer.notifyError(executingContext, "Application", "ErrorOnProcessingRequestToServer", null, exception);
 		}
 
 		// Return
@@ -385,15 +346,8 @@ public abstract class ClientManager extends ApplicationManager
 
 			if (socketHandler.openSocket() == false)
 			{
-				// Get resource container
-				ResourceContainer resourceContainer = ResourceManager.notification(this.getContext(), "Application", "ErrorOnProcessingRequestToServer");
-				String enumIdentifier = "";
-				if (resourceContainer != null) enumIdentifier = resourceContainer.getRecourceIdentifier();
-
-				// Notify error
-				String errorText = "--> on opening a socket connection to the server";
-				executingContext.getNotificationManager().notifyError(executingContext, resourceContainer, errorText, null);
-				this.setErrorMessageOnSocketConnection(executingContext, responseContainer, enumIdentifier);
+				String errorText = "--> Error on opening a socket connection to the server";
+				responseContainer.notifyError(executingContext, "Application", "ErrorOnProcessingRequestToServer", errorText, null);
 
 				// Reset and return
 				socketHandler = null;
@@ -402,17 +356,8 @@ public abstract class ClientManager extends ApplicationManager
 		}
 		catch (Exception exception)
 		{
-			// Get resource container
-			ResourceContainer resourceContainer = ResourceManager.notification(this.getContext(), "Application", "ErrorOnProcessingRequestToServer");
-			String enumIdentifier = "";
-			if (resourceContainer != null) enumIdentifier = resourceContainer.getRecourceIdentifier();
-
-			// Notify error
-			String errorText = "--> on opening a socket connection to the server";
-			executingContext.getNotificationManager().notifyError(executingContext, resourceContainer, errorText, exception);
-			this.setErrorMessageOnSocketConnection(executingContext, responseContainer, enumIdentifier);
-
-			// Return
+			String errorText = "--> Error on opening a socket connection to the server";
+			responseContainer.notifyError(executingContext, "Application", "ErrorOnProcessingRequestToServer", errorText, exception);
 			return null;
 		}
 
@@ -455,33 +400,15 @@ public abstract class ClientManager extends ApplicationManager
 		}
 		catch (Exception exception)
 		{
-			// Get resource container
-			ResourceContainer resourceContainer = ResourceManager.notification(this.getContext(), "Application", "ErrorOnProcessingRequestToServer");
-			String enumIdentifier = "";
-			if (resourceContainer != null) enumIdentifier = resourceContainer.getRecourceIdentifier();
-
-			// Notify error
-			String errorText = "--> on decoding response container";
-			executingContext.getNotificationManager().notifyError(executingContext, resourceContainer, errorText, exception);
-			this.setErrorMessageOnSocketConnection(executingContext, parameterResponseContainer, enumIdentifier);
-
-			// Return
+			String errorText = "--> Error on decoding response container";
+			parameterResponseContainer.notifyError(executingContext, "Application", "ErrorOnProcessingRequestToServer", errorText, exception);
 			return parameterResponseContainer;
 		}
 
 		if (newResponseContainer == null)
 		{
-			// Get resource container
-			ResourceContainer resourceContainer = ResourceManager.notification(this.getContext(), "Application", "ErrorOnProcessingRequestToServer");
-			String enumIdentifier = "";
-			if (resourceContainer != null) enumIdentifier = resourceContainer.getRecourceIdentifier();
-
-			// Notify error
-			String errorText = "--> on decoding response container";
-			executingContext.getNotificationManager().notifyError(executingContext, resourceContainer, errorText, null);
-			this.setErrorMessageOnSocketConnection(executingContext, parameterResponseContainer, enumIdentifier);
-
-			// Return
+			String errorText = "--> Error on decoding response container";
+			parameterResponseContainer.notifyError(executingContext, "Application", "ErrorOnProcessingRequestToServer", errorText, null);
 			return parameterResponseContainer;
 		}
 
@@ -511,7 +438,6 @@ public abstract class ClientManager extends ApplicationManager
 		try
 		{
 			responseContainer.setSession(requestContainer.getClientSessionIdentifier());
-			responseContainer.setCommandIdentifier(requestContainer.getCommandIdentifier());
 		}
 		catch (Exception exception)
 		{

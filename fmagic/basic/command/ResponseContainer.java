@@ -6,6 +6,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+import fmagic.basic.context.Context;
+import fmagic.basic.resource.ResourceContainer;
+import fmagic.basic.resource.ResourceManager;
+
 /**
  * This class contains all data needed for a server to response to a client
  * request via socket.
@@ -23,27 +27,18 @@ public class ResponseContainer
 	private String clientSessionIdentifier;
 
 	// CommandManager data
-	private String commandIdentifier;
+	final private String commandIdentifier;
 	final private HashMap<String, String> properties;
 
-	// Error code on client side
+	// Error code and description
 	private String errorCode = null;
-	private String errorTicket = null;
-	private String errorHeadLine = null;
-	private String errorMessagePart1 = null;
-	private String errorMessagePart2 = null;
-	private String errorMessagePart3 = null;
-	private String errorTechnicalDescription = null;
+	private String errorDump = null;
 
 	/**
 	 * 
-	 * After construction of a server response container you might set other
-	 * parameters via setters:
-	 * <ul>
-	 * <li>setXXX()</li>
-	 * </ul>
+	 * Constructor
 	 * 
-	 * You might add properties to send to the client using the function
+	 * You can add result values to be sent to the client using the function
 	 * <TT>addProperty()</TT>.
 	 * <p>
 	 * 
@@ -52,13 +47,17 @@ public class ResponseContainer
 	 * 
 	 * @param serverVersion
 	 *            The software version of the client.
+	 * 
+	 * @param commandIdentifier
+	 *            The command identifier of the triggering command.
 	 */
 	public ResponseContainer(String serverApplicationIdentifier,
-			int serverVersion)
+			int serverVersion, String commandIdentifier)
 	{
 		this.serverApplicationIdentifier = serverApplicationIdentifier;
 		this.serverVersion = serverVersion;
 		this.properties = new HashMap<String, String>();
+		this.commandIdentifier = commandIdentifier;
 	}
 
 	/**
@@ -96,6 +95,61 @@ public class ResponseContainer
 		else
 		{
 			return value;
+		}
+	}
+
+	/**
+	 * Notify error messages for a response container.
+	 * 
+	 * @param resourceGroup
+	 *            The group of the resource that describes the error message.
+	 * 
+	 * @param resourceName
+	 *            The name of the resource that describes the error message.
+	 * 
+	 * @param additionalText
+	 *            Additional text to notify or <TT>null</TT>.
+	 * 
+	 * @param exception
+	 *            Exception to notify or <TT>null</TT>..
+	 */
+	public void notifyError(Context context, String resourceGroup, String resourceName, String additionalText, Exception exception)
+	{
+		// Validate parameter
+		if (resourceGroup == null || resourceGroup.length() == 0) return;
+		if (resourceName == null || resourceName.length() == 0) return;
+
+		// Get notification resource
+		ResourceContainer notification = ResourceManager.notification(context, resourceGroup, resourceName);
+
+		// Only the first error is stored explicitly as the triggering error
+		if (this.getErrorCode() == null)
+		{
+			this.setErrorCode(notification.getRecourceIdentifier());
+		}
+
+		// Execute error message
+		try
+		{
+			if (exception == null)
+			{
+				throw new Exception();
+			}
+			else
+			{
+				// Fire regular error notification
+				context.getNotificationManager().notifyError(context, notification, additionalText, exception);
+			}
+		}
+		catch (Exception e)
+		{
+			// Fire exception error notification
+			context.getNotificationManager().notifyError(context, notification, additionalText, e);
+		}
+		finally
+		{
+			// Get dump of all accumulated errors
+			this.setErrorDump(context);
 		}
 	}
 
@@ -148,99 +202,11 @@ public class ResponseContainer
 	}
 
 	/**
-	 * Getter
-	 */
-	public String getErrorHeadLine()
-	{
-		return errorHeadLine;
-	}
-
-	/**
 	 * Setter
 	 */
-	public void setErrorHeadLine(String errorHeadLine)
+	private void setErrorDump(Context context)
 	{
-		this.errorHeadLine = errorHeadLine;
-	}
-
-	/**
-	 * Getter
-	 */
-	public String getErrorMessagePart1()
-	{
-		return errorMessagePart1;
-	}
-
-	/**
-	 * Setter
-	 */
-	public void setErrorMessagePart1(String errorMessagePart1)
-	{
-		this.errorMessagePart1 = errorMessagePart1;
-	}
-
-	/**
-	 * Getter
-	 */
-	public String getErrorMessagePart2()
-	{
-		return errorMessagePart2;
-	}
-
-	/**
-	 * Setter
-	 */
-	public void setErrorMessagePart2(String errorMessagePart2)
-	{
-		this.errorMessagePart2 = errorMessagePart2;
-	}
-
-	/**
-	 * Getter
-	 */
-	public String getErrorMessagePart3()
-	{
-		return errorMessagePart3;
-	}
-
-	/**
-	 * Setter
-	 */
-	public void setErrorMessagePart3(String errorMessagePart3)
-	{
-		this.errorMessagePart3 = errorMessagePart3;
-	}
-
-	/**
-	 * Getter
-	 */
-	public String getErrorTechnicalDescription()
-	{
-		return errorTechnicalDescription;
-	}
-
-	/**
-	 * Setter
-	 */
-	public void setErrorTechnicalDescription(String errorTechnicalDescription)
-	{
-		this.errorTechnicalDescription = errorTechnicalDescription;
-	}
-
-	/**
-	 * Getter
-	 */
-	public String getErrorTicket()
-	{
-		return errorTicket;
-	}
-
-	/**
-	 * Setter
-	 */
-	public void setErrorTicket(String errorTicket)
-	{
-		this.errorTicket = errorTicket;
+		this.errorDump = context.getNotificationManager().getDump(context);
 	}
 
 	/**
@@ -279,7 +245,7 @@ public class ResponseContainer
 				String identifier = iterManual.next();
 				String value = this.properties.get(identifier);
 				outputString += "\n" + identifier + " = ";
-				
+
 				if (value != null)
 				{
 					if (value.length() > 100)
@@ -298,17 +264,12 @@ public class ResponseContainer
 		if (errorCode != null)
 		{
 			outputString += "\n" + "----------";
-			outputString += "\n" + "Error code: " + this.errorCode ;
-			outputString += "\n" + "Error ticket: " + this.errorTicket;
-			outputString += "\n" + "Error headline: " + this.errorHeadLine;
-			outputString += "\n" + "Error message part 1: " + this.errorMessagePart1;
-			outputString += "\n" + "Error message part 2: " + this.errorMessagePart2;
-			outputString += "\n" + "Error message part 3: " + this.errorMessagePart3;
+			outputString += "\n" + "Error code: " + this.errorCode;
 
-			if (this.errorTechnicalDescription != null)
+			if (this.errorDump != null)
 			{
 				outputString += "\n" + "----------";
-				outputString += "\n" + this.errorTechnicalDescription;
+				outputString += "\n" + this.errorDump;
 			}
 		}
 
@@ -325,28 +286,6 @@ public class ResponseContainer
 	public void setSession(String session)
 	{
 		this.clientSessionIdentifier = session;
-	}
-
-	/**
-	 * Clear error code
-	 */
-	public void clearErrorCode()
-	{
-		this.setErrorCode(null);
-		this.setErrorTicket(null);
-		this.setErrorHeadLine(null);
-		this.setErrorMessagePart1(null);
-		this.setErrorMessagePart2(null);
-		this.setErrorMessagePart3(null);
-		this.setErrorTechnicalDescription(null);
-	}
-
-	/**
-	 * Setter
-	 */
-	public void setCommandIdentifier(String commandIdentifier)
-	{
-		this.commandIdentifier = commandIdentifier;
 	}
 
 	/**

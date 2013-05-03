@@ -7,9 +7,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
-
-import fmagic.basic.resource.ResourceManager;
 
 /**
  * This class contains UTIL functions needed in the FMAGIC system.
@@ -980,13 +979,14 @@ public class FileUtilFunctions
 		if (filePath == null || filePath.length() == 0) return null;
 		if (FileUtilFunctions.fileExists(filePath) == false) return null;
 
-		// Create FILE objects
-		File file = new File(filePath);
-
 		// Read file content
 		try
 		{
-			return FileUtils.readFileToString(file, "UTF-8");
+			// Create FILE objects
+			File file = new File(filePath);
+			
+			// Get result
+			return Base64.encodeBase64URLSafeString(FileUtils.readFileToByteArray(file));
 		}
 		catch (Exception e)
 		{
@@ -1026,7 +1026,7 @@ public class FileUtilFunctions
 		// Read file content
 		try
 		{
-			FileUtils.writeStringToFile(file, content, "UTF-8");
+			FileUtils.writeByteArrayToFile(file, Base64.decodeBase64(content));
 			return true;
 		}
 		catch (Exception e)

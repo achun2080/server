@@ -2,6 +2,7 @@ package fmagic.client.command;
 
 import fmagic.basic.application.ApplicationManager;
 import fmagic.basic.context.Context;
+import fmagic.basic.resource.ResourceContainer;
 import fmagic.basic.resource.ResourceManager;
 import fmagic.client.application.ClientManager;
 
@@ -35,7 +36,7 @@ public class ClientCommandMediaFileRead extends ClientCommand
 			ApplicationManager client, String mediaResourceIdentifier,
 			String dataIdentifier)
 	{
-		super(context, (ClientManager) client, ResourceManager.command(context, "Processing", "MediaFileRead").getRecourceIdentifier());
+		super(context, (ClientManager) client, ResourceManager.command(context, "MediaFileRead").getRecourceIdentifier());
 
 		this.mediaResourceIdentifier = mediaResourceIdentifier;
 		this.dataIdentifier = dataIdentifier;
@@ -54,7 +55,9 @@ public class ClientCommandMediaFileRead extends ClientCommand
 		}
 		catch (Exception e)
 		{
-			this.context.getNotificationManager().notifyError(this.context, ResourceManager.notification(this.context, "Command", "ErrorOnProcessingCommand"), null, e);
+			ResourceContainer errorCode = ResourceManager.notification(this.context, "Command", "ErrorOnProcessingCommand");
+			this.context.getNotificationManager().notifyError(this.context, errorCode, null, e);
+			this.responseContainer.setErrorCode(errorCode.getRecourceIdentifier());
 			return false;
 		}
 
@@ -101,13 +104,17 @@ public class ClientCommandMediaFileRead extends ClientCommand
 			// Fire error message
 			if (isError == true)
 			{
-				this.context.getNotificationManager().notifyError(this.context, ResourceManager.notification(this.context, "Command", "ErrorOnProcessingCommand"), errorText, null);
+				ResourceContainer errorCode = ResourceManager.notification(this.context, "Command", "ErrorOnProcessingCommand");
+				this.context.getNotificationManager().notifyError(this.context, errorCode, errorText, null);
+				this.responseContainer.setErrorCode(errorCode.getRecourceIdentifier());
 				return false;
 			}
 		}
 		catch (Exception e)
 		{
-			this.context.getNotificationManager().notifyError(this.context, ResourceManager.notification(this.context, "Command", "ErrorOnProcessingCommand"), null, e);
+			ResourceContainer errorCode = ResourceManager.notification(this.context, "Command", "ErrorOnProcessingCommand");
+			this.context.getNotificationManager().notifyError(this.context, errorCode, null, e);
+			this.responseContainer.setErrorCode(errorCode.getRecourceIdentifier());
 			return false;
 		}
 
@@ -123,7 +130,9 @@ public class ClientCommandMediaFileRead extends ClientCommand
 		}
 		catch (Exception e)
 		{
-			this.context.getNotificationManager().notifyError(this.context, ResourceManager.notification(this.context, "Command", "ErrorOnProcessingCommand"), null, e);
+			ResourceContainer errorCode = ResourceManager.notification(this.context, "Command", "ErrorOnProcessingCommand");
+			this.context.getNotificationManager().notifyError(this.context, errorCode, null, e);
+			this.responseContainer.setErrorCode(errorCode.getRecourceIdentifier());
 			return false;
 		}
 

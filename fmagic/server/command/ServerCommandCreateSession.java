@@ -1,6 +1,6 @@
 package fmagic.server.command;
 
-import fmagic.basic.resource.ResourceContainer;
+import fmagic.basic.context.Context;
 import fmagic.basic.resource.ResourceManager;
 
 /**
@@ -15,55 +15,112 @@ import fmagic.basic.resource.ResourceManager;
  * 
  * @changed FW 23.12.2012 - Created
  */
-public class ServerCommandCreateSession extends ServerCommandHandshake
+public class ServerCommandCreateSession extends ServerCommand
 {
+	private String clientPublicKey = null;
+
+	private String serverPublicKey = null;
+	private Boolean isSuccessful = null;
+
 	/**
-	 * Constructor
+	 * Constructor 1
 	 */
 	public ServerCommandCreateSession()
 	{
 		super();
 	}
 
+	/**
+	 * Constructor 2
+	 */
+	public ServerCommandCreateSession(Context context, String commandIdentifier)
+	{
+		super(context, commandIdentifier);
+	}
+
+	@Override
+	public void setCommandIdentifier(Context context)
+	{
+		this.commandIdentifier = ResourceManager.command(context, "CreateSession").getRecourceIdentifier();
+	}
+
 	@Override
 	protected boolean validateRequestContainer()
 	{
-		return super.validateRequestContainer();
+		try
+		{
+			// Get parameter: ClientPublicKey
+			this.clientPublicKey = this.requestContainer.getProperty(ResourceManager.commandParameter(this.getContext(), "CreateSession", "ClientPublicKey").getAliasName(), null);
+
+			if (this.clientPublicKey == null || this.clientPublicKey.length() == 0)
+			{
+				String errorText = "--> Error on validating command parameter";
+				errorText += "\n--> Missing client public key";
+				this.notifyError("Command", "IntegrityError", errorText, null);
+				return false;
+			}
+
+			// Return
+			return true;
+		}
+		catch (Exception e)
+		{
+			this.notifyError("Command", "ErrorOnProcessingCommand", null, e);
+			return false;
+		}
 	}
 
 	@Override
 	protected boolean processOnServer()
 	{
-		// Process functions of the Handshake CommandManager
-		if (super.processOnServer() == false) return false;
-
-		// Create a new session
-		String clientPublicKey = this.getRequestContainer().getProperty("ClientPublicKey", null);
-		String clientSessionIdentifier = this.requestContainer.getClientSessionIdentifier();
-		
-		if (this.serverManager.sessionAddClientSession(clientSessionIdentifier, clientPublicKey) == false)
+		try
 		{
-			// Get resource container
-			ResourceContainer resourceContainer = ResourceManager.notification(this.context, "Application", "ClientSessionAlreadyExistsOnServer");
-			String enumIdentifier = "";
-			if (resourceContainer != null) enumIdentifier = resourceContainer.getRecourceIdentifier();
-			
-			// Notify error
-			String errorText = "--> Client session identifier requested '" + clientSessionIdentifier + "'";
-			this.context.getNotificationManager().notifyError(this.context, resourceContainer, errorText, null);
-			this.setErrorMessageRuntimeError(this.context, this.responseContainer, enumIdentifier, null);
-			
+			// Create a new session
+			String clientSessionIdentifier = this.requestContainer.getClientSessionIdentifier();
+
+			if (this.serverManager.sessionAddClientSession(clientSessionIdentifier, this.clientPublicKey) == false)
+			{
+				String errorText = "--> Client session identifier requested '" + clientSessionIdentifier + "'";
+				this.notifyError("Application", "ClientSessionAlreadyExistsOnServer", errorText, null);
+
+				this.isSuccessful = false;
+			}
+			else
+			{
+				this.isSuccessful = true;
+			}
+
+			// Get public key of the server
+			this.serverPublicKey = this.context.getConfigurationManager().getProperty(this.context, ResourceManager.configuration(this.context, "Application", "PublicKey"), null, true);
+
 			// Return
+			return true;
+		}
+		catch (Exception e)
+		{
+			this.notifyError("Command", "ErrorOnProcessingCommand", null, e);
 			return false;
 		}
-
-		// Return
-		return true;
 	}
 
 	@Override
-	protected boolean evaluateResults()
+	protected boolean arrangeResults()
 	{
-		return super.evaluateResults();
+		try
+		{
+			// Set parameter: IsSuccessful
+			this.responseContainer.addProperty(ResourceManager.commandParameter(this.getContext(), "CreateSession", "IsSuccessful").getAliasName(), this.isSuccessful.toString());
+
+			// Set parameter: ServerPublicKey
+			this.responseContainer.addProperty(ResourceManager.commandParameter(this.getContext(), "CreateSession", "ServerPublicKey").getAliasName(), this.serverPublicKey);
+
+			// Return
+			return true;
+		}
+		catch (Exception e)
+		{
+			this.notifyError("Command", "ErrorOnProcessingCommand", null, e);
+			return false;
+		}
 	}
 }

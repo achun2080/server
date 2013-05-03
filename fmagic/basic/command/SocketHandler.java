@@ -41,7 +41,7 @@ public class SocketHandler
 	private boolean connectionStatus = false;
 
 	// Socket TIMEOUT time
-	private int timeoutTimeInMilliseconds = 10000;
+	private int timeoutTimeInMilliseconds = 100000;
 
 	/**
 	 * Constructor using connection parameters.
@@ -252,7 +252,7 @@ public class SocketHandler
 	 * @return Returns <TT>true</TT> if the function could be executed
 	 *         successfully, otherwise <TT>false</TT>.
 	 */
-	public boolean writeData(String data)
+	public boolean writeData(StringBuffer data)
 	{
 		// Check parameters
 		if (!this.isConnected()) return false;
@@ -262,12 +262,35 @@ public class SocketHandler
 		try
 		{
 			// Add NEWLINE as mark for End of Data package
-			data += "\n\n";
+			data.append("\n\n");
 
 			// Write data
-			this.bufferedWriter.append(data);
-			this.bufferedWriter.flush();
-
+//			this.bufferedWriter.append(data);
+//			this.bufferedWriter.flush();
+			
+			int bufferSize = this.getClientSocket().getSendBufferSize();
+			int cycle = 0;
+			int length = data.length();
+			
+			while (true)
+			{
+				// Set buffer range
+				int begin = cycle * bufferSize;
+				int end = begin + bufferSize;
+				if (end > length) end = length;
+				
+				cycle++;
+				
+				// Transform data to string
+				String stringToSend = data.substring(begin, end);
+				
+				// Write to socket
+				this.bufferedWriter.append(stringToSend);
+				this.bufferedWriter.flush();
+				
+				// End of transfer
+				if (end >= length) break;
+			}
 		}
 		catch (Exception e)
 		{
@@ -295,40 +318,42 @@ public class SocketHandler
 		try
 		{
 			// Read data stream
-			char[] responseBuffer = new char[5000];
+			int bufferSize = this.getClientSocket().getReceiveBufferSize();
+			char[] responseBuffer = new char[bufferSize];
 			int charCount = 0;
-			String responseString = "";
+			StringBuffer responseString = new StringBuffer();
 
 			while (true)
 			{
-				charCount = this.bufferedReader.read(responseBuffer, 0, 5000);
+				charCount = this.bufferedReader.read(responseBuffer, 0, bufferSize);
 
 				// No data read
 				if (charCount == -1) break;
 
 				// Transform data to string
-				responseString += new String(responseBuffer, 0, charCount);
+				responseString.append(new String(responseBuffer, 0, charCount));
 
 				// EOD
-				if (charCount < 5000) break;
+				if (charCount < bufferSize) break;
 			}
 
 			// Check for NEWLINE as EOD
-			if (!responseString.endsWith("\n\n")) return null;
+			String eos = responseString.substring(responseString.length() - 2); 
+			if (!eos.equals("\n\n")) return null;
 
 			// Return
 			return responseString.substring(0, responseString.length() - 2);
 		}
 		catch (SocketTimeoutException socketTimeoutException)
 		{
-			String errorString = "--> socket timeout";
+			String errorString = "--> Socket timeout";
 			errorString += "\n--> Host '" + this.host + "', Port '" + String.valueOf(this.port) + "'";
 			this.context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Socket", "ErrorOnSocketConnection"), errorString, socketTimeoutException);
 			throw socketTimeoutException;
 		}
 		catch (Exception e)
 		{
-			String errorString = "--> on reading data from socket";
+			String errorString = "--> Error on reading data from socket";
 			errorString += "\n--> Host '" + this.host + "', Port '" + String.valueOf(this.port) + "'";
 			this.context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Socket", "ErrorOnSocketConnection"), errorString, e);
 			return null;
