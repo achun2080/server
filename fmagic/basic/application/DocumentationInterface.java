@@ -36,7 +36,7 @@ public interface DocumentationInterface
 	/**
 	 * Print a Manual containing all information of the actual resource setting
 	 * regarding a specific resource type like Configuration, Notification,
-	 * Persistency, CommandManager or others.
+	 * LocaldataManager, CommandManager or others.
 	 * 
 	 * @param context
 	 *            The context to use.

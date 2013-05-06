@@ -12,9 +12,11 @@ import java.util.TreeMap;
 import fmagic.basic.application.ApplicationManager;
 import fmagic.basic.application.ApplicationServer;
 import fmagic.basic.command.SessionContainer;
+import fmagic.basic.context.Context;
 import fmagic.basic.file.FileUtilFunctions;
 import fmagic.basic.notification.NotificationManager;
 import fmagic.basic.resource.ResourceContainer.OriginEnum;
+import fmagic.basic.resource.ResourceContainer;
 import fmagic.basic.resource.ResourceManager;
 
 /**
@@ -42,10 +44,10 @@ public abstract class ServerManager extends ApplicationManager
 	// Thread pool
 	private final List<Thread> threadPool = new ArrayList<Thread>();
 
-	// Sessions
+	// Session configuration
 	private final HashMap<String, SessionContainer> sessions = new HashMap<String, SessionContainer>();
 	private Integer maxNuOfActiveSessions = null;
-	private Integer percentageRateOfSessionsToClean = null;
+	private Integer percentageRateForCleaning = null;
 
 	/**
 	 * Constructor
@@ -90,6 +92,68 @@ public abstract class ServerManager extends ApplicationManager
 		// Adopt constructor data
 		this.serverSocketPort = serverSocketPort;
 		this.timeoutTimeInMilliseconds = timeoutTimeInMilliseconds;
+	}
+
+	@Override
+	public boolean readConfiguration(Context context)
+	{
+		if (super.readConfiguration(context) == true) return true;
+		
+		// Initialize
+		String errorText = "";
+		boolean isError = false;
+		ResourceContainer resourceContainer = null;
+		Integer iValue = null;
+
+		try
+		{
+			// Read parameter: MaxNuOfActiveSessions
+			resourceContainer = ResourceManager.configuration(context, "Session", "MaxNuOfActiveSessions");
+			iValue = context.getConfigurationManager().getPropertyAsIntegerValue(context, resourceContainer, resourceContainer.getAttributeDefaultSettingAsInteger(context), false);
+			iValue = resourceContainer.validateMinimumMaximumSetting(context, iValue);
+
+			if (iValue != null)
+			{
+				this.maxNuOfActiveSessions = iValue;
+			}
+			else
+			{
+				isError = true;
+			}
+			
+			// Read parameter: PercentageRateForCleaning
+			resourceContainer = ResourceManager.configuration(context, "Session", "PercentageRateForCleaning");
+			iValue = context.getConfigurationManager().getPropertyAsIntegerValue(context, resourceContainer, resourceContainer.getAttributeDefaultSettingAsInteger(context), false);
+			iValue = resourceContainer.validateMinimumMaximumSetting(context, iValue);
+
+			if (iValue != null)
+			{
+				this.percentageRateForCleaning = iValue;
+			}
+			else
+			{
+				isError = true;
+			}
+
+			// Check parameter value
+			if (isError == true)
+			{
+				String errorString = "--> Error on reading configuration properties:";
+				errorString += errorText;
+				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Configuration", "IntegrityError"), errorString, null);
+				return true;
+			}
+		}
+		catch (Exception e)
+		{
+			String errorString = "--> Error on reading configuration properties:";
+			errorString += errorText;
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Configuration", "IntegrityError"), errorString, e);
+			return true;
+		}
+
+		// Return
+		return isError;
 	}
 
 	@Override
@@ -192,6 +256,18 @@ public abstract class ServerManager extends ApplicationManager
 		this.releaseWatchdog();
 	}
 
+	@Override
+	public boolean validateResources(Context context)
+	{
+		return false;
+	}
+
+	@Override
+	public boolean cleanEnvironment(Context context)
+	{
+		return false;
+	}
+
 	/**
 	 * Check if a client session is already known on the server.
 	 * <p>
@@ -268,14 +344,30 @@ public abstract class ServerManager extends ApplicationManager
 	 */
 	public synchronized boolean sessionCleanClientSessionList()
 	{
+		// Validate parameter
+		if (this.percentageRateForCleaning == null)
+		{
+			String errorString = "--> Configuration parameter 'Session/PercentageRateForCleaning' is not defined";
+			this.getContext().getNotificationManager().notifyError(this.getContext(), ResourceManager.notification(this.getContext(), "Application", "ErrorOnHandlingSessionList"), errorString, null);
+			return false;
+		}
+		
 		// Get percentage rate of sessions to clean
-		if (this.percentageRateOfSessionsToClean == null) this.percentageRateOfSessionsToClean = this.getContext().getConfigurationManager().getPropertyAsIntegerValue(this.getContext(), ResourceManager.configuration(this.getContext(), "Session", "PercentageRateForCleaning"), 10, false);
-		if (percentageRateOfSessionsToClean > 100) percentageRateOfSessionsToClean = 100;
 		int numberOfSessions = this.sessions.size();
-		int numberOfSessionsToClean = (int) ((double) numberOfSessions * (double) percentageRateOfSessionsToClean / 100.0);
+		int numberOfSessionsToClean = 0;
+
+		try
+		{
+			numberOfSessionsToClean = (int) ((double) numberOfSessions * (double) this.percentageRateForCleaning / 100.0);
+		}
+		catch (Exception e)
+		{
+			this.getContext().getNotificationManager().notifyError(this.getContext(), ResourceManager.notification(this.getContext(), "Application", "ErrorOnHandlingSessionList"), null, e);
+			return false;
+		}
 
 		// Validate parameter
-		if (percentageRateOfSessionsToClean == 0) return false;
+		if (numberOfSessionsToClean == 0) return false;
 		if (numberOfSessions == 0) return false;
 		if (numberOfSessionsToClean == 0) return false;
 		if (numberOfSessionsToClean > numberOfSessions) numberOfSessionsToClean = numberOfSessions;
@@ -291,7 +383,6 @@ public abstract class ServerManager extends ApplicationManager
 		// Delete the first x sessions of the session list
 		try
 		{
-
 			Iterator<String> iterator = sortedSessions.keySet().iterator();
 
 			for (int i = 0; i < numberOfSessionsToClean; i++)
@@ -303,7 +394,7 @@ public abstract class ServerManager extends ApplicationManager
 		}
 		catch (Exception e)
 		{
-			this.getContext().getNotificationManager().notifyError(this.getContext(), ResourceManager.notification(this.getContext(), "Application", "ErrorOnCleaningSessionList"), null, e);
+			this.getContext().getNotificationManager().notifyError(this.getContext(), ResourceManager.notification(this.getContext(), "Application", "ErrorOnHandlingSessionList"), null, e);
 			return false;
 		}
 
@@ -331,15 +422,20 @@ public abstract class ServerManager extends ApplicationManager
 	 */
 	public synchronized boolean sessionAddClientSession(String clientSessionIdentifier, String clientPublicKey)
 	{
+		// Validate parameter
+		if (this.maxNuOfActiveSessions == null)
+		{
+			String errorString = "--> Configuration parameter 'Session/MaxNuOfActiveSessions' is not defined";
+			this.getContext().getNotificationManager().notifyError(this.getContext(), ResourceManager.notification(this.getContext(), "Application", "ErrorOnHandlingSessionList"), errorString, null);
+			this.maxNuOfActiveSessions = 5000;
+		}
+		
 		// Validate data
 		String clientSessionIdentifierToAdd = clientSessionIdentifier.trim();
 
 		// Check if session already exists on the server
 		SessionContainer session = this.sessions.get(clientSessionIdentifierToAdd.trim());
 		if (session != null) return false;
-
-		// Check max number of sessions
-		if (this.maxNuOfActiveSessions == null) this.maxNuOfActiveSessions = this.getContext().getConfigurationManager().getPropertyAsIntegerValue(this.getContext(), ResourceManager.configuration(this.getContext(), "Session", "MaxNuOfActiveSessions"), 1000, false);
 
 		if (this.sessions.size() >= this.maxNuOfActiveSessions)
 		{
@@ -381,6 +477,15 @@ public abstract class ServerManager extends ApplicationManager
 	 */
 	public void threadPoolShutDown()
 	{
+		// Validate parameter
+		if (this.maximumWaitingTimeForPendingThreadsInSeconds == null)
+		{
+			String errorString = "--> Configuration parameter 'Shutdown/MaximumWaitingTimeForPendingThreadsInSeconds' is not defined";
+			this.getContext().getNotificationManager().notifyError(this.getContext(), ResourceManager.notification(this.getContext(), "Application", "ErrorOnShutdownThreadPool"), errorString, null);
+			this.maximumWaitingTimeForPendingThreadsInSeconds = 120;
+		}
+
+		// Check parameter
 		if (this.threadPool == null) return;
 		if (this.threadPool.size() == 0) return;
 
@@ -388,7 +493,7 @@ public abstract class ServerManager extends ApplicationManager
 		{
 			try
 			{
-				FileUtilFunctions.generalWaitForThreadTerminating(thread, 60);
+				FileUtilFunctions.generalWaitForThreadTerminating(thread, this.maximumWaitingTimeForPendingThreadsInSeconds);
 			}
 			catch (Exception exception)
 			{
@@ -406,8 +511,8 @@ public abstract class ServerManager extends ApplicationManager
 	public void threadPoolExecuteNewThread(Runnable runnable)
 	{
 		if (this.threadPool == null) return;
-		
-		// Remove expired threads 
+
+		// Remove expired threads
 		try
 		{
 			for (Thread thread : new ArrayList<Thread>(this.threadPool))

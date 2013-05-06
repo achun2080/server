@@ -78,7 +78,7 @@ public class ServerCommandCreateSession extends ServerCommand
 			// Create a new session
 			String clientSessionIdentifier = this.requestContainer.getClientSessionIdentifier();
 
-			if (this.serverManager.sessionAddClientSession(clientSessionIdentifier, this.clientPublicKey) == false)
+			if (this.getContext().getServerManager().sessionAddClientSession(clientSessionIdentifier, this.clientPublicKey) == false)
 			{
 				String errorText = "--> Client session identifier requested '" + clientSessionIdentifier + "'";
 				this.notifyError("Application", "ClientSessionAlreadyExistsOnServer", errorText, null);

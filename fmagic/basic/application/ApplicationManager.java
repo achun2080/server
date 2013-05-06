@@ -6,13 +6,15 @@ import fmagic.basic.context.Context;
 import fmagic.basic.file.FileLocationFunctions;
 import fmagic.basic.file.FileUtilFunctions;
 import fmagic.basic.resource.ResourceContainer;
-import fmagic.basic.resource.ResourceManager;
 import fmagic.basic.resource.ResourceContainer.OriginEnum;
+import fmagic.basic.resource.ResourceManager;
 import fmagic.basic.watchdog.WatchdogManager;
 import fmagic.basic.watchdog.WatchdogServer;
 import fmagic.client.context.ClientContext;
+import fmagic.server.application.ServerManager;
 import fmagic.server.context.ServerContext;
 import fmagic.test.application.TestManager;
+import fmagic.client.application.ClientManager;
 
 /**
  * This class implements common data needed to organize client/server FMAGIC
@@ -52,10 +54,19 @@ public abstract class ApplicationManager implements ManagerInterface
 	// of severe errors during initialization
 	private boolean shutdown = false;
 
+	// Shut down configuration
+	protected Integer maximumWaitingTimeForPendingThreadsInSeconds = null;
+
 	// Application codes
 	public static enum ApplicationIdentifierEnum
 	{
-		Basic, Common, Extension, Test, ReferenceApplication, SeniorCitizenXXX, SteriManagement
+		Basic,
+		Common,
+		Extension,
+		Test,
+		ReferenceApplication,
+		SeniorCitizenXXX,
+		SteriManagement
 	}
 
 	/**
@@ -82,25 +93,26 @@ public abstract class ApplicationManager implements ManagerInterface
 	 *            is running in productive mode.
 	 * 
 	 * @param testSessionName
-	 *            Is to be set to the name of the test session, if the application
-	 *            is running in test mode, or <TT>null</TT> if the application
-	 *            is running in productive mode.
+	 *            Is to be set to the name of the test session, if the
+	 *            application is running in test mode, or <TT>null</TT> if the
+	 *            application is running in productive mode.
 	 */
 	protected ApplicationManager(
 			ApplicationManager.ApplicationIdentifierEnum applicationIdentifier,
 			int applicationVersion, String codeName, OriginEnum origin,
-			boolean runningInTestMode, String testCaseName, String testSessionName)
+			boolean runningInTestMode, String testCaseName,
+			String testSessionName)
 	{
 		// Create default context
 		if (origin.toString().equals(OriginEnum.Server.toString()))
 		{
-			this.context = new ServerContext(codeName, applicationIdentifier.toString(), applicationVersion, this, runningInTestMode, testCaseName, testSessionName);
+			this.context = new ServerContext(codeName, applicationIdentifier.toString(), applicationVersion, (ServerManager) this, runningInTestMode, testCaseName, testSessionName);
 			this.serverApplication = true;
 			this.clientApplication = false;
 		}
 		else
 		{
-			this.context = new ClientContext(codeName, applicationIdentifier.toString(), applicationVersion, this, runningInTestMode, testCaseName, testSessionName);
+			this.context = new ClientContext(codeName, applicationIdentifier.toString(), applicationVersion, (ClientManager) this, runningInTestMode, testCaseName, testSessionName);
 			this.serverApplication = false;
 			this.clientApplication = true;
 		}
@@ -113,7 +125,13 @@ public abstract class ApplicationManager implements ManagerInterface
 		// Create a silent dump context for initializing application server
 		ResourceContainer contextResourceContainer = this.context.getResourceManager().getProvisionalResourceContainer("Context.Common.All.Identifier.Overall.Initialization");
 		this.context = this.context.createSilentDumpContext(contextResourceContainer);
+	}
 
+	/**
+	 * Release all resources needed by the application server.
+	 */
+	protected void initialize()
+	{
 		// Process critical path
 		boolean isError = false;
 
@@ -138,7 +156,7 @@ public abstract class ApplicationManager implements ManagerInterface
 				if (this.readLabelResourceFiles() == false) isError = true;
 
 				// Write configuration template files
-				if (this.getContext().getConfigurationManager().createTemplateConfigurationFile(this.getContext(), this.getApplicationIdentifier().toString(), origin.toString(), true) == false) isError = true;
+				if (this.getContext().getConfigurationManager().createTemplateConfigurationFile(this.getContext(), this.getApplicationIdentifier().toString(), this.getContext().getOriginName(), true) == false) isError = true;
 
 				// Read configuration items of all interfaces
 				if (this.readConfigurationAll(this.getContext()) == true) isError = true;
@@ -171,6 +189,11 @@ public abstract class ApplicationManager implements ManagerInterface
 				// Start WATCHDOG
 				this.watchdogServer = new WatchdogServer(this.getContext(), this.getContext().getWatchdogManager());
 				if (watchdogServer.startServer(this.getContext()) == false) isError = true;
+
+				// Initialize application settings
+				if (this.readConfiguration(this.getContext()) == true) isError = true;
+				if (this.validateResources(this.getContext()) == true) isError = true;
+				if (this.cleanEnvironment(this.getContext()) == true) isError = true;
 
 				// End of critical path
 				break;
@@ -249,6 +272,52 @@ public abstract class ApplicationManager implements ManagerInterface
 	 */
 	protected abstract boolean bindResources();
 
+	@Override
+	public boolean readConfiguration(Context context)
+	{
+		// Initialize
+		String errorText = "";
+		boolean isError = false;
+		ResourceContainer resourceContainer = null;
+		Integer iValue = null;
+
+		try
+		{
+			// Read parameter: MaximumWaitingTimeForPendingThreadsInSeconds
+			resourceContainer = ResourceManager.configuration(context, "Shutdown", "MaximumWaitingTimeForPendingThreadsInSeconds");
+			iValue = context.getConfigurationManager().getPropertyAsIntegerValue(context, resourceContainer, resourceContainer.getAttributeDefaultSettingAsInteger(context), false);
+			iValue = resourceContainer.validateMinimumMaximumSetting(context, iValue);
+
+			if (iValue != null)
+			{
+				this.maximumWaitingTimeForPendingThreadsInSeconds = iValue;
+			}
+			else
+			{
+				isError = true;
+			}
+
+			// Check parameter value
+			if (isError == true)
+			{
+				String errorString = "--> Error on reading configuration properties:";
+				errorString += errorText;
+				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Configuration", "IntegrityError"), errorString, null);
+				return true;
+			}
+		}
+		catch (Exception e)
+		{
+			String errorString = "--> Error on reading configuration properties:";
+			errorString += errorText;
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Configuration", "IntegrityError"), errorString, e);
+			return true;
+		}
+
+		// Return
+		return isError;
+	}
+
 	/**
 	 * Read all resource files.
 	 * 
@@ -268,17 +337,17 @@ public abstract class ApplicationManager implements ManagerInterface
 			if (this.getContext().getResourceManager().loadCommonResourceFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Common.toString(), this.applicationVersion, null) == false) isSuccessful = false;
 			if (this.getContext().getResourceManager().loadCommonResourceFile(this.getContext(), this.getApplicationIdentifier().toString(), this.applicationVersion, null) == false) isSuccessful = false;
 			if (this.getContext().getResourceManager().loadCommonResourceFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Extension.toString(), this.applicationVersion, null) == false) isSuccessful = false;
-			
-			// Read test resources. if the application is running in "test mode", the test resources are loaded additionally.
+
+			// Read test resources. if the application is running in
+			// "test mode", the test resources are loaded additionally.
 			if (context.isRunningInTestMode())
 			{
 				String fileName = FileLocationFunctions.compileFilePath(TestManager.getTestResourceFilePath(this.getContext()), FileLocationFunctions.getResourceFileName());
 				fileName = FileLocationFunctions.replacePlaceholder(this.getContext(), fileName, ApplicationManager.ApplicationIdentifierEnum.Test.toString(), null);
-				
+
 				if (this.getContext().getResourceManager().loadCommonResourceFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Test.toString(), this.applicationVersion, fileName) == false) isSuccessful = false;
 			}
-			
-			
+
 		}
 		catch (Exception e)
 		{
@@ -508,7 +577,6 @@ public abstract class ApplicationManager implements ManagerInterface
 		// Check for integrity errors (Named resource identifiers)
 		try
 		{
-			if (this.validateResources(context) == true) isIntegrityError = true;
 			if (context.validateResources(context) == true) isIntegrityError = true;
 			if (context.getCommandManager().validateResources(context) == true) isIntegrityError = true;
 			if (context.getNotificationManager().validateResources(context) == true) isIntegrityError = true;
@@ -546,7 +614,6 @@ public abstract class ApplicationManager implements ManagerInterface
 		// Clean environment
 		try
 		{
-			if (this.cleanEnvironment(context) == true) isIntegrityError = true;
 			if (context.cleanEnvironment(context) == true) isIntegrityError = true;
 			if (context.getCommandManager().cleanEnvironment(context) == true) isIntegrityError = true;
 			if (context.getNotificationManager().cleanEnvironment(context) == true) isIntegrityError = true;
@@ -584,7 +651,6 @@ public abstract class ApplicationManager implements ManagerInterface
 		// Read configuration items of all interfaces
 		try
 		{
-			if (this.readConfiguration(context) == true) isError = true;
 			if (context.readConfiguration(context) == true) isError = true;
 			if (context.getCommandManager().readConfiguration(context) == true) isError = true;
 			if (context.getNotificationManager().readConfiguration(context) == true) isError = true;

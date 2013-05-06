@@ -140,6 +140,9 @@ public class ClientReferenceApplication extends ClientManager
 	{
 		// Instance will always be build because it is a regular constructor
 		ClientReferenceApplication instance = new ClientReferenceApplication(codeName, true, testCaseName, testSessionName);
+		
+		// Initialize application
+		instance.initialize();
 
 		// If there was an error during building the application, the factory
 		// method returns wit NULL
@@ -168,6 +171,9 @@ public class ClientReferenceApplication extends ClientManager
 	{
 		// Instance will always be build because it is a regular constructor
 		ClientReferenceApplication instance = new ClientReferenceApplication(codeName, false, null, null);
+		
+		// Initialize application
+		instance.initialize();
 
 		// If there was an error during building the application, the factory
 		// method returns wit NULL

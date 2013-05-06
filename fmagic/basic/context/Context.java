@@ -22,6 +22,8 @@ import fmagic.basic.resource.ResourceContainer;
 import fmagic.basic.resource.ResourceManager;
 import fmagic.basic.right.RightManager;
 import fmagic.basic.watchdog.WatchdogManager;
+import fmagic.client.application.ClientManager;
+import fmagic.server.application.ServerManager;
 import fmagic.test.application.TestManager;
 
 /**
@@ -723,6 +725,24 @@ public abstract class Context implements Cloneable, ManagerInterface
 	public ApplicationManager getApplicationManager()
 	{
 		return applicationManager;
+	}
+
+	/**
+	 * Getter
+	 */
+	public ServerManager getServerManager()
+	{
+		if (applicationManager instanceof ServerManager) return (ServerManager) applicationManager;
+		return null;
+	}
+
+	/**
+	 * Getter
+	 */
+	public ClientManager getClientManager()
+	{
+		if (applicationManager instanceof ClientManager) return (ClientManager) applicationManager;
+		return null;
 	}
 
 	/**

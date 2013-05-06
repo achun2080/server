@@ -1,8 +1,8 @@
 package fmagic.server.context;
 
-import fmagic.basic.application.ApplicationManager;
 import fmagic.basic.context.Context;
 import fmagic.basic.resource.ResourceContainer;
+import fmagic.server.application.ServerManager;
 import fmagic.server.media.ServerMediaManager;
 import fmagic.test.application.TestManagerServer;
 
@@ -55,7 +55,7 @@ public class ServerContext extends Context
 	 *            is running in productive mode.
 	 */
 	public ServerContext(String codeName, String applicationName,
-			int applicationVersion, ApplicationManager applicationManager,
+			int applicationVersion, ServerManager applicationManager,
 			boolean runningInTestMode, String testCaseName, String testSessionName)
 	{
 		super(codeName, applicationName, applicationVersion, ResourceContainer.OriginEnum.Server.toString(), applicationManager, new ServerMediaManager(), new TestManagerServer(), runningInTestMode, testCaseName, testSessionName);

@@ -292,7 +292,6 @@ public class ServerWorkerThread implements Runnable
 
 			// Initialize server command
 			serverCommand.createResponseContainer(serverManager.getApplicationIdentifier().toString(), this.serverManager.getApplicationVersion(), serverCommand.getCommandIdentifier());
-			serverCommand.setServer(this.serverManager);
 			serverCommand.setRequestContainer(requestContainer);
 		}
 		catch (Exception exception)

@@ -4,10 +4,9 @@ import fmagic.basic.command.Command;
 import fmagic.basic.command.RequestContainer;
 import fmagic.basic.command.ResponseContainer;
 import fmagic.basic.context.Context;
-import fmagic.server.application.ServerManager;
 
 /**
- * This class defines common functions needed by all application servers.
+ * This class defines common command functions needed by all application servers.
  * 
  * @author frank.wuensche (FW)
  * 
@@ -15,9 +14,6 @@ import fmagic.server.application.ServerManager;
  */
 public abstract class ServerCommand extends Command
 {
-	// Current server application
-	protected ServerManager serverManager = null;
-
 	/**
 	 * Constructor 1
 	 */
@@ -136,22 +132,6 @@ public abstract class ServerCommand extends Command
 	public void setContext(Context context)
 	{
 		this.context = context;
-	}
-
-	/**
-	 * Getter
-	 */
-	public ServerManager getServer()
-	{
-		return serverManager;
-	}
-
-	/**
-	 * Setter
-	 */
-	public void setServer(ServerManager server)
-	{
-		this.serverManager = server;
 	}
 
 	/**

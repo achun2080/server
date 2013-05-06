@@ -4,7 +4,6 @@ import fmagic.basic.context.Context;
 
 public interface ManagerInterface extends DocumentationInterface
 {
-
 	/**
 	 * Check on integrity errors of resource identifiers.
 	 * <p>

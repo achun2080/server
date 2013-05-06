@@ -211,7 +211,7 @@ public class TestContainerMediaCommand extends TestContainer
 			TestManager.assertGreaterThan(this.getContext(), this, additionalText, fileList.size(), 0);
 
 			// Try some uploads
-			for (int i = 0; i < 100000; i++)
+			for (int i = 0; i < 1; i++)
 			{
 				int index = FileUtilFunctions.generalGetRandomValue(0, fileList.size() - 1);
 				this.doPushFileFromClientToServer(this.parameterResourceGroup, this.parameterResourceName, this.parameterDataIdentifierTestUpload, fileList.get(index));

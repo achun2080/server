@@ -1,8 +1,8 @@
 package fmagic.client.context;
 
-import fmagic.basic.application.ApplicationManager;
 import fmagic.basic.context.Context;
 import fmagic.basic.resource.ResourceContainer;
+import fmagic.client.application.ClientManager;
 import fmagic.client.media.ClientMediaManager;
 import fmagic.test.application.TestManagerClient;
 
@@ -54,7 +54,7 @@ public class ClientContext extends Context
 	 *            is running in productive mode.
 	 */
 	public ClientContext(String codeName, String applicationName,
-			int applicationVersion, ApplicationManager applicationManager,
+			int applicationVersion, ClientManager applicationManager,
 			boolean runningInTestMode, String testCaseName, String testSessionName)
 	{
 		super(codeName, applicationName, applicationVersion, ResourceContainer.OriginEnum.Client.toString(), applicationManager, new ClientMediaManager(), new TestManagerClient(), runningInTestMode, testCaseName, testSessionName);

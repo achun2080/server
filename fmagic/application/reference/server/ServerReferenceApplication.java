@@ -1,7 +1,6 @@
 package fmagic.application.reference.server;
 
 import fmagic.basic.application.ApplicationManager;
-import fmagic.basic.application.ManagerInterface;
 import fmagic.basic.context.Context;
 import fmagic.server.application.ServerManager;
 
@@ -13,8 +12,7 @@ import fmagic.server.application.ServerManager;
  * @changed FW 24.11.2009 - Created
  * 
  */
-public class ServerReferenceApplication extends ServerManager implements
-		ManagerInterface
+public class ServerReferenceApplication extends ServerManager
 {
 	// Server version
 	final static private int serverVersion = 1;
@@ -101,21 +99,9 @@ public class ServerReferenceApplication extends ServerManager implements
 	}
 
 	@Override
-	public boolean validateResources(Context context)
-	{
-		return false;
-	}
-
-	@Override
 	public boolean readConfiguration(Context context)
 	{
-		return false;
-	}
-
-	@Override
-	public boolean cleanEnvironment(Context context)
-	{
-		return false;
+	  return super.readConfiguration(context);
 	}
 
 	@Override
@@ -249,6 +235,9 @@ public class ServerReferenceApplication extends ServerManager implements
 	{
 		// Instance will always be build because it is a regular constructor
 		ServerReferenceApplication instance = new ServerReferenceApplication(codeName, serverSocketPort, serverSocketPort, true, testCaseName, testSessionName);
+		
+		// Initialize application
+		instance.initialize();
 
 		// If there was an error during building the application, the factory
 		// method returns wit NULL
@@ -282,6 +271,9 @@ public class ServerReferenceApplication extends ServerManager implements
 	{
 		// Instance will always be build because it is a regular constructor
 		ServerReferenceApplication instance = new ServerReferenceApplication(codeName, serverSocketPort, serverSocketPort, false, null, null);
+		
+		// Initialize application
+		instance.initialize();
 
 		// If there was an error during building the application, the factory
 		// method returns wit NULL
