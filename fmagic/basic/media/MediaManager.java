@@ -54,8 +54,9 @@ public abstract class MediaManager implements ManagerInterface
 	protected int encodingKeyNumber = 0;
 	protected boolean encodingEnabled = false;
 
-	// Media root file path
+	// Common media file configuration properties
 	protected String mediaRootFilePath = null;
+	private Integer maximumMediaSize = null;
 
 	// Configuration parameter
 	protected int cleanPendingDaysToKeep = 0;
@@ -136,13 +137,27 @@ public abstract class MediaManager implements ManagerInterface
 		if (readConfigurationEncodingKeyList(context) == true) isError = true;
 		if (readConfigurationEncodingKeyNumber(context) == true) isError = true;
 		if (readConfigurationEncodingEnabled(context) == true) isError = true;
+		if (readConfigurationSpecificParameter(context) == true) isError = true;
+
 		if (readConfigurationCleaningConfigurationParameter(context) == true) isError = true;
+		if (readConfigurationMaximumMediaSize(context) == true) isError = true;
 
 		/*
 		 * Return
 		 */
 		return isError;
 	}
+
+	/**
+	 * Read specific parameter regarding either client or server.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @return Returns <TT>true</TT> if an error was found, otherwise
+	 *         <TT>false</TT>.
+	 */
+	protected abstract boolean readConfigurationSpecificParameter(Context context);
 
 	/**
 	 * Read the current 'LocalMediaFilePathRoot' value of server or client.
@@ -219,6 +234,7 @@ public abstract class MediaManager implements ManagerInterface
 			}
 			else
 			{
+				errorText += "\n--> On reading configuration property: 'CleanPendingDaysToKeep'";
 				isError = true;
 			}
 
@@ -233,6 +249,7 @@ public abstract class MediaManager implements ManagerInterface
 			}
 			else
 			{
+				errorText += "\n--> On reading configuration property: 'CleanDeletedDaysToKeep'";
 				isError = true;
 			}
 
@@ -247,6 +264,62 @@ public abstract class MediaManager implements ManagerInterface
 			}
 			else
 			{
+				errorText += "\n--> On reading configuration property: 'CleanObsoleteDaysToKeep'";
+				isError = true;
+			}
+
+			// Check parameter value
+			if (isError == true)
+			{
+				String errorString = "--> Error on reading configuration properties regarding media settings:";
+				errorString += errorText;
+				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Configuration", "IntegrityError"), errorString, null);
+				return true;
+			}
+		}
+		catch (Exception e)
+		{
+			String errorString = "--> Error on reading configuration properties regarding media settings:";
+			errorString += errorText;
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Configuration", "IntegrityError"), errorString, e);
+			return true;
+		}
+
+		// Return
+		return isError;
+	}
+
+	/**
+	 * Read the current 'EncodingEnabled' value of server or client.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @return Returns <TT>true</TT> if an error was found, otherwise
+	 *         <TT>false</TT>.
+	 */
+	protected boolean readConfigurationMaximumMediaSize(Context context)
+	{
+		// Initialize
+		String errorText = "";
+		boolean isError = false;
+		ResourceContainer resourceContainer = null;
+		Integer iValue = null;
+
+		try
+		{
+			// Read parameter: MaximumMediaSize
+			resourceContainer = ResourceManager.configuration(context, "Media", "MaximumMediaSize");
+			iValue = context.getConfigurationManager().getPropertyAsIntegerValue(context, resourceContainer, resourceContainer.getAttributeDefaultSettingAsInteger(context), false);
+			iValue = resourceContainer.validateMinimumMaximumSetting(context, iValue);
+
+			if (iValue != null)
+			{
+				this.maximumMediaSize = iValue;
+			}
+			else
+			{
+				errorText += "\n--> On reading configuration property: 'MaximumMediaSize'";
 				isError = true;
 			}
 
@@ -957,7 +1030,7 @@ public abstract class MediaManager implements ManagerInterface
 		/*
 		 * Get server encoding key number of the real file
 		 */
-		int keyNumber = mediaResourceContainer.getEncodingKeyOfRealFileName(context, sourceFilePath);
+		int keyNumber = mediaResourceContainer.mediaFileGetEncodingKeyOfRealFileName(context, sourceFilePath);
 
 		/*
 		 * Get file type of media file
@@ -980,7 +1053,7 @@ public abstract class MediaManager implements ManagerInterface
 		 */
 
 		// Get file path of pending media file
-		String pendingFilePath = FileLocationFunctions.compileFilePath(mediaResourceContainer.getMediaPendingFilePath(context), mediaResourceContainer.getMediaPendingFileName(context, fileType));
+		String pendingFilePath = FileLocationFunctions.compileFilePath(mediaResourceContainer.mediaFileGetPendingFilePath(context), mediaResourceContainer.mediaFileGetPendingFileName(context, fileType));
 
 		// Copy media file to pending directory (with Retry, because it can take
 		// a longer time to copy large files).
@@ -1044,7 +1117,7 @@ public abstract class MediaManager implements ManagerInterface
 
 		// Get new 'pending' file path as destination file path for the file to
 		// be decrypted
-		String destinationFilePath = FileLocationFunctions.compileFilePath(mediaResourceContainer.getMediaPendingFilePath(context), mediaResourceContainer.getMediaPendingFileName(context, fileType));
+		String destinationFilePath = FileLocationFunctions.compileFilePath(mediaResourceContainer.mediaFileGetPendingFilePath(context), mediaResourceContainer.mediaFileGetPendingFileName(context, fileType));
 
 		// Decrypt media file
 		CipherHandler cipherHandler = new CipherHandler(context);
@@ -1063,7 +1136,7 @@ public abstract class MediaManager implements ManagerInterface
 		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "\n--> DECRYPT: Decrypt media file: '" + pendingFilePath + "' --> '" + destinationFilePath + "'");
 
 		// Get hash value of source file (directly from file name)
-		String hashValueSourceFile = mediaResourceContainer.getHashValueOfRealFileName(context, sourceFilePath);
+		String hashValueSourceFile = mediaResourceContainer.mediaFileGetHashValueOfRealFileName(context, sourceFilePath);
 
 		if (hashValueSourceFile == null)
 		{
@@ -1205,7 +1278,7 @@ public abstract class MediaManager implements ManagerInterface
 		}
 
 		// Checks if file type allowed for the given media resource item
-		if (mediaResourceContainer.isFileTypeSupported(context, fileType) == false)
+		if (mediaResourceContainer.attributeIsFileTypeSupported(context, fileType) == false)
 		{
 			String errorString = "--> STORE LOCAL: File type '" + fileType + "' is not supported by the current media resource item.";
 			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
@@ -1215,10 +1288,46 @@ public abstract class MediaManager implements ManagerInterface
 			return false;
 		}
 
+		// Checks if the maximum size of the media file is exceeded (related to
+		// the media resource attribute)
+		if (mediaResourceContainer.mediaFileIsMaximumFileSizeExceeded(context, uploadFileNamePath) == true)
+		{
+			String errorString = "--> STORE LOCAL: Maximum allowed media file size exceeded.";
+			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+			errorString += "\n--> File name of the file to be uploaded: '" + uploadFileNamePath + "'";
+
+			Integer maximumFileSize = mediaResourceContainer.attributeGetMaximumMediaSize(context);
+			if (maximumFileSize != null) errorString += "\n--> Maximum allowed file size of media resource item: '" + String.valueOf(maximumFileSize * 1024L) + "' Byte = '" + String.valueOf(maximumFileSize) + "' Kilobyte";
+
+			Long currentFileSize = FileUtilFunctions.fileGetFileSize(uploadFileNamePath);
+			if (currentFileSize != null) errorString += "\n--> File size of media file: '" + String.valueOf(currentFileSize) + "' Byte = '" + String.valueOf(currentFileSize / 1024) + "' Kilobyte";
+
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnStoringFileLocally"), errorString, null);
+			return false;
+		}
+
+		// Checks if the maximum size of the media file is exceeded (related to
+		// the general configuration parameter)
+		if (this.doCheckIfMaximumFileSizeExceeded(context, uploadFileNamePath) == true)
+		{
+			String errorString = "--> STORE LOCAL: Maximum allowed media file size exceeded.";
+			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+			errorString += "\n--> File name of the file to be uploaded: '" + uploadFileNamePath + "'";
+
+			Integer maximumFileSize = this.getMaximumMediaSize();
+			if (maximumFileSize != null) errorString += "\n--> Maximum allowed file size set by the media configuration: '" + String.valueOf(maximumFileSize * 1024L) + "' Byte = '" + String.valueOf(maximumFileSize) + "' Kilobyte";
+
+			Long currentFileSize = FileUtilFunctions.fileGetFileSize(uploadFileNamePath);
+			if (currentFileSize != null) errorString += "\n--> File size of media file: '" + String.valueOf(currentFileSize) + "' Byte = '" + String.valueOf(currentFileSize / 1024) + "' Kilobyte";
+
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnStoringFileLocally"), errorString, null);
+			return false;
+		}
+
 		/*
 		 * Create file directory for pending files
 		 */
-		String pendingFilePathDirectory = mediaResourceContainer.getMediaPendingFilePath(context);
+		String pendingFilePathDirectory = mediaResourceContainer.mediaFileGetPendingFilePath(context);
 
 		try
 		{
@@ -1238,7 +1347,7 @@ public abstract class MediaManager implements ManagerInterface
 		/*
 		 * Create file directory for deleted files
 		 */
-		String deletedFilePathDirectory = mediaResourceContainer.getMediaDeletedFilePath(context);
+		String deletedFilePathDirectory = mediaResourceContainer.mediaFileGetDeletedFilePath(context);
 
 		try
 		{
@@ -1259,7 +1368,7 @@ public abstract class MediaManager implements ManagerInterface
 		/*
 		 * Copy original file to the pending file directory
 		 */
-		String pendingFilePath = FileLocationFunctions.compileFilePath(mediaResourceContainer.getMediaPendingFilePath(context), mediaResourceContainer.getMediaPendingFileName(context, fileType));
+		String pendingFilePath = FileLocationFunctions.compileFilePath(mediaResourceContainer.mediaFileGetPendingFilePath(context), mediaResourceContainer.mediaFileGetPendingFileName(context, fileType));
 
 		if (FileUtilFunctions.fileCopy(uploadFileNamePath, pendingFilePath) == false)
 		{
@@ -1296,7 +1405,7 @@ public abstract class MediaManager implements ManagerInterface
 		 */
 		if (this.isEncodingEnabled(context, mediaResourceContainer))
 		{
-			String encryptedPendingFileName = FileLocationFunctions.compileFilePath(mediaResourceContainer.getMediaPendingFilePath(context), mediaResourceContainer.getMediaPendingFileName(context, fileType));
+			String encryptedPendingFileName = FileLocationFunctions.compileFilePath(mediaResourceContainer.mediaFileGetPendingFilePath(context), mediaResourceContainer.mediaFileGetPendingFileName(context, fileType));
 
 			encryptedPendingFileName = this.operationEncrypt(context, mediaResourceContainer, pendingFilePath, encryptedPendingFileName);
 
@@ -1347,7 +1456,7 @@ public abstract class MediaManager implements ManagerInterface
 		 * Move the temporary media file from the pending directory to the
 		 * regular media file directory
 		 */
-		String destinationFileName = mediaResourceContainer.getMediaRealFileName(context, dataIdentifier, hashValue, fileType);
+		String destinationFileName = mediaResourceContainer.mediaFileGetRealFileName(context, dataIdentifier, hashValue, fileType);
 
 		// Copy only if the destination file doesn't exist yet.
 		if (FileUtilFunctions.fileExists(destinationFileName) == false)
@@ -1495,7 +1604,7 @@ public abstract class MediaManager implements ManagerInterface
 		}
 
 		// Checks if file type allowed for the given media resource item
-		if (mediaResourceContainer.isFileTypeSupported(context, fileType) == false)
+		if (mediaResourceContainer.attributeIsFileTypeSupported(context, fileType) == false)
 		{
 			String errorString = "--> UPLOAD FROM CLIENT TO SERVER: File type '" + fileType + "' is not supported by the current media resource item.";
 			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
@@ -1505,10 +1614,46 @@ public abstract class MediaManager implements ManagerInterface
 			return false;
 		}
 
+		// Checks if the maximum size of the media file is exceeded (related to
+		// the media resource attribute)
+		if (mediaResourceContainer.mediaFileIsMaximumFileSizeExceeded(context, uploadFileNamePath) == true)
+		{
+			String errorString = "--> UPLOAD FROM CLIENT TO SERVER: Maximum allowed media file size exceeded.";
+			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+			errorString += "\n--> File name of the file to be uploaded: '" + uploadFileNamePath + "'";
+
+			Integer maximumFileSize = mediaResourceContainer.attributeGetMaximumMediaSize(context);
+			if (maximumFileSize != null) errorString += "\n--> Maximum allowed file size of media resource item: '" + String.valueOf(maximumFileSize * 1024L) + "' Byte = '" + String.valueOf(maximumFileSize) + "' Kilobyte";
+
+			Long currentFileSize = FileUtilFunctions.fileGetFileSize(uploadFileNamePath);
+			if (currentFileSize != null) errorString += "\n--> File size of media file: '" + String.valueOf(currentFileSize) + "' Byte = '" + String.valueOf(currentFileSize / 1024) + "' Kilobyte";
+
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnStoringFileLocally"), errorString, null);
+			return false;
+		}
+
+		// Checks if the maximum size of the media file is exceeded (related to
+		// the general configuration parameter)
+		if (this.doCheckIfMaximumFileSizeExceeded(context, uploadFileNamePath) == true)
+		{
+			String errorString = "--> UPLOAD FROM CLIENT TO SERVER: Maximum allowed media file size exceeded.";
+			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+			errorString += "\n--> File name of the file to be uploaded: '" + uploadFileNamePath + "'";
+
+			Integer maximumFileSize = this.getMaximumMediaSize();
+			if (maximumFileSize != null) errorString += "\n--> Maximum allowed file size set by the media configuration: '" + String.valueOf(maximumFileSize * 1024L) + "' Byte = '" + String.valueOf(maximumFileSize) + "' Kilobyte";
+
+			Long currentFileSize = FileUtilFunctions.fileGetFileSize(uploadFileNamePath);
+			if (currentFileSize != null) errorString += "\n--> File size of media file: '" + String.valueOf(currentFileSize) + "' Byte = '" + String.valueOf(currentFileSize / 1024) + "' Kilobyte";
+
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnStoringFileLocally"), errorString, null);
+			return false;
+		}
+
 		/*
 		 * Create file directory for pending files
 		 */
-		String pendingFilePathDirectory = mediaResourceContainer.getMediaPendingFilePath(context);
+		String pendingFilePathDirectory = mediaResourceContainer.mediaFileGetPendingFilePath(context);
 
 		try
 		{
@@ -1528,7 +1673,7 @@ public abstract class MediaManager implements ManagerInterface
 		/*
 		 * Copy original file to the pending file directory
 		 */
-		String pendingFileName = FileLocationFunctions.compileFilePath(mediaResourceContainer.getMediaPendingFilePath(context), mediaResourceContainer.getMediaPendingFileName(context, fileType));
+		String pendingFileName = FileLocationFunctions.compileFilePath(mediaResourceContainer.mediaFileGetPendingFilePath(context), mediaResourceContainer.mediaFileGetPendingFileName(context, fileType));
 
 		if (FileUtilFunctions.fileCopy(uploadFileNamePath, pendingFileName) == false)
 		{
@@ -1675,7 +1820,7 @@ public abstract class MediaManager implements ManagerInterface
 		}
 
 		// Checks if file type allowed for the given media resource item
-		if (mediaResourceContainer.isFileTypeSupported(context, fileType) == false)
+		if (mediaResourceContainer.attributeIsFileTypeSupported(context, fileType) == false)
 		{
 			String errorString = "--> CHECK ON SERVER: File type '" + fileType + "' is not supported by the current media resource item.";
 			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
@@ -1817,7 +1962,7 @@ public abstract class MediaManager implements ManagerInterface
 		/*
 		 * Extract media file to pending file
 		 */
-		String pendingFileName = FileLocationFunctions.compileFilePath(mediaResourceContainer.getMediaPendingFilePath(context), mediaResourceContainer.getMediaPendingFileName(context, fileType));
+		String pendingFileName = FileLocationFunctions.compileFilePath(mediaResourceContainer.mediaFileGetPendingFilePath(context), mediaResourceContainer.mediaFileGetPendingFileName(context, fileType));
 
 		logText = "\n--> READ FROM SERVER: Pending file name created";
 		logText += "\n--> Pending file name: '" + pendingFileName + "'";
@@ -1906,7 +2051,7 @@ public abstract class MediaManager implements ManagerInterface
 		try
 		{
 			// Get 'pending' directory of the media resource
-			String directoryPath = mediaResourceContainer.getMediaPendingFilePath(context);
+			String directoryPath = mediaResourceContainer.mediaFileGetPendingFilePath(context);
 
 			// / Logging
 			String logText = "\n--> CLEAN 'PENDING' MEDIA DIRECTORY: Begin of cleaning (pending directory of a specific media resource)";
@@ -1977,7 +2122,7 @@ public abstract class MediaManager implements ManagerInterface
 		try
 		{
 			// Get 'deleted' directory of the media resource
-			String directoryPath = mediaResourceContainer.getMediaDeletedFilePath(context);
+			String directoryPath = mediaResourceContainer.mediaFileGetDeletedFilePath(context);
 
 			// / Logging
 			String logText = "\n--> CLEAN 'DELETED' MEDIA DIRECTORY: Begin of cleaning (deleted directory of a specific media resource)";
@@ -2051,8 +2196,8 @@ public abstract class MediaManager implements ManagerInterface
 		if (mediaResourceContainer == null) return 0;
 
 		// Get directories to consider
-		String regularMediaFilesDirectory = mediaResourceContainer.getMediaRegularFilePath(context);
-		String deletedMediaFilesDirectory = mediaResourceContainer.getMediaDeletedFilePath(context);
+		String regularMediaFilesDirectory = mediaResourceContainer.mediaFileGetRegularFilePath(context);
+		String deletedMediaFilesDirectory = mediaResourceContainer.mediaFileGetDeletedFilePath(context);
 
 		// / Logging
 		String logText = "\n--> CLEAN 'REGULAR' MEDIA DIRECTORY: Begin of cleaning (regular directory of a specific media resource)";
@@ -2081,7 +2226,7 @@ public abstract class MediaManager implements ManagerInterface
 			{
 				if (filePath == null || filePath.length() == 0) continue;
 
-				String dataIdentifier = mediaResourceContainer.getMediaPartDataIdentifier(context, filePath);
+				String dataIdentifier = mediaResourceContainer.mediaFileGetFileNamePartDataIdentifier(context, filePath);
 				if (dataIdentifier == null || dataIdentifier.length() == 0) continue;
 
 				usedDataIdentifiers.add(dataIdentifier);
@@ -2117,7 +2262,7 @@ public abstract class MediaManager implements ManagerInterface
 				if (dataIdentifier == null || dataIdentifier.length() == 0) continue;
 
 				// Get file filter mask of the specific data identifier
-				String fileFilterMask = mediaResourceContainer.getMediaFileNameMask(context, dataIdentifier);
+				String fileFilterMask = mediaResourceContainer.mediaFileGetNameMask(context, dataIdentifier);
 
 				// Get file list of obsolete files
 				List<String> obsoleteFiles = FileUtilFunctions.directorySearchOnObsoleteFiles(regularMediaFilesDirectory, fileFilterMask, daysToKeep);
@@ -2132,7 +2277,7 @@ public abstract class MediaManager implements ManagerInterface
 					String fileType = FileUtilFunctions.fileGetFileTypePart(filePath);
 					if (fileType == null || fileType.length() == 0) continue;
 
-					String deletedFilePath = FileLocationFunctions.compileFilePath(deletedMediaFilesDirectory, mediaResourceContainer.getMediaDeletedFileName(context, originalFileName, fileType));
+					String deletedFilePath = FileLocationFunctions.compileFilePath(deletedMediaFilesDirectory, mediaResourceContainer.mediaFileGetDeletedFileName(context, originalFileName, fileType));
 
 					if (FileUtilFunctions.fileMove(filePath, deletedFilePath) == true)
 					{
@@ -2314,7 +2459,7 @@ public abstract class MediaManager implements ManagerInterface
 		try
 		{
 			// Get all values from server
-			String currentFileName = mediaResourceContainer.getMediaRealFileName(context, dataIdentifier);
+			String currentFileName = mediaResourceContainer.mediaFileGetRealFileName(context, dataIdentifier);
 
 			if (currentFileName == null || currentFileName.length() == 0) { return false; }
 
@@ -2324,7 +2469,7 @@ public abstract class MediaManager implements ManagerInterface
 			if (currentFileType == null || !currentFileType.equals(fileType)) { return false; }
 
 			// Compare hash value
-			String currentHashValue = mediaResourceContainer.getMediaPartHashValue(context, currentFileName);
+			String currentHashValue = mediaResourceContainer.mediaFileGetFileNamePartHashValue(context, currentFileName);
 
 			if (currentHashValue == null || !currentHashValue.equals(hashValue)) { return false; }
 
@@ -2359,7 +2504,7 @@ public abstract class MediaManager implements ManagerInterface
 		try
 		{
 			// Get all values from server
-			String currentFileName = mediaResourceContainer.getMediaRealFileName(context, dataIdentifier);
+			String currentFileName = mediaResourceContainer.mediaFileGetRealFileName(context, dataIdentifier);
 
 			if (currentFileName == null || currentFileName.length() == 0) { return false; }
 
@@ -2369,6 +2514,42 @@ public abstract class MediaManager implements ManagerInterface
 		catch (Exception e)
 		{
 			return false;
+		}
+	}
+
+	/**
+	 * Check if the maximum size of the media file is exceeded (related to the
+	 * general configuration parameter)
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param mediaFileName
+	 *            The media file to analyze.
+	 * 
+	 * @return Returns <TT>true</TT> if the maximum size is exceeded or an error occurred, otherwise
+	 *         <TT>false</TT>.
+	 */
+	private boolean doCheckIfMaximumFileSizeExceeded(Context context, String mediaFileName)
+	{
+		// Validate parameter
+		if (mediaFileName == null || mediaFileName.length() == 0) return true;
+
+		// No constraint set
+		Integer maximumMediaSizeInKilobyte = this.getMaximumMediaSize();
+		if (maximumMediaSizeInKilobyte == null) return false;
+		
+		// Check file size
+		try
+		{
+			Long fileSizeInByte = FileUtilFunctions.fileGetFileSize(mediaFileName);
+
+			if (fileSizeInByte > (maximumMediaSizeInKilobyte * 1024)) return true;
+			return false;
+		}
+		catch (Exception e)
+		{
+			return true;
 		}
 	}
 
@@ -2393,7 +2574,7 @@ public abstract class MediaManager implements ManagerInterface
 		try
 		{
 			// Get the current file name of the most recent media file
-			String currentFileName = mediaResourceContainer.getMediaRealFileName(context, dataIdentifier);
+			String currentFileName = mediaResourceContainer.mediaFileGetRealFileName(context, dataIdentifier);
 
 			if (currentFileName == null || currentFileName.length() == 0) { return null; }
 
@@ -2462,9 +2643,10 @@ public abstract class MediaManager implements ManagerInterface
 				errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
 				errorString += "\n--> Data identifier: '" + dataIdentifier + "'";
 				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnStoringFileLocally"), errorString, null);
-				// No return, because the media content could be read successfully
+				// No return, because the media content could be read
+				// successfully
 			}
-			
+
 			// Return
 			return mediaContent;
 		}
@@ -2488,9 +2670,9 @@ public abstract class MediaManager implements ManagerInterface
 	 * 
 	 * @param fileType
 	 *            The file type to consider.
-	 *            
-	 * @return Returns <TT>true</TT> if the media file could be pushed, otherwise
-	 *         <TT>false</TT>.
+	 * 
+	 * @return Returns <TT>true</TT> if the media file could be pushed,
+	 *         otherwise <TT>false</TT>.
 	 * 
 	 */
 	public boolean doPushMediaContentToMediaFile(Context context, ResourceContainerMedia mediaResourceContainer, String dataIdentifier, String fileType, String mediaContent)
@@ -2498,15 +2680,15 @@ public abstract class MediaManager implements ManagerInterface
 		try
 		{
 			/*
-			 *  Extract media content into a pending file
+			 * Extract media content into a pending file
 			 */
-			String pendingFileName = FileLocationFunctions.compileFilePath(mediaResourceContainer.getMediaPendingFilePath(context), mediaResourceContainer.getMediaPendingFileName(context, fileType));
-			
+			String pendingFileName = FileLocationFunctions.compileFilePath(mediaResourceContainer.mediaFileGetPendingFilePath(context), mediaResourceContainer.mediaFileGetPendingFileName(context, fileType));
+
 			String logText = "\n--> PUSH MEDIA CONTENT: Pending file name created";
 			logText += "\n--> Pending file name: '" + pendingFileName + "'";
 			logText += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
 			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
-			
+
 			if (FileUtilFunctions.fileWriteFromString(pendingFileName, mediaContent) == false)
 			{
 				String errorString = "--> PUSH MEDIA CONTENT: Error on writing media content into the pending file";
@@ -2515,15 +2697,15 @@ public abstract class MediaManager implements ManagerInterface
 				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnStoringFileLocally"), errorString, null);
 				return false;
 			}
-			
+
 			logText = "\n--> PUSH MEDIA CONTENT: Media content stored into pending file";
 			logText += "\n--> Pending file name: '" + pendingFileName + "'";
 			logText += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
 			logText += "\n--> Data identifier: '" + dataIdentifier + "'";
 			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
-			
+
 			/*
-			 *  Upload pending file into the system as a regular media file
+			 * Upload pending file into the system as a regular media file
 			 */
 			if (context.getMediaManager().operationStoreLocal(context, mediaResourceContainer, pendingFileName, dataIdentifier) == false)
 			{
@@ -2534,16 +2716,15 @@ public abstract class MediaManager implements ManagerInterface
 				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnStoringFileLocally"), errorString, null);
 				return false;
 			}
-			
-			
+
 			logText = "\n--> PUSH MEDIA CONTENT: Pending file stored into regular media file";
 			logText += "\n--> Pending file name: '" + pendingFileName + "'";
 			logText += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
 			logText += "\n--> Data identifier: '" + dataIdentifier + "'";
 			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
-			
+
 			/*
-			 *  Delete pending file
+			 * Delete pending file
 			 */
 			if (FileUtilFunctions.fileDelete(pendingFileName) == false)
 			{
@@ -2551,14 +2732,15 @@ public abstract class MediaManager implements ManagerInterface
 				errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
 				errorString += "\n--> Pending file to be deleted: '" + pendingFileName + "'";
 				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnStoringFileLocally"), errorString, null);
-				// No return, because the media content could be pushed successfully
+				// No return, because the media content could be pushed
+				// successfully
 			}
-			
+
 			logText = "\n--> PUSH MEDIA CONTENT: Pending file deleted";
 			logText += "\n--> Pending file name: '" + pendingFileName + "'";
 			logText += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
 			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
-			
+
 			/*
 			 * Return
 			 */
@@ -2600,6 +2782,14 @@ public abstract class MediaManager implements ManagerInterface
 	public int getCleanObsoleteDaysToKeep()
 	{
 		return cleanObsoleteDaysToKeep;
+	}
+
+	/**
+	 * Getter
+	 */
+	public Integer getMaximumMediaSize()
+	{
+		return maximumMediaSize;
 	}
 
 	/**

@@ -186,14 +186,14 @@ public abstract class ApplicationManager implements ManagerInterface
 				// Read real customer license files
 				if (this.getContext().getLicenseManager().loadLicenseFiles(this.getContext(), this.getApplicationIdentifier().toString(), applicationVersion) == false) isError = true;
 
-				// Start WATCHDOG
-				this.watchdogServer = new WatchdogServer(this.getContext(), this.getContext().getWatchdogManager());
-				if (watchdogServer.startServer(this.getContext()) == false) isError = true;
-
 				// Initialize application settings
 				if (this.readConfiguration(this.getContext()) == true) isError = true;
 				if (this.validateResources(this.getContext()) == true) isError = true;
 				if (this.cleanEnvironment(this.getContext()) == true) isError = true;
+
+				// Start WATCHDOG
+				this.watchdogServer = new WatchdogServer(this.getContext(), this.getContext().getWatchdogManager());
+				if (watchdogServer.startServer(this.getContext()) == false) isError = true;
 
 				// End of critical path
 				break;
@@ -332,11 +332,17 @@ public abstract class ApplicationManager implements ManagerInterface
 		// Read and check
 		try
 		{
-			// Read regular resources
-			if (this.getContext().getResourceManager().loadCommonResourceFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Basic.toString(), this.applicationVersion, null) == false) isSuccessful = false;
-			if (this.getContext().getResourceManager().loadCommonResourceFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Common.toString(), this.applicationVersion, null) == false) isSuccessful = false;
-			if (this.getContext().getResourceManager().loadCommonResourceFile(this.getContext(), this.getApplicationIdentifier().toString(), this.applicationVersion, null) == false) isSuccessful = false;
-			if (this.getContext().getResourceManager().loadCommonResourceFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Extension.toString(), this.applicationVersion, null) == false) isSuccessful = false;
+			// Read regular resource files
+			if (this.getContext().getResourceManager().loadResourceFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Basic.toString(), this.applicationVersion, null) == false) isSuccessful = false;
+			if (this.getContext().getResourceManager().loadResourceFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Common.toString(), this.applicationVersion, null) == false) isSuccessful = false;
+			if (this.getContext().getResourceManager().loadResourceFile(this.getContext(), this.getApplicationIdentifier().toString(), this.applicationVersion, null) == false) isSuccessful = false;
+			if (this.getContext().getResourceManager().loadResourceFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Extension.toString(), this.applicationVersion, null) == false) isSuccessful = false;
+			
+			// Read sub resource files
+			if (this.getContext().getResourceManager().loadResourceSubFiles(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Basic.toString(), this.applicationVersion) == false) isSuccessful = false;
+			if (this.getContext().getResourceManager().loadResourceSubFiles(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Common.toString(), this.applicationVersion) == false) isSuccessful = false;
+			if (this.getContext().getResourceManager().loadResourceSubFiles(this.getContext(), this.getApplicationIdentifier().toString(), this.applicationVersion) == false) isSuccessful = false;
+			if (this.getContext().getResourceManager().loadResourceSubFiles(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Extension.toString(), this.applicationVersion) == false) isSuccessful = false;
 
 			// Read test resources. if the application is running in
 			// "test mode", the test resources are loaded additionally.
@@ -345,7 +351,7 @@ public abstract class ApplicationManager implements ManagerInterface
 				String fileName = FileLocationFunctions.compileFilePath(TestManager.getTestResourceFilePath(this.getContext()), FileLocationFunctions.getResourceFileName());
 				fileName = FileLocationFunctions.replacePlaceholder(this.getContext(), fileName, ApplicationManager.ApplicationIdentifierEnum.Test.toString(), null);
 
-				if (this.getContext().getResourceManager().loadCommonResourceFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Test.toString(), this.applicationVersion, fileName) == false) isSuccessful = false;
+				if (this.getContext().getResourceManager().loadResourceFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Test.toString(), this.applicationVersion, fileName) == false) isSuccessful = false;
 			}
 
 		}

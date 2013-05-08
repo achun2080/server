@@ -60,7 +60,7 @@ public class FileUtilFunctions
 			double randomDouble = Math.random();
 			double indexDouble = (randomDouble * rangeDouble);
 
-			int index = (int)indexDouble + from;
+			int index = (int) indexDouble + from;
 
 			// Return
 			return index;
@@ -810,6 +810,36 @@ public class FileUtilFunctions
 	}
 
 	/**
+	 * Get the size of a file in Bytes.
+	 * 
+	 * @param filePath
+	 *            The path of the file to be analyzed.
+	 * 
+	 * @return Returns the size of a file in Bytes, or <TT>null</TT> if the file
+	 *         couldn't be read.
+	 */
+	public static Long fileGetFileSize(String filePath)
+	{
+		// Check parameters
+		if (filePath == null || filePath.length() == 0) return null;
+		if (FileUtilFunctions.fileExists(filePath) == false) return null;
+
+		// Create FILE objects
+		File file = new File(filePath);
+
+		// Delete file
+		try
+		{
+			long fileSize = file.length();
+			return fileSize;
+		}
+		catch (Exception e)
+		{
+			return null;
+		}
+	}
+
+	/**
 	 * Delete a list of files file.
 	 * 
 	 * @param fileList
@@ -984,7 +1014,7 @@ public class FileUtilFunctions
 		{
 			// Create FILE objects
 			File file = new File(filePath);
-			
+
 			// Get result
 			return Base64.encodeBase64URLSafeString(FileUtils.readFileToByteArray(file));
 		}

@@ -32,7 +32,7 @@ public class TestContainerMediaLocal extends TestContainer
 	}
 
 	/**
-	 * Constructor
+	 * Constructor 1
 	 * 
 	 * @param context
 	 *            The application context.
@@ -53,7 +53,7 @@ public class TestContainerMediaLocal extends TestContainer
 	}
 
 	/**
-	 * Constructor
+	 * Constructor 2
 	 * 
 	 * @param testRunner
 	 *            The test runner that holds this container, or <TT>null</TT> if
@@ -242,8 +242,16 @@ public class TestContainerMediaLocal extends TestContainer
 
 		try
 		{
-			this.getContext().getLocaldataManager().writeProperty(this.getContext(), ResourceManager.localdata(this.getContext(), "LastValidServerConnection", "ClientSessionIdentifier"), "1234abcd");
-			TestManager.assertGreaterThan(this.getContext(), this, null, 1, 0);
+			// ResourceContainerMedia media =
+			// ResourceManager.media(this.getContext(), "Test",
+			// "TestMediaResource");
+			// Integer maximumMediaSize =
+			// media.getMaximumMediaSize(this.getContext());
+			// TestManager.assertNotNull(this.getContext(), this, null,
+			// maximumMediaSize);
+			// TestManager.assertEquals(this.getContext(), this, null,
+			// media.getMaximumMediaSize(this.getContext()), 99);
+			this.testMediaResource();
 		}
 		catch (Exception e)
 		{
@@ -262,29 +270,33 @@ public class TestContainerMediaLocal extends TestContainer
 		{
 			ResourceContainerMedia media = ResourceManager.media(this.getContext(), "Test", "TestMediaResource");
 
-			TestManager.assertTrue(this.getContext(), this, null, media.isMediaTypeImage(this.getContext()));
-			TestManager.assertFalse(this.getContext(), this, null, media.isMediaTypeVideo(this.getContext()));
-			TestManager.assertFalse(this.getContext(), this, null, media.isMediaTypeAudio(this.getContext()));
-			TestManager.assertFalse(this.getContext(), this, null, media.isMediaTypeDocument(this.getContext()));
-			TestManager.assertTrue(this.getContext(), this, null, media.isFileTypeSupported(this.getContext(), "JPG"));
-			TestManager.assertTrue(this.getContext(), this, null, media.isFileTypeSupported(this.getContext(), "jpg"));
-			TestManager.assertTrue(this.getContext(), this, null, media.isFileTypeSupported(this.getContext(), "png"));
-			TestManager.assertFalse(this.getContext(), this, null, media.isFileTypeSupported(this.getContext(), "gif"));
-			TestManager.assertFalse(this.getContext(), this, null, media.isFileTypeSupported(this.getContext(), "MKV"));
-			TestManager.assertFalse(this.getContext(), this, null, media.isFileTypeSupported(this.getContext(), "mkv"));
-			TestManager.assertFalse(this.getContext(), this, null, media.isFileTypeSupported(this.getContext(), "aaa"));
-			TestManager.assertFalse(this.getContext(), this, null, media.isStorageLocationServer(this.getContext()));
-			TestManager.assertFalse(this.getContext(), this, null, media.isStorageLocationClient(this.getContext()));
-			TestManager.assertTrue(this.getContext(), this, null, media.isStorageLocationSynchronize(this.getContext()));
-			TestManager.assertEqualsIgnoreCase(this.getContext(), this, null, media.getLogicalPath(this.getContext()), "test/media/resource");
-			TestManager.assertTrue(this.getContext(), this, null, media.isServerEncoding(this.getContext()));
-			TestManager.assertFalse(this.getContext(), this, null, media.isClientEncoding(this.getContext()));
+			TestManager.assertTrue(this.getContext(), this, null, media.attributeIsMediaTypeImage(this.getContext()));
+			TestManager.assertFalse(this.getContext(), this, null, media.attributeIsMediaTypeVideo(this.getContext()));
+			TestManager.assertFalse(this.getContext(), this, null, media.attributeIsMediaTypeAudio(this.getContext()));
+			TestManager.assertFalse(this.getContext(), this, null, media.attributeIsMediaTypeDocument(this.getContext()));
+			TestManager.assertTrue(this.getContext(), this, null, media.attributeIsFileTypeSupported(this.getContext(), "JPG"));
+			TestManager.assertTrue(this.getContext(), this, null, media.attributeIsFileTypeSupported(this.getContext(), "jpg"));
+			TestManager.assertTrue(this.getContext(), this, null, media.attributeIsFileTypeSupported(this.getContext(), "png"));
+			TestManager.assertFalse(this.getContext(), this, null, media.attributeIsFileTypeSupported(this.getContext(), "gif"));
+			TestManager.assertFalse(this.getContext(), this, null, media.attributeIsFileTypeSupported(this.getContext(), "MKV"));
+			TestManager.assertFalse(this.getContext(), this, null, media.attributeIsFileTypeSupported(this.getContext(), "mkv"));
+			TestManager.assertFalse(this.getContext(), this, null, media.attributeIsFileTypeSupported(this.getContext(), "aaa"));
+			TestManager.assertFalse(this.getContext(), this, null, media.attributeIsStorageLocationServer(this.getContext()));
+			TestManager.assertFalse(this.getContext(), this, null, media.attributeIsStorageLocationClient(this.getContext()));
+			TestManager.assertTrue(this.getContext(), this, null, media.attributeIsStorageLocationSynchronize(this.getContext()));
+			TestManager.assertEqualsIgnoreCase(this.getContext(), this, null, media.attributeGetLogicalPath(this.getContext()), "test/media/resource");
+			TestManager.assertTrue(this.getContext(), this, null, media.attributeIsServerEncoding(this.getContext()));
+			TestManager.assertFalse(this.getContext(), this, null, media.attributeIsClientEncoding(this.getContext()));
 
-			TestManager.assertEndsWith(this.getContext(), this, null, media.getMediaRegularFilePath(this.getContext()), "test/media/resource");
-			TestManager.assertEndsWith(this.getContext(), this, null, media.getMediaFileNameMask(this.getContext(), "1234"), "-testmediaresource-00000000001234-*-*.*");
-			TestManager.assertEndsWith(this.getContext(), this, null, media.getMediaPendingFileName(this.getContext(), "png"), ".png");
-			TestManager.assertEndsWith(this.getContext(), this, null, media.getMediaPendingFilePath(this.getContext()), "test/media/resource/pending");
-			TestManager.assertEndsWith(this.getContext(), this, null, media.getMediaDeletedFilePath(this.getContext()), "test/media/resource/deleted");
+			Integer maximumMediaSize = media.attributeGetMaximumMediaSize(this.getContext());
+			TestManager.assertNotNull(this.getContext(), this, null, maximumMediaSize);
+			if (maximumMediaSize != null) TestManager.assertEquals(this.getContext(), this, null, maximumMediaSize, 99);
+
+			TestManager.assertEndsWith(this.getContext(), this, null, media.mediaFileGetRegularFilePath(this.getContext()), "test/media/resource");
+			TestManager.assertEndsWith(this.getContext(), this, null, media.mediaFileGetNameMask(this.getContext(), "1234"), "-testmediaresource-00000000001234-*-*.*");
+			TestManager.assertEndsWith(this.getContext(), this, null, media.mediaFileGetPendingFileName(this.getContext(), "png"), ".png");
+			TestManager.assertEndsWith(this.getContext(), this, null, media.mediaFileGetPendingFilePath(this.getContext()), "test/media/resource/pending");
+			TestManager.assertEndsWith(this.getContext(), this, null, media.mediaFileGetDeletedFilePath(this.getContext()), "test/media/resource/deleted");
 		}
 		catch (Exception e)
 		{
@@ -352,8 +364,8 @@ public class TestContainerMediaLocal extends TestContainer
 
 			// Initialize variables
 			ResourceContainerMedia mediaResource = ResourceManager.media(this.getContext(), this.parameterResourceGroup, this.parameterResourceName);
-			String mediaFileNameMask = mediaResource.getMediaFileNameMask(this.getContext(), this.parameterDataIdentifierTestObsolete);
-			String mediaFilePath = mediaResource.getMediaRegularFilePath(this.getContext());
+			String mediaFileNameMask = mediaResource.mediaFileGetNameMask(this.getContext(), this.parameterDataIdentifierTestObsolete);
+			String mediaFilePath = mediaResource.mediaFileGetRegularFilePath(this.getContext());
 
 			// Get file directory
 			ResourceContainer configuration = ResourceManager.configuration(this.getContext(), "MediaTest", "DirectoryToSearchForMediaFiles");
@@ -384,7 +396,7 @@ public class TestContainerMediaLocal extends TestContainer
 				TestManager.assertEquals(this.getContext(), this, null, obsoleteFiles.size(), nuOfObsoleteFiles + i + 1);
 
 				// The new uploaded file name must not be part of the list
-				String recentFileName = mediaResource.getMediaRealFileName(this.getContext(), this.parameterDataIdentifierTestObsolete);
+				String recentFileName = mediaResource.mediaFileGetRealFileName(this.getContext(), this.parameterDataIdentifierTestObsolete);
 				TestManager.assertFalse(this.getContext(), this, null, obsoleteFiles.contains(recentFileName));
 			}
 
@@ -615,8 +627,8 @@ public class TestContainerMediaLocal extends TestContainer
 		try
 		{
 			ResourceContainerMedia mediaResource = ResourceManager.media(this.getContext(), group, name);
-			String mediaFileNameMask = mediaResource.getMediaFileNameMask(this.getContext(), dataIdentifierString);
-			String mediaFilePath = mediaResource.getMediaRegularFilePath(this.getContext());
+			String mediaFileNameMask = mediaResource.mediaFileGetNameMask(this.getContext(), dataIdentifierString);
+			String mediaFilePath = mediaResource.mediaFileGetRegularFilePath(this.getContext());
 			List<String> mediaFiles = FileUtilFunctions.directorySearchForFiles(mediaFilePath, mediaFileNameMask);
 
 			if (mediaFiles != null && mediaFiles.size() > 0)
@@ -640,7 +652,7 @@ public class TestContainerMediaLocal extends TestContainer
 		try
 		{
 			ResourceContainerMedia mediaResource = ResourceManager.media(this.getContext(), group, name);
-			String pendingDirectory = mediaResource.getMediaPendingFilePath(this.getContext());
+			String pendingDirectory = mediaResource.mediaFileGetPendingFilePath(this.getContext());
 			TestManager.assertNotNull(this.getContext(), this, null, pendingDirectory);
 
 			if (FileUtilFunctions.directoryExists(pendingDirectory))
@@ -664,7 +676,7 @@ public class TestContainerMediaLocal extends TestContainer
 		try
 		{
 			ResourceContainerMedia mediaResource = ResourceManager.media(this.getContext(), group, name);
-			String regularDirectory = mediaResource.getMediaRegularFilePath(this.getContext());
+			String regularDirectory = mediaResource.mediaFileGetRegularFilePath(this.getContext());
 			TestManager.assertNotNull(this.getContext(), this, null, regularDirectory);
 
 			if (FileUtilFunctions.directoryExists(regularDirectory))
@@ -688,7 +700,7 @@ public class TestContainerMediaLocal extends TestContainer
 		try
 		{
 			ResourceContainerMedia mediaResource = ResourceManager.media(this.getContext(), group, name);
-			String deletedDirectory = mediaResource.getMediaDeletedFilePath(this.getContext());
+			String deletedDirectory = mediaResource.mediaFileGetDeletedFilePath(this.getContext());
 			TestManager.assertNotNull(this.getContext(), this, null, deletedDirectory);
 
 			if (FileUtilFunctions.directoryExists(deletedDirectory))
@@ -712,7 +724,7 @@ public class TestContainerMediaLocal extends TestContainer
 		try
 		{
 			ResourceContainerMedia mediaResource = ResourceManager.media(this.getContext(), group, name);
-			String pendingDirectory = mediaResource.getMediaPendingFilePath(this.getContext());
+			String pendingDirectory = mediaResource.mediaFileGetPendingFilePath(this.getContext());
 			TestManager.assertNotNull(this.getContext(), this, null, pendingDirectory);
 
 			List<String> filelist = FileUtilFunctions.directorySearchForFiles(pendingDirectory, "*");
@@ -811,11 +823,11 @@ public class TestContainerMediaLocal extends TestContainer
 
 				if (cleaningFunction == CleaningFunctionEnum.PENDING)
 				{
-					filePathToCreate = FileLocationFunctions.compileFilePath(mediaResource.getMediaPendingFilePath(this.getContext()), mediaResource.getMediaPendingFileName(this.getContext(), fileType));
+					filePathToCreate = FileLocationFunctions.compileFilePath(mediaResource.mediaFileGetPendingFilePath(this.getContext()), mediaResource.mediaFileGetPendingFileName(this.getContext(), fileType));
 				}
 				else if (cleaningFunction == CleaningFunctionEnum.DELETED)
 				{
-					filePathToCreate = FileLocationFunctions.compileFilePath(mediaResource.getMediaDeletedFilePath(this.getContext()), mediaResource.getMediaPendingFileName(this.getContext(), fileType));
+					filePathToCreate = FileLocationFunctions.compileFilePath(mediaResource.mediaFileGetDeletedFilePath(this.getContext()), mediaResource.mediaFileGetPendingFileName(this.getContext(), fileType));
 				}
 				else
 				{
@@ -852,12 +864,12 @@ public class TestContainerMediaLocal extends TestContainer
 
 			if (cleaningFunction == CleaningFunctionEnum.PENDING)
 			{
-				remainingFilePath = mediaResource.getMediaPendingFilePath(this.getContext());
+				remainingFilePath = mediaResource.mediaFileGetPendingFilePath(this.getContext());
 				nuOfDeletedFiles = this.getContext().getMediaManager().cleanPendingDirectory(this.getContext(), mediaResource, daysToKeep);
 			}
 			else if (cleaningFunction == CleaningFunctionEnum.DELETED)
 			{
-				remainingFilePath = mediaResource.getMediaDeletedFilePath(this.getContext());
+				remainingFilePath = mediaResource.mediaFileGetDeletedFilePath(this.getContext());
 				nuOfDeletedFiles = this.getContext().getMediaManager().cleanDeletedDirectory(this.getContext(), mediaResource, daysToKeep);
 			}
 			else
@@ -1016,7 +1028,7 @@ public class TestContainerMediaLocal extends TestContainer
 
 			// Count the real number of different files in the 'regular'
 			// directory
-			String regularMediaFilesDirectory = mediaResource.getMediaRegularFilePath(this.getContext());
+			String regularMediaFilesDirectory = mediaResource.mediaFileGetRegularFilePath(this.getContext());
 			List<String> fileRegularList = FileUtilFunctions.directorySearchForFiles(regularMediaFilesDirectory, "*");
 			TestManager.assertNotNull(this.getContext(), this, null, fileRegularList);
 			TestManager.assertGreaterThan(this.getContext(), this, null, fileRegularList.size(), 0);
@@ -1026,7 +1038,7 @@ public class TestContainerMediaLocal extends TestContainer
 			// Invoke regular clean function of the media manager
 			TestManager.assertGreaterThan(this.getContext(), this, null, daysToKeep, 1);
 
-			String remainingFilePath = mediaResource.getMediaRegularFilePath(this.getContext());
+			String remainingFilePath = mediaResource.mediaFileGetRegularFilePath(this.getContext());
 			int nuOfDeletedFiles = this.getContext().getMediaManager().cleanRegularDirectory(this.getContext(), mediaResource, daysToKeep);
 			TestManager.assertGreaterThan(this.getContext(), this, null, nuOfDeletedFiles, 0);
 			TestManager.assertLowerThan(this.getContext(), this, null, nuOfDeletedFiles, nuOfFilesCreated);
@@ -1213,7 +1225,7 @@ public class TestContainerMediaLocal extends TestContainer
 			{
 				ResourceContainerMedia mediaResource = mediaResources.get(k);
 
-				String regularMediaFilesDirectory = mediaResource.getMediaRegularFilePath(this.getContext());
+				String regularMediaFilesDirectory = mediaResource.mediaFileGetRegularFilePath(this.getContext());
 				List<String> fileRegularList = FileUtilFunctions.directorySearchForFiles(regularMediaFilesDirectory, "*");
 				TestManager.assertNotNull(this.getContext(), this, null, fileRegularList);
 				TestManager.assertGreaterThan(this.getContext(), this, null, fileRegularList.size(), 0);
@@ -1249,7 +1261,7 @@ public class TestContainerMediaLocal extends TestContainer
 			{
 				ResourceContainerMedia mediaResource = mediaResources.get(k);
 
-				String regularMediaFilesDirectory = mediaResource.getMediaRegularFilePath(this.getContext());
+				String regularMediaFilesDirectory = mediaResource.mediaFileGetRegularFilePath(this.getContext());
 				List<String> fileRegularList = FileUtilFunctions.directorySearchForFiles(regularMediaFilesDirectory, "*");
 				TestManager.assertNotNull(this.getContext(), this, null, fileRegularList);
 				TestManager.assertGreaterThan(this.getContext(), this, null, fileRegularList.size(), 0);

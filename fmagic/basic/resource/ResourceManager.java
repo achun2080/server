@@ -253,7 +253,7 @@ public class ResourceManager implements ManagerInterface
 	}
 
 	/**
-	 * Composes the file name of common resource files.
+	 * Composes the file name of regular resource files.
 	 * 
 	 * @param context
 	 *            The context to use.
@@ -269,6 +269,27 @@ public class ResourceManager implements ManagerInterface
 	{
 		String fileName = FileLocationFunctions.getResourceFileName();
 		fileName = FileLocationFunctions.replacePlaceholder(context, fileName, applicationName, null);
+		return fileName;
+	}
+
+	/**
+	 * Composes the file name of sub resource files.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param applicationName
+	 *            The name of the application from the point of view of the
+	 *            resource files, including Basic, Common and Extension.
+	 * 
+	 * @return Returns the file name of the data files.
+	 * 
+	 */
+	private String getResourceSubFileName(Context context, String applicationName)
+	{
+		String fileName = FileLocationFunctions.getResourceSubFileName();
+		fileName = FileLocationFunctions.replacePlaceholder(context, fileName, applicationName, null);
+		fileName = fileName.replace("${subname}", "*");
 		return fileName;
 	}
 
@@ -1846,6 +1867,41 @@ public class ResourceManager implements ManagerInterface
 	}
 
 	/**
+	 * Load resources from sub resource files.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param applicationResource
+	 *            Application to consider.
+	 * 
+	 * @param applicationVersion
+	 *            Current version of the application.
+	 * 
+	 * @return Returns <TT>true</TT> if the sub resource files could be read
+	 *         successfully, otherwise <TT>false</TT>.
+	 */
+	public boolean loadResourceSubFiles(Context context, String applicationIdentifier, int applicationVersion)
+	{
+		boolean isSuccessful = true;
+		
+		String filePath = this.getResourceFilePath(context);
+		String fileFilterMask = this.getResourceSubFileName(context, applicationIdentifier);
+		List<String> fileList = FileUtilFunctions.directorySearchForFiles(filePath, fileFilterMask);
+		
+		if (fileList == null) return true;
+		if (fileList.size() == 0) return true;
+		
+		for (String fileName : fileList)
+		{
+			if (loadResourceFile(context, applicationIdentifier, applicationVersion, fileName) == false) isSuccessful = false;
+		}
+		
+		// Return
+		return isSuccessful;
+		
+	}
+	/**
 	 * Load common resources from a resource file.
 	 * 
 	 * @param context
@@ -1865,7 +1921,7 @@ public class ResourceManager implements ManagerInterface
 	 * @return Returns <TT>true</TT> if the resource file could be read
 	 *         successfully, otherwise <TT>false</TT>.
 	 */
-	public boolean loadCommonResourceFile(Context context, String applicationIdentifier, int applicationVersion, String otherFileName)
+	public boolean loadResourceFile(Context context, String applicationIdentifier, int applicationVersion, String otherFileName)
 	{
 		HashMap<String, String> organizationalProperties = new HashMap<String, String>();
 

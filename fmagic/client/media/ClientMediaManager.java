@@ -189,11 +189,17 @@ public class ClientMediaManager extends MediaManager
 	}
 
 	@Override
+	protected boolean readConfigurationSpecificParameter(Context context)
+	{
+		return false;
+	}
+
+	@Override
 	public boolean isEncodingEnabled(Context context, ResourceContainerMedia mediaResourceContainer)
 	{
 		boolean encodingEnabled = true;
 
-		if (mediaResourceContainer.isClientEncoding(context) == false) encodingEnabled = false;
+		if (mediaResourceContainer.attributeIsClientEncoding(context) == false) encodingEnabled = false;
 		if (this.encodingEnabled == false) encodingEnabled = false;
 		if (this.getEncodingValue(context) == null) encodingEnabled = false;
 

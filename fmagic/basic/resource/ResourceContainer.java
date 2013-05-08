@@ -1208,31 +1208,32 @@ public class ResourceContainer implements Cloneable
 
 		if (minimumValue != null && validatedValue != null && validatedValue < minimumValue)
 		{
-			errorText += "\n--> Current value '" + String.valueOf(validatedValue) + "' set to the resource item '" + this.getRecourceIdentifier() + "' is lower than the allowed minimum value '" + String.valueOf(minimumValue) + "'.";
+			errorText += "\n--> Current value '" + String.valueOf(validatedValue) + "' set to the configuration property '" + this.getRecourceIdentifier() + "' is lower than the allowed minimum value '" + String.valueOf(minimumValue) + "'.";
 			errorText += "\n--> The value was set to '" + String.valueOf(minimumValue) + "'.";
+			validatedValue = minimumValue;
 			isError = true;
 		}
 
 		if (maximumValue != null && validatedValue != null && validatedValue > maximumValue)
 		{
-			errorText += "\n--> Current value '" + String.valueOf(validatedValue) + "' set to the resource item '" + this.getRecourceIdentifier() + "' is greater than the allowed maximum value '" + String.valueOf(maximumValue) + "'.";
+			errorText += "\n--> Current value '" + String.valueOf(validatedValue) + "' set to the configuration property '" + this.getRecourceIdentifier() + "' is greater than the allowed maximum value '" + String.valueOf(maximumValue) + "'.";
 			errorText += "\n--> The value was set to '" + String.valueOf(maximumValue) + "'.";
+			validatedValue = maximumValue;
 			isError = true;
 		}
 
 		if (validatedValue == null)
 		{
-			errorText += "\n--> No setting available for the resource item '" + this.getRecourceIdentifier() + "'.";
+			errorText += "\n--> No setting available for the configuration property '" + this.getRecourceIdentifier() + "'.";
 			isError = true;
 		}
 
 		// Check on error
 		if (isError == true)
 		{
-			String errorString = "--> Error on validating resource settings.";
+			String errorString = "--> Error on validating configuration property.";
 			errorString += errorText;
 			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Resource", "IntegrityError"), errorString, null);
-			return null;
 		}
 
 		// Return

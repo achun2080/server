@@ -29,7 +29,7 @@ public class ResourceContainerMedia extends ResourceContainer
 	}
 
 	/**
-	 * Check if the Media Type of the media resource item is set to specific
+	 * Check if the Media Type of the media resource item is set to a specific
 	 * value.
 	 * 
 	 * @param context
@@ -41,7 +41,7 @@ public class ResourceContainerMedia extends ResourceContainer
 	 * @return Returns <TT>true</TT> if the media type is defined, otherwise
 	 *         <TT>false</TT>.
 	 */
-	private boolean isMediaType(Context context, int mediaNumber)
+	private boolean attributeIsMediaType(Context context, int mediaNumber)
 	{
 		if (mediaNumber < 1) return false;
 
@@ -76,9 +76,9 @@ public class ResourceContainerMedia extends ResourceContainer
 	 * @return Returns <TT>true</TT> if the Media Type is defined as "Image",
 	 *         otherwise <TT>false</TT>.
 	 */
-	public boolean isMediaTypeImage(Context context)
+	public boolean attributeIsMediaTypeImage(Context context)
 	{
-		return isMediaType(context, 1);
+		return attributeIsMediaType(context, 1);
 	}
 
 	/**
@@ -90,9 +90,9 @@ public class ResourceContainerMedia extends ResourceContainer
 	 * @return Returns <TT>true</TT> if the Media Type is defined as "Video",
 	 *         otherwise <TT>false</TT>.
 	 */
-	public boolean isMediaTypeVideo(Context context)
+	public boolean attributeIsMediaTypeVideo(Context context)
 	{
-		return isMediaType(context, 2);
+		return attributeIsMediaType(context, 2);
 	}
 
 	/**
@@ -104,9 +104,9 @@ public class ResourceContainerMedia extends ResourceContainer
 	 * @return Returns <TT>true</TT> if the Media Type is defined as "Audio",
 	 *         otherwise <TT>false</TT>.
 	 */
-	public boolean isMediaTypeAudio(Context context)
+	public boolean attributeIsMediaTypeAudio(Context context)
 	{
-		return isMediaType(context, 3);
+		return attributeIsMediaType(context, 3);
 	}
 
 	/**
@@ -118,9 +118,9 @@ public class ResourceContainerMedia extends ResourceContainer
 	 * @return Returns <TT>true</TT> if the Media Type is defined as "Document",
 	 *         otherwise <TT>false</TT>.
 	 */
-	public boolean isMediaTypeDocument(Context context)
+	public boolean attributeIsMediaTypeDocument(Context context)
 	{
-		return isMediaType(context, 4);
+		return attributeIsMediaType(context, 4);
 	}
 
 	/**
@@ -135,7 +135,7 @@ public class ResourceContainerMedia extends ResourceContainer
 	 * @return Returns <TT>true</TT> if the file type is supported by the media
 	 *         resource item, otherwise <TT>false</TT>.
 	 */
-	public boolean isFileTypeSupported(Context context, String parameterFileType)
+	public boolean attributeIsFileTypeSupported(Context context, String parameterFileType)
 	{
 		if (parameterFileType == null) return false;
 		if (parameterFileType.length() == 0) return false;
@@ -191,8 +191,8 @@ public class ResourceContainerMedia extends ResourceContainer
 	}
 
 	/**
-	 * Check if the storage location of the media resource item is set to
-	 * a specific value.
+	 * Check if the storage location of the media resource item is set to a
+	 * specific value.
 	 * 
 	 * @param context
 	 *            Application context.
@@ -203,7 +203,7 @@ public class ResourceContainerMedia extends ResourceContainer
 	 * @return Returns <TT>true</TT> if the storage location is defined,
 	 *         otherwise <TT>false</TT>.
 	 */
-	private boolean isStorageLocation(Context context, int storageLocationNumber)
+	private boolean attributeIsStorageLocation(Context context, int storageLocationNumber)
 	{
 		if (storageLocationNumber < 1) return false;
 
@@ -239,9 +239,9 @@ public class ResourceContainerMedia extends ResourceContainer
 	 * @return Returns <TT>true</TT> if the storage location is defined as
 	 *         "Server", otherwise <TT>false</TT>.
 	 */
-	public boolean isStorageLocationServer(Context context)
+	public boolean attributeIsStorageLocationServer(Context context)
 	{
-		return this.isStorageLocation(context, 1);
+		return this.attributeIsStorageLocation(context, 1);
 	}
 
 	/**
@@ -254,9 +254,9 @@ public class ResourceContainerMedia extends ResourceContainer
 	 * @return Returns <TT>true</TT> if the storage location is defined as
 	 *         "Client", otherwise <TT>false</TT>.
 	 */
-	public boolean isStorageLocationClient(Context context)
+	public boolean attributeIsStorageLocationClient(Context context)
 	{
-		return this.isStorageLocation(context, 2);
+		return this.attributeIsStorageLocation(context, 2);
 	}
 
 	/**
@@ -269,13 +269,14 @@ public class ResourceContainerMedia extends ResourceContainer
 	 * @return Returns <TT>true</TT> if the storage location is defined as
 	 *         "Synchronize", otherwise <TT>false</TT>.
 	 */
-	public boolean isStorageLocationSynchronize(Context context)
+	public boolean attributeIsStorageLocationSynchronize(Context context)
 	{
-		return this.isStorageLocation(context, 3);
+		return this.attributeIsStorageLocation(context, 3);
 	}
 
 	/**
-	 * Get the logical path of the media resource item.
+	 * Get the logical path of the media resource item (attribute
+	 * 'LogicalPath').
 	 * 
 	 * @param context
 	 *            Application context.
@@ -283,7 +284,7 @@ public class ResourceContainerMedia extends ResourceContainer
 	 * @return Returns the logical path, or <TT>null</TT> if no path isn't
 	 *         available, or if an error occurred.
 	 */
-	public String getLogicalPath(Context context)
+	public String attributeGetLogicalPath(Context context)
 	{
 		try
 		{
@@ -318,6 +319,40 @@ public class ResourceContainerMedia extends ResourceContainer
 	}
 
 	/**
+	 * Get the maximum allowed size of a media resource item in Kilobyte
+	 * (attribute 'MaximumMediaSize').
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @return Returns the value (in Kilobyte), or <TT>null</TT> if no value is
+	 *         set, or if an error occurred.
+	 */
+	public Integer attributeGetMaximumMediaSize(Context context)
+	{
+		Integer maximumMediaSize = null;
+
+		try
+		{
+			ResourceContainer attributeResourceContainer = ResourceManager.attribute(context, "Media", "MaximumMediaSize");
+			String attributeName = attributeResourceContainer.getAliasName();
+
+			String attributeValue = this.getAttribute(attributeName);
+			if (attributeValue == null) return null;
+			if (attributeValue.length() == 0) return null;
+
+			maximumMediaSize = Integer.valueOf(attributeValue);
+
+			return maximumMediaSize;
+		}
+		catch (Exception e)
+		{
+			// Be silent
+			return null;
+		}
+	}
+
+	/**
 	 * Check if the server encoding attribute of the media resource item is set
 	 * to <TT>true</TT>.
 	 * 
@@ -327,7 +362,7 @@ public class ResourceContainerMedia extends ResourceContainer
 	 * @return Returns <TT>true</TT> if the server encoding is set to
 	 *         <TT>true</TT>, otherwise <TT>false</TT>.
 	 */
-	public boolean isServerEncoding(Context context)
+	public boolean attributeIsServerEncoding(Context context)
 	{
 		try
 		{
@@ -361,7 +396,7 @@ public class ResourceContainerMedia extends ResourceContainer
 	 * @return Returns <TT>true</TT> if the client encoding is set to
 	 *         <TT>true</TT>, otherwise <TT>false</TT>.
 	 */
-	public boolean isClientEncoding(Context context)
+	public boolean attributeIsClientEncoding(Context context)
 	{
 		try
 		{
@@ -394,9 +429,9 @@ public class ResourceContainerMedia extends ResourceContainer
 	 * @return Returns the file path of a media file stored locally.
 	 * 
 	 */
-	public String getMediaRegularFilePath(Context context)
+	public String mediaFileGetRegularFilePath(Context context)
 	{
-		return FileLocationFunctions.compileFilePath(context.getMediaManager().mediaFileGetRootFilePath(context), FileUtilFunctions.generalFitToFileNameCompatibility(context.getApplicationName()), this.getLogicalPath(context));
+		return FileLocationFunctions.compileFilePath(context.getMediaManager().mediaFileGetRootFilePath(context), FileUtilFunctions.generalFitToFileNameCompatibility(context.getApplicationName()), this.attributeGetLogicalPath(context));
 	}
 
 	/**
@@ -409,7 +444,7 @@ public class ResourceContainerMedia extends ResourceContainer
 	 *         couldn't be fitted.
 	 * 
 	 */
-	private String fitIdentifierToFileName(String identifier)
+	private String serviceFitIdentifierToFileName(String identifier)
 	{
 		if (identifier == null) return "00000000000000";
 		if (identifier.length() == 0) return "00000000000000";
@@ -444,14 +479,14 @@ public class ResourceContainerMedia extends ResourceContainer
 	 *         , <TT>Hash Value</TT> and <TT>File Type</TT>.
 	 * 
 	 */
-	public String getMediaFileNameMask(Context context, String dataIdentifier)
+	public String mediaFileGetNameMask(Context context, String dataIdentifier)
 	{
 		String mediaFileNameMask = FileLocationFunctions.getMediaFileName();
 
 		mediaFileNameMask = FileLocationFunctions.replacePlacholder(context, mediaFileNameMask);
 
 		if (this.getAliasName() != null) mediaFileNameMask = mediaFileNameMask.replace("${alias}", FileUtilFunctions.generalFitToFileNameCompatibility(this.getAliasName()));
-		mediaFileNameMask = mediaFileNameMask.replace("${identifier}", this.fitIdentifierToFileName(dataIdentifier));
+		mediaFileNameMask = mediaFileNameMask.replace("${identifier}", this.serviceFitIdentifierToFileName(dataIdentifier));
 		mediaFileNameMask = mediaFileNameMask.replace("${encodingkey}", "*");
 		mediaFileNameMask = mediaFileNameMask.replace("${hashvalue}", "*");
 		mediaFileNameMask = mediaFileNameMask.replace("${filetype}", "*");
@@ -474,7 +509,7 @@ public class ResourceContainerMedia extends ResourceContainer
 	 * @return Returns the file name created.
 	 * 
 	 */
-	public String getMediaPendingFileName(Context context, String fileType)
+	public String mediaFileGetPendingFileName(Context context, String fileType)
 	{
 		String mediaTempFileName = FileLocationFunctions.getMediaPendingFileName();
 
@@ -501,7 +536,7 @@ public class ResourceContainerMedia extends ResourceContainer
 	 * @return Returns the file name created.
 	 * 
 	 */
-	public String getMediaDeletedFileName(Context context, String originalFileName, String fileType)
+	public String mediaFileGetDeletedFileName(Context context, String originalFileName, String fileType)
 	{
 		String mediaDeletedFileName = FileLocationFunctions.getMediaDeletedFileName();
 
@@ -524,9 +559,9 @@ public class ResourceContainerMedia extends ResourceContainer
 	 *         files of the given media resource type.
 	 * 
 	 */
-	public String getMediaPendingFilePath(Context context)
+	public String mediaFileGetPendingFilePath(Context context)
 	{
-		return FileLocationFunctions.compileFilePath(this.getMediaRegularFilePath(context), FileLocationFunctions.getMediaPendingSubPath());
+		return FileLocationFunctions.compileFilePath(this.mediaFileGetRegularFilePath(context), FileLocationFunctions.getMediaPendingSubPath());
 	}
 
 	/**
@@ -540,9 +575,9 @@ public class ResourceContainerMedia extends ResourceContainer
 	 *         given media resource type.
 	 * 
 	 */
-	public String getMediaDeletedFilePath(Context context)
+	public String mediaFileGetDeletedFilePath(Context context)
 	{
-		return FileLocationFunctions.compileFilePath(this.getMediaRegularFilePath(context), FileLocationFunctions.getMediaDeletedSubPath());
+		return FileLocationFunctions.compileFilePath(this.mediaFileGetRegularFilePath(context), FileLocationFunctions.getMediaDeletedSubPath());
 	}
 
 	/**
@@ -562,10 +597,10 @@ public class ResourceContainerMedia extends ResourceContainer
 	 *         if an error occurred, or no file could be found.
 	 * 
 	 */
-	public String getMediaRealFileName(Context context, String dataIdentifier)
+	public String mediaFileGetRealFileName(Context context, String dataIdentifier)
 	{
-		String mediaFileNameMask = this.getMediaFileNameMask(context, dataIdentifier);
-		String mediaFilePath = this.getMediaRegularFilePath(context);
+		String mediaFileNameMask = this.mediaFileGetNameMask(context, dataIdentifier);
+		String mediaFilePath = this.mediaFileGetRegularFilePath(context);
 		return FileUtilFunctions.directorySearchOnMostRecentFile(mediaFilePath, mediaFileNameMask);
 	}
 
@@ -585,10 +620,10 @@ public class ResourceContainerMedia extends ResourceContainer
 	 *         error occurred.
 	 * 
 	 */
-	public List<String> getMediaRealFileNameList(Context context, String dataIdentifier)
+	public List<String> mediaFileGetRealFileNameList(Context context, String dataIdentifier)
 	{
-		String mediaFileNameMask = this.getMediaFileNameMask(context, dataIdentifier);
-		String mediaFilePath = this.getMediaRegularFilePath(context);
+		String mediaFileNameMask = this.mediaFileGetNameMask(context, dataIdentifier);
+		String mediaFilePath = this.mediaFileGetRegularFilePath(context);
 		return FileUtilFunctions.directorySearchForFiles(mediaFilePath, mediaFileNameMask);
 	}
 
@@ -607,9 +642,9 @@ public class ResourceContainerMedia extends ResourceContainer
 	 *         error occurred.
 	 * 
 	 */
-	public String getMediaPartDataIdentifier(Context context, String filePath)
+	public String mediaFileGetFileNamePartDataIdentifier(Context context, String filePath)
 	{
-		return getMediaPartByPosition(context, filePath, 2);
+		return mediaFileGetFileNamePartByPosition(context, filePath, 2);
 	}
 
 	/**
@@ -623,13 +658,13 @@ public class ResourceContainerMedia extends ResourceContainer
 	 * @param filePath
 	 *            The file path to analyze.
 	 * 
-	 * @return Returns the extracted hash value or <TT>null</TT> if an
-	 *         error occurred.
+	 * @return Returns the extracted hash value or <TT>null</TT> if an error
+	 *         occurred.
 	 * 
 	 */
-	public String getMediaPartHashValue(Context context, String filePath)
+	public String mediaFileGetFileNamePartHashValue(Context context, String filePath)
 	{
-		return getMediaPartByPosition(context, filePath, 4);
+		return mediaFileGetFileNamePartByPosition(context, filePath, 4);
 	}
 
 	/**
@@ -649,7 +684,7 @@ public class ResourceContainerMedia extends ResourceContainer
 	 * @return Returns the extracted part or <TT>null</TT> if an error occurred.
 	 * 
 	 */
-	private String getMediaPartByPosition(Context context, String filePath, int position)
+	private String mediaFileGetFileNamePartByPosition(Context context, String filePath, int position)
 	{
 		// Validate parameter
 		if (filePath == null || filePath.length() == 0) return null;
@@ -685,7 +720,7 @@ public class ResourceContainerMedia extends ResourceContainer
 	 * @return Returns the server encoding key as string.
 	 * 
 	 */
-	private String getEncodingKeyAsString(Context context)
+	private String serviceGetEncodingKeyAsString(Context context)
 	{
 		// Get key number
 		int encodingKeyNumber = 0;
@@ -734,19 +769,19 @@ public class ResourceContainerMedia extends ResourceContainer
 	 *         , <TT>Hash Value</TT> and <TT>File Type</TT>.
 	 * 
 	 */
-	public String getMediaRealFileName(Context context, String dataIdentifier, String hashValue, String fileType)
+	public String mediaFileGetRealFileName(Context context, String dataIdentifier, String hashValue, String fileType)
 	{
 		String mediaFileName = FileLocationFunctions.getMediaFileName();
 
 		mediaFileName = FileLocationFunctions.replacePlacholder(context, mediaFileName);
 
 		if (this.getAliasName() != null) mediaFileName = mediaFileName.replace("${alias}", FileUtilFunctions.generalFitToFileNameCompatibility(this.getAliasName()));
-		mediaFileName = mediaFileName.replace("${identifier}", this.fitIdentifierToFileName(dataIdentifier));
-		mediaFileName = mediaFileName.replace("${encodingkey}", this.getEncodingKeyAsString(context));
+		mediaFileName = mediaFileName.replace("${identifier}", this.serviceFitIdentifierToFileName(dataIdentifier));
+		mediaFileName = mediaFileName.replace("${encodingkey}", this.serviceGetEncodingKeyAsString(context));
 		if (hashValue != null) mediaFileName = mediaFileName.replace("${hashvalue}", hashValue.trim());
 		if (fileType != null) mediaFileName = mediaFileName.replace("${filetype}", fileType);
 
-		return FileLocationFunctions.compileFilePath(this.getMediaRegularFilePath(context), mediaFileName);
+		return FileLocationFunctions.compileFilePath(this.mediaFileGetRegularFilePath(context), mediaFileName);
 	}
 
 	/**
@@ -764,7 +799,7 @@ public class ResourceContainerMedia extends ResourceContainer
 	 * @return Returns the encoding key number or <TT>0</TT>.
 	 * 
 	 */
-	public int getEncodingKeyOfRealFileName(Context context, String mediaFilePath)
+	public int mediaFileGetEncodingKeyOfRealFileName(Context context, String mediaFilePath)
 	{
 		// Validate parameter
 		if (mediaFilePath == null || mediaFilePath.length() == 0) return 0;
@@ -796,6 +831,45 @@ public class ResourceContainerMedia extends ResourceContainer
 	}
 
 	/**
+	 * Check if the maximum allowed media size determined by a media resource is
+	 * exceeded.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param mediaFileName
+	 *            The media file to analyze.
+	 * 
+	 * @return Returns <TT>true</TT> if the maximum size is exceeded or an error occurred, otherwise
+	 *         <TT>false</TT>.
+	 * 
+	 */
+	public boolean mediaFileIsMaximumFileSizeExceeded(Context context, String mediaFileName)
+	{
+		// Validate parameter
+		if (mediaFileName == null || mediaFileName.length() == 0) return true;
+
+		// No constraint set
+		Integer maximumMediaSizeInKilobyte = this.attributeGetMaximumMediaSize(context);
+		if (maximumMediaSizeInKilobyte == null) return false;
+
+		try
+		{
+			// Get file name
+			Long fileSizeInByte = FileUtilFunctions.fileGetFileSize(mediaFileName);
+			if (fileSizeInByte == null) return true;
+
+			if (fileSizeInByte > (maximumMediaSizeInKilobyte * 1024)) return true;
+			return false;
+		}
+		catch (Exception e)
+		{
+			// Be silent
+			return true;
+		}
+	}
+
+	/**
 	 * Get hash value, by analyzing the file name of a real media file.
 	 * <p>
 	 * Example: <TT>seniorcitizen-room-00001234-s00-a6gt8e.jpg</TT>
@@ -810,7 +884,7 @@ public class ResourceContainerMedia extends ResourceContainer
 	 *         occurred.
 	 * 
 	 */
-	public String getHashValueOfRealFileName(Context context, String mediaFilePath)
+	public String mediaFileGetHashValueOfRealFileName(Context context, String mediaFilePath)
 	{
 		// Validate parameter
 		if (mediaFilePath == null || mediaFilePath.length() == 0) return null;

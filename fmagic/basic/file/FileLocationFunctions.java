@@ -13,6 +13,7 @@ public class FileLocationFunctions
 
 	private static final String resourceSubPath = "configuration/fmagic.resource";
 	private static final String resourceFileName = "fmagic.resource.${application}.properties";
+	private static final String resourceSubFileName = "fmagic.resource.${application}.${subname}.properties";
 
 	private static final String resourceLabelSubPath = "configuration/fmagic.resource";
 	private static final String resourceLabelFileName = "fmagic.label.${application}.properties";
@@ -377,6 +378,14 @@ public class FileLocationFunctions
 	public static String getResourceFileName()
 	{
 		return resourceFileName;
+	}
+
+	/**
+	 * Getter
+	 */
+	public static String getResourceSubFileName()
+	{
+		return resourceSubFileName;
 	}
 
 	/**

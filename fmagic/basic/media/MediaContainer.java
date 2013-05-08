@@ -66,7 +66,7 @@ public class MediaContainer
 		if (this.boundMark == true) this.releaseMedia();
 
 		// Get file path of the most recent original media file
-		this.originalMediaFilePath = this.resourceContainerMedia.getMediaRealFileName(this.context, this.dataIdentifier);
+		this.originalMediaFilePath = this.resourceContainerMedia.mediaFileGetRealFileName(this.context, this.dataIdentifier);
 		if (this.originalMediaFilePath == null || this.originalMediaFilePath.length() == 0) return false;
 
 		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "\n--> MEDIA CONTAINER: Media was bound to original media file path: '" + this.originalMediaFilePath + "'");

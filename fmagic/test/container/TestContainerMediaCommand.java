@@ -312,6 +312,8 @@ public class TestContainerMediaCommand extends TestContainer
 
 			boolean resultBoolean = this.getContext().getMediaManager().commandUploadToServer(this.getContext(), mediaResource, uploadFileName, dataIdentifierString);
 			TestManager.assertTrue(this.getContext(), this, additionalText, resultBoolean);
+			
+			if (resultBoolean == false) return;
 
 			/*
 			 *  Check if uploaded file really exists on server
@@ -323,6 +325,8 @@ public class TestContainerMediaCommand extends TestContainer
 
 			resultBoolean = this.getContext().getMediaManager().commandCheckOnServer(this.getContext(), mediaResource, fileType, dataIdentifierString, hashValue);
 			TestManager.assertTrue(this.getContext(), this, additionalText, resultBoolean);
+
+			if (resultBoolean == false) return;
 
 			/*
 			 *  Read the uploaded file from server and store it in the local media repository
