@@ -91,7 +91,7 @@ public class ServerCommandCreateSession extends ServerCommand
 			}
 
 			// Get public key of the server
-			this.serverPublicKey = this.context.getConfigurationManager().getProperty(this.context, ResourceManager.configuration(this.context, "Application", "PublicKey"), null, true);
+			this.serverPublicKey = this.context.getConfigurationManager().getProperty(this.context, ResourceManager.configuration(this.context, "Application", "PublicKey"), true);
 
 			// Return
 			return true;

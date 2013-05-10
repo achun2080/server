@@ -45,7 +45,7 @@ public class ClientCommandHandshake extends ClientCommand
 		try
 		{
 			// Set parameter: ClientPublicKey
-			String clientPublicKey = this.context.getConfigurationManager().getProperty(this.context, ResourceManager.configuration(this.context, "Application", "PublicKey"), null, true);
+			String clientPublicKey = this.context.getConfigurationManager().getProperty(this.context, ResourceManager.configuration(this.context, "Application", "PublicKey"), true);
 
 			if (clientPublicKey != null && !clientPublicKey.equals(""))
 			{

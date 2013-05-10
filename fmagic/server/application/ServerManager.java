@@ -16,7 +16,6 @@ import fmagic.basic.context.Context;
 import fmagic.basic.file.FileUtilFunctions;
 import fmagic.basic.notification.NotificationManager;
 import fmagic.basic.resource.ResourceContainer.OriginEnum;
-import fmagic.basic.resource.ResourceContainer;
 import fmagic.basic.resource.ResourceManager;
 
 /**
@@ -98,62 +97,23 @@ public abstract class ServerManager extends ApplicationManager
 	public boolean readConfiguration(Context context)
 	{
 		if (super.readConfiguration(context) == true) return true;
-		
-		// Initialize
-		String errorText = "";
-		boolean isError = false;
-		ResourceContainer resourceContainer = null;
-		Integer iValue = null;
 
 		try
 		{
 			// Read parameter: MaxNuOfActiveSessions
-			resourceContainer = ResourceManager.configuration(context, "Session", "MaxNuOfActiveSessions");
-			iValue = context.getConfigurationManager().getPropertyAsIntegerValue(context, resourceContainer, resourceContainer.getAttributeDefaultSettingAsInteger(context), false);
-			iValue = resourceContainer.validateMinimumMaximumSetting(context, iValue);
-
-			if (iValue != null)
-			{
-				this.maxNuOfActiveSessions = iValue;
-			}
-			else
-			{
-				isError = true;
-			}
+			this.maxNuOfActiveSessions = context.getConfigurationManager().getPropertyAsIntegerValue(context, ResourceManager.configuration(context, "Session", "MaxNuOfActiveSessions"), false);
 			
 			// Read parameter: PercentageRateForCleaning
-			resourceContainer = ResourceManager.configuration(context, "Session", "PercentageRateForCleaning");
-			iValue = context.getConfigurationManager().getPropertyAsIntegerValue(context, resourceContainer, resourceContainer.getAttributeDefaultSettingAsInteger(context), false);
-			iValue = resourceContainer.validateMinimumMaximumSetting(context, iValue);
+			this.percentageRateForCleaning = context.getConfigurationManager().getPropertyAsIntegerValue(context, ResourceManager.configuration(context, "Session", "PercentageRateForCleaning"), false);
 
-			if (iValue != null)
-			{
-				this.percentageRateForCleaning = iValue;
-			}
-			else
-			{
-				isError = true;
-			}
-
-			// Check parameter value
-			if (isError == true)
-			{
-				String errorString = "--> Error on reading configuration properties:";
-				errorString += errorText;
-				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Configuration", "IntegrityError"), errorString, null);
-				return true;
-			}
+			// Return
+			return false;
 		}
 		catch (Exception e)
 		{
-			String errorString = "--> Error on reading configuration properties:";
-			errorString += errorText;
-			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Configuration", "IntegrityError"), errorString, e);
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Configuration", "IntegrityError"), null, e);
 			return true;
 		}
-
-		// Return
-		return isError;
 	}
 
 	@Override
@@ -165,10 +125,10 @@ public abstract class ServerManager extends ApplicationManager
 		// Read and check
 		try
 		{
-			this.serverPublicKey = this.getContext().getConfigurationManager().getProperty(this.getContext(), ResourceManager.configuration(getContext(), "Application", "PublicKey"), "", true);
+			this.serverPublicKey = this.getContext().getConfigurationManager().getProperty(this.getContext(), ResourceManager.configuration(getContext(), "Application", "PublicKey"), true);
 			if (this.serverPublicKey == null || this.serverPublicKey.length() == 0) isSuccessful = false;
 
-			this.serverPrivateKey = this.getContext().getConfigurationManager().getProperty(this.getContext(), ResourceManager.configuration(getContext(), "Application", "PrivateKey"), "", true);
+			this.serverPrivateKey = this.getContext().getConfigurationManager().getProperty(this.getContext(), ResourceManager.configuration(getContext(), "Application", "PrivateKey"), true);
 			if (this.serverPrivateKey == null || this.serverPrivateKey.length() == 0) isSuccessful = false;
 		}
 		catch (Exception e)

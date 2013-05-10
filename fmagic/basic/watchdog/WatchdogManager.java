@@ -503,11 +503,11 @@ public class WatchdogManager
 		{
 			// Parameter: WATCHDOG Active
 			errorText = "--> On processing parameter: Watchdog Active";
-			this.watchdogActive = this.getContext().getConfigurationManager().getPropertyAsBooleanValue(this.getContext(), ResourceManager.configuration(this.getContext(), "Watchdog", "Active"), false, false);
+			this.watchdogActive = this.getContext().getConfigurationManager().getPropertyAsBooleanValue(this.getContext(), ResourceManager.configuration(this.getContext(), "Watchdog", "Active"), false);
 
 			// Parameter: WATCHDOG Mailing List
 			errorText = "--> On processing parameter: Watchdog DistributionList";
-			String watchdogDistributionListString = this.getContext().getConfigurationManager().getProperty(this.getContext(), ResourceManager.configuration(this.getContext(), "Watchdog", "DistributionList"), "", (this.watchdogActive == true));
+			String watchdogDistributionListString = this.getContext().getConfigurationManager().getProperty(this.getContext(), ResourceManager.configuration(this.getContext(), "Watchdog", "DistributionList"), (this.watchdogActive == true));
 			this.watchdogDistributionList = this.configurationComposeDistributionList(watchdogDistributionListString);
 
 			if (this.watchdogDistributionList == null)
@@ -516,68 +516,43 @@ public class WatchdogManager
 			}
 
 			// Parameter: WATCHDOG Max number of items in CommandQueue
-			errorText = "--> On processing parameter: Watchdog MaximumNuOfItemsInCommandQueue";
-
-			ResourceContainer resourceContainer = ResourceManager.configuration(context, "Watchdog", "MaximumNuOfItemsInCommandQueue");
-			Integer iValue = this.getContext().getConfigurationManager().getPropertyAsIntegerValue(this.getContext(), resourceContainer, resourceContainer.getAttributeDefaultSettingAsInteger(context), false);
-			iValue = resourceContainer.validateMinimumMaximumSetting(context, iValue);
-
-			if (iValue != null)
-			{
-				this.watchdogMaxNuOfItemsInCommandQueue = iValue;
-			}
-			else
-			{
-				isError = true;
-			}
+			this.watchdogMaxNuOfItemsInCommandQueue = this.getContext().getConfigurationManager().getPropertyAsIntegerValue(this.getContext(), ResourceManager.configuration(context, "Watchdog", "MaximumNuOfItemsInCommandQueue"), false);
 
 			// Parameter: WATCHDOG SecondsToWaitBetweenWatchdogProcessing
-			errorText = "--> On processing parameter: WATCHDOG SecondsToWaitBetweenWatchdogProcessing";
-
-			resourceContainer = ResourceManager.configuration(context, "Watchdog", "SecondsToWaitBetweenWatchdogProcessing");
-			iValue = this.getContext().getConfigurationManager().getPropertyAsIntegerValue(this.getContext(), resourceContainer, resourceContainer.getAttributeDefaultSettingAsInteger(context), false);
-			iValue = resourceContainer.validateMinimumMaximumSetting(context, iValue);
-
-			if (iValue != null)
-			{
-				this.secondsToWaitBetweenWatchdogProcessing = iValue;
-			}
-			else
-			{
-				isError = true;
-			}
+			this.secondsToWaitBetweenWatchdogProcessing = this.getContext().getConfigurationManager().getPropertyAsIntegerValue(this.getContext(), ResourceManager.configuration(context, "Watchdog", "SecondsToWaitBetweenWatchdogProcessing"), false);
 
 			// Parameter: EMAIL Active
 			errorText = "--> On processing parameter: Email Active";
-			this.emailActive = this.getContext().getConfigurationManager().getPropertyAsBooleanValue(this.getContext(), ResourceManager.configuration(this.getContext(), "Email", "Active"), false, false);
+			this.emailActive = this.getContext().getConfigurationManager().getPropertyAsBooleanValue(this.getContext(), ResourceManager.configuration(this.getContext(), "Email", "Active"), false);
 
 			// Parameter: EMAIL SMTP host
 			errorText = "--> On processing parameter: Email SMTP host";
-			this.smtpHost = this.getContext().getConfigurationManager().getProperty(this.getContext(), ResourceManager.configuration(this.getContext(), "Email", "SmtpHost"), "", (this.emailActive == true));
+			this.smtpHost = this.getContext().getConfigurationManager().getProperty(this.getContext(), ResourceManager.configuration(this.getContext(), "Email", "SmtpHost"), (this.emailActive == true));
 
 			// Parameter: EMAIL SMTP port
 			errorText = "--> On processing parameter: Email SMTP port";
-			this.smtpPort = this.getContext().getConfigurationManager().getPropertyAsIntegerValue(this.getContext(), ResourceManager.configuration(this.getContext(), "Email", "SmtpPort"), 0, (this.emailActive == true));
+			Integer iValue = this.getContext().getConfigurationManager().getPropertyAsIntegerValue(this.getContext(), ResourceManager.configuration(this.getContext(), "Email", "SmtpPort"), (this.emailActive == true));
+			if (iValue != null) this.smtpPort = iValue;
 
 			// Parameter: EMAIL Account name
 			errorText = "--> On processing parameter: EMAIL Account name";
-			this.accountName = this.getContext().getConfigurationManager().getProperty(this.getContext(), ResourceManager.configuration(this.getContext(), "Email", "Account"), "", (this.emailActive == true));
+			this.accountName = this.getContext().getConfigurationManager().getProperty(this.getContext(), ResourceManager.configuration(this.getContext(), "Email", "Account"), (this.emailActive == true));
 
 			// Parameter: EMAIL Account password
 			errorText = "--> On processing parameter: EMAIL Account password";
-			this.accountPassword = this.getContext().getConfigurationManager().getProperty(this.getContext(), ResourceManager.configuration(this.getContext(), "Email", "Password"), "", (this.emailActive == true));
+			this.accountPassword = this.getContext().getConfigurationManager().getProperty(this.getContext(), ResourceManager.configuration(this.getContext(), "Email", "Password"), (this.emailActive == true));
 
 			// Parameter: EMAIL CC
 			errorText = "--> On processing parameter: EMAIL CC";
-			this.cc = this.getContext().getConfigurationManager().getProperty(this.getContext(), ResourceManager.configuration(this.getContext(), "Email", "CC"), "", false);
+			this.cc = this.getContext().getConfigurationManager().getProperty(this.getContext(), ResourceManager.configuration(this.getContext(), "Email", "CC"), false);
 
 			// Parameter: EMAIL BCC
 			errorText = "--> On processing parameter: EMAIL BCC";
-			this.bcc = this.getContext().getConfigurationManager().getProperty(this.getContext(), ResourceManager.configuration(this.getContext(), "Email", "BCC"), "", false);
+			this.bcc = this.getContext().getConfigurationManager().getProperty(this.getContext(), ResourceManager.configuration(this.getContext(), "Email", "BCC"), false);
 
 			// Parameter: EMAIL Return address
 			errorText = "--> On processing parameter: EMAIL Return address";
-			this.returnAddress = this.getContext().getConfigurationManager().getProperty(this.getContext(), ResourceManager.configuration(this.getContext(), "Email", "ReturnAddress"), "", (this.emailActive == true));
+			this.returnAddress = this.getContext().getConfigurationManager().getProperty(this.getContext(), ResourceManager.configuration(this.getContext(), "Email", "ReturnAddress"), (this.emailActive == true));
 		}
 		catch (Exception e)
 		{

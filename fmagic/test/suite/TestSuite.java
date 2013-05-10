@@ -2,9 +2,9 @@ package fmagic.test.suite;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
+import java.util.Queue;
 
 import fmagic.test.application.TestManager;
 import fmagic.test.runner.TestRunner;
@@ -20,7 +20,7 @@ import fmagic.test.runner.TestRunner;
 public abstract class TestSuite
 {
 	// List of test runners
-	private Set<TestRunner> testRunnerList = new HashSet<TestRunner>();
+	private Queue<TestRunner> testRunnerList = new LinkedList<TestRunner>();
 
 	// Error protocol
 	private final HashMap<String, String> assertionErrorProtocol = new HashMap<String, String>();

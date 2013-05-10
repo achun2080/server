@@ -279,9 +279,6 @@ public class ConfigurationManager implements ManagerInterface
 	 * @param resourceContainer
 	 *            The resource container that sets the property identifier.
 	 * 
-	 * @param defaultValue
-	 *            Default value of the property if it could not be found.
-	 * 
 	 * @param mandatory
 	 *            Flag if the parameter must be set in the configuration file,
 	 *            that means if it is mandatory. Please choose <TT>true</TT> or
@@ -290,17 +287,17 @@ public class ConfigurationManager implements ManagerInterface
 	 * @return Returns value of property or <TT>null</TT>.
 	 * 
 	 */
-	public String getProperty(Context context, ResourceContainer resourceContainer, String defaultValue, boolean mandatory)
+	public String getProperty(Context context, ResourceContainer resourceContainer, boolean mandatory)
 	{
 		// Check parameters
-		if (resourceContainer == null) return defaultValue;
+		if (resourceContainer == null) return null;
 
 		// Get property identifier
 		String identifier = resourceContainer.getRecourceIdentifier();
-		if (identifier == null) return defaultValue;
+		if (identifier == null) return null;
 
 		// Get the property value
-		return this.getProperty(context, identifier, defaultValue, mandatory);
+		return this.getProperty(context, identifier, mandatory);
 	}
 
 	/**
@@ -324,9 +321,6 @@ public class ConfigurationManager implements ManagerInterface
 	 * @param identifier
 	 *            The identifier of the property.
 	 * 
-	 * @param defaultValue
-	 *            Default value of the property if it could not be found.
-	 * 
 	 * @param mandatory
 	 *            Flag if the parameter must be set in the configuration file,
 	 *            that means if it is mandatory. Please choose <TT>true</TT> or
@@ -335,10 +329,10 @@ public class ConfigurationManager implements ManagerInterface
 	 * @return Returns value of property or <TT>null</TT>.
 	 * 
 	 */
-	private String getProperty(Context context, String identifier, String defaultValue, boolean mandatory)
+	private String getProperty(Context context, String identifier, boolean mandatory)
 	{
 		// Lock configuration processing
-		if (this.lockMessageHandling("Configuration", identifier) == true) return defaultValue;
+		if (this.lockMessageHandling("Configuration", identifier) == true) return null;
 
 		// Variables
 		String value = null;
@@ -360,19 +354,6 @@ public class ConfigurationManager implements ManagerInterface
 
 						String additionaltext = "";
 						additionaltext += "\n--> Identifier: " + identifier;
-
-						if (defaultValue == null)
-						{
-							additionaltext += "\n--> No default value available; value was set to NULL";
-						}
-						else if (defaultValue.length() == 0)
-						{
-							additionaltext += "\n--> No default value available; value was set to EMPTY";
-						}
-						else
-						{
-							additionaltext += "\n--> Value was set according to the default to '" + defaultValue + "'";
-						}
 
 						/*
 						 * Note: Please use the method getResourceContainer()
@@ -397,7 +378,6 @@ public class ConfigurationManager implements ManagerInterface
 				// Read property value
 				value = (String) this.applicationProperties.get(identifier);
 				if (value == null || value.equals("")) value = (String) this.defaultProperties.get(identifier);
-				if (value == null) value = defaultValue;
 				if (value != null) value = value.trim();
 
 				// Read additional configuration file if it is linked via
@@ -455,8 +435,14 @@ public class ConfigurationManager implements ManagerInterface
 					}
 				}
 
+				// Get default value, if necessary
+				if (value == null)
+				{
+					value = this.getAttributeDefaultSetting(context, identifier);
+				}
+
 				// Notify WATCHDOG
-				this.notifyWatchdog(context, identifier, value, defaultValue);
+				this.notifyWatchdog(context, identifier, value);
 
 				// Break
 				break;
@@ -487,11 +473,8 @@ public class ConfigurationManager implements ManagerInterface
 	 * 
 	 * @param value
 	 *            The value that was read resp. set.
-	 * 
-	 * @param defaultValue
-	 *            Default value of the property.
 	 */
-	private void notifyWatchdog(Context context, String identifier, String value, String defaultValue)
+	private void notifyWatchdog(Context context, String identifier, String value)
 	{
 		try
 		{
@@ -501,15 +484,6 @@ public class ConfigurationManager implements ManagerInterface
 			// Set additional text
 			String additionalText = "--> Configuration property was read";
 			additionalText += "\n--> Identifier: '" + identifier + "'";
-
-			if (defaultValue == null)
-			{
-				additionalText += "\n--> Default value was: '<NULL>'";
-			}
-			else
-			{
-				additionalText += "\n--> Default value was: '" + ResourceManager.hideSecurityValue(context, identifier, defaultValue) + "'";
-			}
 
 			if (value == null)
 			{
@@ -557,20 +531,20 @@ public class ConfigurationManager implements ManagerInterface
 	 *            <TT>false</TT>.
 	 * 
 	 * @return Returns the read property value or the default value, if the
-	 *         property was not found, or <TT>0</TT>, if the value could not be
-	 *         converted to an integer value.
+	 *         property was not found, or <TT>null</TT>, if the value could not
+	 *         be converted to an integer value.
 	 */
-	public Integer getPropertyAsIntegerValue(Context context, ResourceContainer resourceContainer, Integer defaultValue, boolean mandatory)
+	public Integer getPropertyAsIntegerValue(Context context, ResourceContainer resourceContainer, boolean mandatory)
 	{
 		// Check parameters
-		if (resourceContainer == null) return defaultValue;
+		if (resourceContainer == null) return null;
 
 		// Get property identifier
 		String identifier = resourceContainer.getRecourceIdentifier();
-		if (identifier == null) return defaultValue;
+		if (identifier == null) return null;
 
 		// Get the property value
-		return getPropertyAsIntegerValue(context, identifier, defaultValue, mandatory);
+		return getPropertyAsIntegerValue(context, identifier, mandatory);
 	}
 
 	/**
@@ -590,51 +564,37 @@ public class ConfigurationManager implements ManagerInterface
 	 * @param identifier
 	 *            Identifier of the property.
 	 * 
-	 * @param defaultValue
-	 *            Default value of property if it could not be found.
-	 * 
 	 * @param mandatory
 	 *            Flag if the parameter must be set in the configuration file,
 	 *            that means if it is mandatory. Please choose <TT>true</TT> or
 	 *            <TT>false</TT>.
 	 * 
 	 * @return Returns the read property value or the default value, if the
-	 *         property was not found, or <TT>0</TT>, if the value could not be
-	 *         converted to an integer value.
+	 *         property was not found, or <TT>null</TT>, if the value could not
+	 *         be converted to an integer value.
 	 */
-	private int getPropertyAsIntegerValue(Context context, String identifier, Integer defaultValue, boolean mandatory)
+	private Integer getPropertyAsIntegerValue(Context context, String identifier, boolean mandatory)
 	{
 		// Reads the current properties
-		String valueAsString = null;
+		String valueAsString = getProperty(context, identifier, mandatory);
 
-		if (defaultValue == null)
-		{
-			valueAsString = getProperty(context, identifier, null, mandatory);
-		}
-		else
-		{
-			valueAsString = getProperty(context, identifier, String.valueOf(defaultValue), mandatory);
-		}
+		// Validate property (Minimum, maximum, Default)
+		valueAsString = this.validateMinimumMaximumSetting(context, identifier, valueAsString);
 
 		// Validate value
-		if (valueAsString == null) return defaultValue;
-		if (valueAsString.equals("")) return defaultValue;
+		if (valueAsString == null) return null;
+		if (valueAsString.equals("")) return null;
 
 		// Convert to integer
-		int valueAsInteger = defaultValue;
-
 		try
 		{
-			Integer currentValue = Integer.valueOf(valueAsString);
-			valueAsInteger = currentValue;
+			int valueAsInteger = Integer.valueOf(valueAsString);
+			return valueAsInteger;
 		}
 		catch (Exception e)
 		{
-			// Be silent
+			return null;
 		}
-
-		// Return
-		return valueAsInteger;
 	}
 
 	/**
@@ -662,20 +622,20 @@ public class ConfigurationManager implements ManagerInterface
 	 *            <TT>false</TT>.
 	 * 
 	 * @return Returns the read property value or the default value, if the
-	 *         property was not found, or <TT>0</TT>, if the value could not be
-	 *         converted to an integer value.
+	 *         property was not found, or <TT>null</TT>, if the value could not
+	 *         be converted to an integer value.
 	 */
-	public boolean getPropertyAsBooleanValue(Context context, ResourceContainer resourceContainer, boolean defaultValue, boolean mandatory)
+	public Boolean getPropertyAsBooleanValue(Context context, ResourceContainer resourceContainer, boolean mandatory)
 	{
 		// Check parameters
-		if (resourceContainer == null) return defaultValue;
+		if (resourceContainer == null) return null;
 
 		// Get property identifier
 		String identifier = resourceContainer.getRecourceIdentifier();
-		if (identifier == null) return defaultValue;
+		if (identifier == null) return null;
 
 		// Get the property value
-		return getPropertyAsBooleanValue(context, identifier, defaultValue, mandatory);
+		return getPropertyAsBooleanValue(context, identifier, mandatory);
 	}
 
 	/**
@@ -695,9 +655,6 @@ public class ConfigurationManager implements ManagerInterface
 	 * @param identifier
 	 *            Identifier of the property.
 	 * 
-	 * @param defaultValue
-	 *            Default value of property if it could not be found.
-	 * 
 	 * @param mandatory
 	 *            Flag if the parameter must be set in the configuration file,
 	 *            that means if it is mandatory. Please choose <TT>true</TT> or
@@ -707,30 +664,25 @@ public class ConfigurationManager implements ManagerInterface
 	 *         property was not found, or <TT>0</TT>, if the value could not be
 	 *         converted to an integer value.
 	 */
-	private boolean getPropertyAsBooleanValue(Context context, String identifier, boolean defaultValue, boolean mandatory)
+	private Boolean getPropertyAsBooleanValue(Context context, String identifier, boolean mandatory)
 	{
 		// Reads the current properties
-		String valueAsString = getProperty(context, identifier, String.valueOf(defaultValue), mandatory);
+		String valueAsString = getProperty(context, identifier, mandatory);
 
 		// Validate value
-		if (valueAsString == null) return defaultValue;
-		if (valueAsString.equals("")) return defaultValue;
+		if (valueAsString == null) return null;
+		if (valueAsString.equals("")) return null;
 
-		// Convert to integer
-		boolean valueAsBoolean = defaultValue;
-
+		// Convert to boolean
 		try
 		{
-			Boolean currentValue = Boolean.valueOf(valueAsString);
-			valueAsBoolean = currentValue;
+			boolean valueAsBoolean = Boolean.valueOf(valueAsString);
+			return valueAsBoolean;
 		}
 		catch (Exception e)
 		{
-			// Be silent
+			return null;
 		}
-
-		// Return
-		return valueAsBoolean;
 	}
 
 	/**
@@ -1115,5 +1067,162 @@ public class ConfigurationManager implements ManagerInterface
 
 		// Return
 		return resultString;
+	}
+
+	/**
+	 * Get the setting of an attribute, as an <TT>integer</TT> value.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param configuration
+	 *            The resource container to consider.
+	 * 
+	 * @param group
+	 *            The group of the attribute to consider.
+	 * 
+	 * @param name
+	 *            The name of the attribute to consider.
+	 * 
+	 * @return Returns the setting of the attribute as <TT>Integer</TT> value,
+	 *         or <TT>null</TT> if no value was found.
+	 */
+	private Integer getAttributeSettingAsInteger(Context context, ResourceContainer configuration, String group, String name)
+	{
+		if (configuration == null) return null;
+
+		ResourceContainer attributeResource = ResourceManager.attribute(context, group, name);
+		if (attributeResource == null) return null;
+
+		String attributeName = attributeResource.getAliasName();
+		if (attributeName == null || attributeName.length() == 0) return null;
+
+		String attributeValueString = configuration.getAttribute(attributeName);
+		if (attributeValueString == null || attributeValueString.length() == 0) return null;
+
+		Integer attributeValueInteger = null;
+
+		try
+		{
+			attributeValueInteger = Integer.valueOf(attributeValueString);
+		}
+		catch (Exception e)
+		{
+			return 0;
+		}
+
+		return attributeValueInteger;
+	}
+
+	/**
+	 * Get the 'Default' setting of an attribute.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param configuration
+	 *            The resource container to consider.
+	 * 
+	 * @return Returns the 'Default' setting of the attribute, or <TT>null</TT>
+	 *         if no value was found.
+	 */
+	private String getAttributeDefaultSetting(Context context, String identifier)
+	{
+		if (identifier == null) return null;
+
+		ResourceContainer resource = new ResourceContainer(identifier);
+		ResourceContainer configuration = ResourceManager.configuration(context, resource.getGroup(), resource.getName());
+		if (configuration == null) return null;
+
+		ResourceContainer attributeResource = ResourceManager.attribute(context, "Common", "Default");
+		if (attributeResource == null) return null;
+
+		String attributeName = attributeResource.getAliasName();
+		if (attributeName == null || attributeName.length() == 0) return null;
+
+		String attributeValueString = configuration.getAttribute(attributeName);
+		if (attributeValueString == null || attributeValueString.length() == 0) return null;
+
+		return attributeValueString;
+	}
+
+	/**
+	 * Validate the settings of <TT>Minimum</TT> and
+	 * <TT>Maximum>/TT> of a resource item.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param configuration
+	 *            The resource container to consider.
+	 * 
+	 * @return Returns the validated value, or <TT>null</TT> if no value was
+	 *         found.
+	 */
+	private String validateMinimumMaximumSetting(Context context, String identifier, String valueAsString)
+	{
+		if (identifier == null) return valueAsString;
+		if (valueAsString == null) return valueAsString;
+
+		String errorText = "";
+		boolean isError = false;
+
+		try
+		{
+			ResourceContainer resource = new ResourceContainer(identifier);
+			ResourceContainer configuration = ResourceManager.configuration(context, resource.getGroup(), resource.getName());
+			if (configuration == null) return valueAsString;
+
+			Integer minimumValue = this.getAttributeSettingAsInteger(context, configuration, "Common", "Minimum");
+			Integer maximumValue = this.getAttributeSettingAsInteger(context, configuration, "Common", "Maximum");
+
+			if (minimumValue == null && maximumValue == null) return valueAsString;
+
+			int valueAsInteger = 0;
+
+			try
+			{
+				valueAsInteger = Integer.valueOf(valueAsString);
+			}
+			catch (Exception e)
+			{
+				return valueAsString;
+			}
+
+			if (minimumValue != null && valueAsInteger < minimumValue)
+			{
+				errorText += "\n--> Current value '" + String.valueOf(valueAsInteger) + "' set to the configuration property '" + configuration.getRecourceIdentifier() + "' is lower than the allowed minimum value '" + String.valueOf(minimumValue) + "'.";
+				errorText += "\n--> The value was set to '" + String.valueOf(minimumValue) + "'.";
+				valueAsInteger = minimumValue;
+				isError = true;
+			}
+
+			if (maximumValue != null && valueAsInteger > maximumValue)
+			{
+				errorText += "\n--> Current value '" + String.valueOf(valueAsInteger) + "' set to the configuration property '" + configuration.getRecourceIdentifier() + "' is greater than the allowed maximum value '" + String.valueOf(maximumValue) + "'.";
+				errorText += "\n--> The value was set to '" + String.valueOf(maximumValue) + "'.";
+				valueAsInteger = maximumValue;
+				isError = true;
+			}
+
+			// Check on error
+			if (isError == true)
+			{
+				String errorString = "--> Error on validating configuration property.";
+				errorString += errorText;
+				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Resource", "IntegrityError"), errorString, null);
+			}
+
+			// Set validated value
+			this.applicationProperties.put(identifier, String.valueOf(valueAsInteger));
+			
+			// Return
+			return String.valueOf(valueAsInteger);
+		}
+		catch (Exception e)
+		{
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Resource", "IntegrityError"), null, e);
+			return valueAsString;
+		}
 	}
 }

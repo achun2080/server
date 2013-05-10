@@ -75,10 +75,10 @@ public abstract class ClientManager extends ApplicationManager
 		// Read and check
 		try
 		{
-			this.clientPublicKey = this.getContext().getConfigurationManager().getProperty(this.getContext(), ResourceManager.configuration(this.getContext(), "Application", "PublicKey"), "", true);
+			this.clientPublicKey = this.getContext().getConfigurationManager().getProperty(this.getContext(), ResourceManager.configuration(this.getContext(), "Application", "PublicKey"), true);
 			if (this.clientPublicKey == null || this.clientPublicKey.length() == 0) isSuccessful = false;
 
-			this.clientPrivateKey = this.getContext().getConfigurationManager().getProperty(this.getContext(), ResourceManager.configuration(this.getContext(), "Application", "PrivateKey"), "", true);
+			this.clientPrivateKey = this.getContext().getConfigurationManager().getProperty(this.getContext(), ResourceManager.configuration(this.getContext(), "Application", "PrivateKey"), true);
 			if (this.clientPrivateKey == null || this.clientPrivateKey.length() == 0) isSuccessful = false;
 		}
 		catch (Exception e)

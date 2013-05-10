@@ -13,6 +13,7 @@ import fmagic.client.application.ClientManager;
 import fmagic.client.command.ClientCommand;
 import fmagic.client.command.ClientCommandCreateSession;
 import fmagic.client.command.ClientCommandHandshake;
+import fmagic.server.application.ServerManager;
 import fmagic.test.application.TestManager;
 import fmagic.test.runner.TestRunner;
 
@@ -37,6 +38,7 @@ public class TestContainerMediaCommand extends TestContainer
 
 	// Command properties
 	private ClientManager parameterClient = null;
+	private ServerManager parameterServer = null;
 
 	/**
 	 * Constructor
@@ -141,6 +143,7 @@ public class TestContainerMediaCommand extends TestContainer
 
 			// Test
 			this.testPushFileFromClientToServer();
+			this.testMaximumMediaSize();
 
 			// Cleanup
 			this.cleanupComponentTestIntern();
@@ -191,9 +194,12 @@ public class TestContainerMediaCommand extends TestContainer
 		{
 			TestManager.servicePrintHeader(this.getContext(), "===> testUploadFileFromClientToServer()", null);
 
+			// Create media resource
+			ResourceContainerMedia mediaResource = ResourceManager.media(this.getContext(), this.parameterResourceGroup, this.parameterResourceName);
+
 			// Get file directory
 			ResourceContainer configuration = ResourceManager.configuration(this.getContext(), "MediaTest", "DirectoryToSearchForMediaFiles");
-			String uploadFilePath = this.getContext().getConfigurationManager().getProperty(this.getContext(), configuration, null, true);
+			String uploadFilePath = this.getContext().getConfigurationManager().getProperty(this.getContext(), configuration, true);
 
 			String additionalText = "--> Tried to read the directory for the media files to process during test";
 			additionalText += "\n--> Please set the test configuration parameter '" + configuration.getRecourceIdentifier() + "' for the application '" + this.getContext().getCodeName() + "'";
@@ -205,16 +211,250 @@ public class TestContainerMediaCommand extends TestContainer
 			additionalText = "--> Tried to read media files in directory '" + uploadFilePath + "'";
 			additionalText = "--> No appropriate files found in this directory, or directory doesn't exist";
 			TestManager.assertNotNull(this.getContext(), this, additionalText, fileList);
-			
+
 			if (fileList == null) return;
-				
+
 			TestManager.assertGreaterThan(this.getContext(), this, additionalText, fileList.size(), 0);
 
 			// Try some uploads
-			for (int i = 0; i < 1; i++)
+			for (int i = 0; i < 0; i++)
 			{
+				// Get random index of file item in list
 				int index = FileUtilFunctions.generalGetRandomValue(0, fileList.size() - 1);
-				this.doPushFileFromClientToServer(this.parameterResourceGroup, this.parameterResourceName, this.parameterDataIdentifierTestUpload, fileList.get(index));
+
+				// Process files only that matches the maximum media size
+				String fileToBeUploaded = fileList.get(index);
+				if (FileUtilFunctions.fileGetFileSize(fileToBeUploaded) > (mediaResource.attributeGetMaximumMediaSize(this.getContext()) * 1024L)) continue;
+				if (FileUtilFunctions.fileGetFileSize(fileToBeUploaded) > (this.getContext().getMediaManager().getMaximumMediaSize() * 1024L)) continue;
+
+				// Push file
+				this.doPushFileFromClientToServer(this.parameterResourceGroup, this.parameterResourceName, this.parameterDataIdentifierTestUpload, fileToBeUploaded);
+			}
+		}
+		catch (Exception e)
+		{
+			TestManager.servicePrintException(this.getContext(), this, "Unexpected Exception", e);
+		}
+	}
+
+	/**
+	 * Test: Maximum Media Size
+	 */
+	public void testMaximumMediaSize()
+	{
+		// Do nothing if the test is running in concurrent mode
+		if (this.isConcurrentAccess()) return;
+
+		TestManager.servicePrintHeader(this.getContext(), "===> testMaximumMediaSize()", null);
+
+		try
+		{
+			/*
+			 * Get file directory
+			 */
+			ResourceContainer configuration = ResourceManager.configuration(this.getContext(), "MediaTest", "DirectoryToSearchForMediaFiles");
+			String uploadFilePath = this.getContext().getConfigurationManager().getProperty(this.getContext(), configuration, true);
+
+			String additionalText = "--> Tried to read the directory for the media files to process during test";
+			additionalText += "\n--> Please set the test configuration parameter '" + configuration.getRecourceIdentifier() + "' for the application '" + this.getContext().getCodeName() + "'";
+			TestManager.assertNotNull(this.getContext(), this, additionalText, uploadFilePath);
+
+			/*
+			 * Get file List
+			 */
+			List<String> fileList = FileUtilFunctions.directorySearchForFiles(uploadFilePath, "*.jpg");
+
+			additionalText = "--> Tried to read media files in directory '" + uploadFilePath + "'";
+			TestManager.assertNotNull(this.getContext(), this, additionalText, fileList);
+			if (fileList != null) TestManager.assertGreaterThan(this.getContext(), this, additionalText, fileList.size(), 0);
+
+			if (fileList == null) return;
+			if (fileList.size() == 0) return;
+
+			/*
+			 * Get current configuration property
+			 */
+			Integer lastValueOfMaximumMediaSize = this.getContext().getMediaManager().getMaximumMediaSize();
+			if (lastValueOfMaximumMediaSize == null) lastValueOfMaximumMediaSize = 0;
+
+			/*
+			 * Check a couple of media resource settings
+			 */
+			this.getContext().getMediaManager().testSetMaximumMediaSize(this.getContext(), 5000);
+			this.doMaximumMediaSizeAttribute(fileList, "Test", "Size50", 50);
+			this.doMaximumMediaSizeAttribute(fileList, "Test", "Size500", 500);
+			this.doMaximumMediaSizeAttribute(fileList, "Test", "Size3000", 3000);
+
+			/*
+			 * Check the configuration setting
+			 */
+			this.getContext().getMediaManager().testSetMaximumMediaSize(this.getContext(), 200);
+			this.doMaximumMediaSizeConfiguration(fileList, "Test", "Size3000", 200);
+
+			this.getContext().getMediaManager().testSetMaximumMediaSize(this.getContext(), 700);
+			this.doMaximumMediaSizeConfiguration(fileList, "Test", "Size3000", 700);
+
+			this.getContext().getMediaManager().testSetMaximumMediaSize(this.getContext(), 1400);
+			this.doMaximumMediaSizeConfiguration(fileList, "Test", "Size3000", 1400);
+
+			/*
+			 * Reset current configuration property
+			 */
+			this.getContext().getMediaManager().testSetMaximumMediaSize(this.getContext(), lastValueOfMaximumMediaSize);
+
+		}
+		catch (Exception e)
+		{
+			TestManager.servicePrintException(this.getContext(), this, "Unexpected Exception", e);
+		}
+	}
+
+	/**
+	 * Test: Maximum Media Size
+	 */
+	private void doMaximumMediaSizeConfiguration(List<String> fileList, String group, String name, int maximumConfigurationMediaSize)
+	{
+		TestManager.servicePrintSubLine(this.getContext(), "Check configuration setting: 'MaximumMediaSize' (" + String.valueOf(maximumConfigurationMediaSize) + " Kilobytes)");
+
+		try
+		{
+			// Prepare resource item
+			ResourceContainerMedia media = ResourceManager.media(this.getContext(), group, name);
+			Integer settingOfAttributeMediaSize = media.attributeGetMaximumMediaSize(this.getContext());
+			TestManager.assertNotNull(this.getContext(), this, null, settingOfAttributeMediaSize);
+			if (settingOfAttributeMediaSize != null) TestManager.assertGreaterThan(this.getContext(), this, null, settingOfAttributeMediaSize, maximumConfigurationMediaSize);
+
+			// Go through all media files of the list
+			if (settingOfAttributeMediaSize != null)
+			{
+				for (int i = 0; i < fileList.size(); i++)
+				{
+					Long currentMediaFileSize = FileUtilFunctions.fileGetFileSize(fileList.get(i));
+					Long maximumMediaFileSize = (maximumConfigurationMediaSize * 1024L);
+
+					// Provoke error
+					if (currentMediaFileSize > maximumMediaFileSize)
+					{
+						String errorIdentifier = ResourceManager.notification(this.getContext(), "Media", "MaximumMediaSizeExceeded").getRecourceIdentifier();
+						TestManager.errorSuppressErrorMessageOnce(this.getContext(), errorIdentifier);
+						boolean resultBoolean = this.getContext().getMediaManager().commandUploadToServer(this.getContext(), media, fileList.get(i), name);
+						TestManager.assertErrorCode(this.getContext(), this, null, errorIdentifier);
+						TestManager.assertFalse(this.getContext(), this, null, resultBoolean);
+					}
+					// Upload regularly
+					else
+					{
+						boolean resultBoolean = this.getContext().getMediaManager().commandUploadToServer(this.getContext(), media, fileList.get(i), name);
+						TestManager.assertTrue(this.getContext(), this, null, resultBoolean);
+					}
+				}
+			}
+
+			// Clean directories on server side
+			this.doRemoveAllFilesInRegularDirectoryOnServerSide(group, name);
+			this.doRemoveAllFilesInPendingDirectoryOnServerSide(group, name);
+		}
+		catch (Exception e)
+		{
+			TestManager.servicePrintException(this.getContext(), this, "Unexpected Exception", e);
+		}
+	}
+
+	/**
+	 * Test: Maximum Media Size
+	 */
+	private void doMaximumMediaSizeAttribute(List<String> fileList, String group, String name, int maximumAttributeMediaSize)
+	{
+		TestManager.servicePrintSubLine(this.getContext(), "Check media attribute: '" + group + "/" + name + "'" + " (" + String.valueOf(maximumAttributeMediaSize) + " Kilobytes)");
+
+		try
+		{
+			// Prepare resource item
+			ResourceContainerMedia media = ResourceManager.media(this.getContext(), group, name);
+			Integer settingOfAttributeMediaSize = media.attributeGetMaximumMediaSize(this.getContext());
+			TestManager.assertNotNull(this.getContext(), this, null, settingOfAttributeMediaSize);
+			if (settingOfAttributeMediaSize != null) TestManager.assertEquals(this.getContext(), this, null, settingOfAttributeMediaSize, maximumAttributeMediaSize);
+
+			// Go through all media files of the list
+			if (settingOfAttributeMediaSize != null)
+			{
+				for (int i = 0; i < fileList.size(); i++)
+				{
+					Long currentMediaFileSize = FileUtilFunctions.fileGetFileSize(fileList.get(i));
+					Long maximumMediaFileSize = (settingOfAttributeMediaSize * 1024L);
+
+					// Provoke error
+					if (currentMediaFileSize > maximumMediaFileSize)
+					{
+						String errorIdentifier = ResourceManager.notification(this.getContext(), "Media", "MaximumMediaSizeExceeded").getRecourceIdentifier();
+						TestManager.errorSuppressErrorMessageOnce(this.getContext(), errorIdentifier);
+						boolean resultBoolean = this.getContext().getMediaManager().commandUploadToServer(this.getContext(), media, fileList.get(i), name);
+						TestManager.assertErrorCode(this.getContext(), this, null, errorIdentifier);
+						TestManager.assertFalse(this.getContext(), this, null, resultBoolean);
+					}
+					// Upload regularly
+					else
+					{
+						boolean resultBoolean = this.getContext().getMediaManager().commandUploadToServer(this.getContext(), media, fileList.get(i), name);
+						TestManager.assertTrue(this.getContext(), this, null, resultBoolean);
+					}
+				}
+			}
+
+			// Clean directories on server side
+			this.doRemoveAllFilesInRegularDirectoryOnServerSide(group, name);
+			this.doRemoveAllFilesInPendingDirectoryOnServerSide(group, name);
+		}
+		catch (Exception e)
+		{
+			TestManager.servicePrintException(this.getContext(), this, "Unexpected Exception", e);
+		}
+	}
+
+	/**
+	 * Util: Remove all files from the 'pending' directory, regarding a specific
+	 * media resource container, on server side (remote side).
+	 */
+	private void doRemoveAllFilesInPendingDirectoryOnServerSide(String group, String name)
+	{
+		try
+		{
+			Context serverContext = this.parameterServer.getContext();
+
+			ResourceContainerMedia mediaResource = ResourceManager.media(serverContext, group, name);
+			String pendingDirectory = mediaResource.mediaFileGetPendingFilePath(serverContext);
+			TestManager.assertNotNull(this.getContext(), this, null, pendingDirectory);
+
+			if (FileUtilFunctions.directoryExists(pendingDirectory))
+			{
+				boolean isSuccessful = FileUtilFunctions.directoryDeleteAllFiles(pendingDirectory);
+				TestManager.assertTrue(this.getContext(), this, "--> Error on cleaning 'pending' directory on SERVER side '" + pendingDirectory + "'", isSuccessful);
+			}
+		}
+		catch (Exception e)
+		{
+			TestManager.servicePrintException(this.getContext(), this, "Unexpected Exception", e);
+		}
+	}
+
+	/**
+	 * Util: Remove all files from the 'regular' directory, regarding a specific
+	 * media resource container, on server side (remote side).
+	 */
+	private void doRemoveAllFilesInRegularDirectoryOnServerSide(String group, String name)
+	{
+		try
+		{
+			Context serverContext = this.parameterServer.getContext();
+
+			ResourceContainerMedia mediaResource = ResourceManager.media(serverContext, group, name);
+			String regularDirectory = mediaResource.mediaFileGetRegularFilePath(serverContext);
+			TestManager.assertNotNull(this.getContext(), this, null, regularDirectory);
+
+			if (FileUtilFunctions.directoryExists(regularDirectory))
+			{
+				boolean isSuccessful = FileUtilFunctions.directoryDeleteAllFiles(regularDirectory);
+				TestManager.assertTrue(this.getContext(), this, "--> Error on cleaning 'regular' directory on SERVER side '" + regularDirectory + "'", isSuccessful);
 			}
 		}
 		catch (Exception e)
@@ -255,7 +495,7 @@ public class TestContainerMediaCommand extends TestContainer
 			// COMMAND Handshake
 			command = new ClientCommandHandshake(parameterClient.getContext(), parameterClient);
 			responseContainer = command.execute();
-			
+
 			additionalText = "--> Tried to handshake the application server";
 			TestManager.assertNotNull(this.getContext(), this, additionalText, responseContainer);
 
@@ -303,7 +543,7 @@ public class TestContainerMediaCommand extends TestContainer
 			String hashValue = FileUtilFunctions.fileGetHashValue(uploadFileName);
 
 			/*
-			 *  Upload the media file to a server
+			 * Upload the media file to a server
 			 */
 			String additionalText = "--> Upload media file to server";
 			additionalText += "\n--> Media resource: '" + mediaResource.getRecourceIdentifier() + "'";
@@ -312,11 +552,11 @@ public class TestContainerMediaCommand extends TestContainer
 
 			boolean resultBoolean = this.getContext().getMediaManager().commandUploadToServer(this.getContext(), mediaResource, uploadFileName, dataIdentifierString);
 			TestManager.assertTrue(this.getContext(), this, additionalText, resultBoolean);
-			
+
 			if (resultBoolean == false) return;
 
 			/*
-			 *  Check if uploaded file really exists on server
+			 * Check if uploaded file really exists on server
 			 */
 			additionalText = "--> Check if media file exists on server";
 			additionalText += "\n--> Media resource: '" + mediaResource.getRecourceIdentifier() + "'";
@@ -329,7 +569,8 @@ public class TestContainerMediaCommand extends TestContainer
 			if (resultBoolean == false) return;
 
 			/*
-			 *  Read the uploaded file from server and store it in the local media repository
+			 * Read the uploaded file from server and store it in the local
+			 * media repository
 			 */
 			additionalText = "--> Media file couldn't be read from server";
 			additionalText += "\n--> Media resource: '" + mediaResource.getRecourceIdentifier() + "'";
@@ -338,7 +579,7 @@ public class TestContainerMediaCommand extends TestContainer
 
 			boolean booleanResult = this.getContext().getMediaManager().commandReadOnServer(this.getContext(), mediaResource, dataIdentifierString);
 			TestManager.assertTrue(this.getContext(), this, additionalText, booleanResult);
-			
+
 			// Return after error
 			if (booleanResult == false) return;
 
@@ -439,8 +680,9 @@ public class TestContainerMediaCommand extends TestContainer
 	/**
 	 * Setter
 	 */
-	public void setParameterClient(ClientManager parameterClient)
+	public void setParameterClientServer(ClientManager parameterClient, ServerManager parameterServer)
 	{
 		this.parameterClient = parameterClient;
+		this.parameterServer = parameterServer;
 	}
 }

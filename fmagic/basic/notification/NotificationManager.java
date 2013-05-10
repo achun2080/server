@@ -20,6 +20,7 @@ import fmagic.basic.file.FileLocationFunctions;
 import fmagic.basic.file.FileUtilFunctions;
 import fmagic.basic.resource.ResourceContainer;
 import fmagic.basic.resource.ResourceManager;
+import fmagic.test.application.TestManager;
 
 /**
  * This class implements an interface for providing functions for notification.
@@ -165,7 +166,7 @@ public class NotificationManager implements ManagerInterface
 	{
 		// Clean environment
 		this.cleanAll(context);
-		
+
 		// Return
 		return false;
 	}
@@ -199,9 +200,9 @@ public class NotificationManager implements ManagerInterface
 
 		// Add thread identification
 		formattedString += " [" + String.format("%04d", Thread.currentThread().getId()) + "]";
-		
+
 		// Add free memory
-		formattedString += " {" + String.valueOf(Runtime.getRuntime().freeMemory()/(1024*1024)) + "}";
+		formattedString += " {" + String.valueOf(Runtime.getRuntime().freeMemory() / (1024 * 1024)) + "}";
 
 		// Add message text
 		formattedString += " " + messageText + "";
@@ -353,7 +354,7 @@ public class NotificationManager implements ManagerInterface
 				{
 					System.out.println(additionalText);
 				}
-				
+
 				context.getNotificationManager().writeMessageToLogfile(context, "\n\n" + additionalText);
 			}
 
@@ -1240,13 +1241,23 @@ public class NotificationManager implements ManagerInterface
 		// Check parameter
 		if (resourceContainer == null) return;
 
+		// Handle error messages during test mode
+		if (context.isRunningInTestMode())
+		{
+			// Check if the error message is to be suppressed
+			if (TestManager.errorIsSuppressedErrorMessage(context, resourceContainer.getRecourceIdentifier())) return;
+			
+			// Notify the error message for the test manager
+			TestManager.errorNotifyErrorMessage(context, resourceContainer.getRecourceIdentifier(), additionalText, exception);
+		}
+
 		// Lock message processing
 		if (!isWatchdogMessage)
 		{
 			if (this.lockMessageHandling("Error", resourceContainer.getRecourceIdentifier()) == true) return;
 		}
 
-		// Notify the event
+		// Notify the error
 		try
 		{
 			while (true)
@@ -1428,17 +1439,17 @@ public class NotificationManager implements ManagerInterface
 	 */
 	public int cleanAll(Context context)
 	{
-			// Initialize
-			Integer nuOfMovedFiles = 0;
-			
-			// Clean productive environment
-			nuOfMovedFiles = nuOfMovedFiles + this.cleanProductiveEnvironment(context);
-			
-			// Clean testing environment
-			nuOfMovedFiles = nuOfMovedFiles + this.cleanTestingEnvironment(context);
+		// Initialize
+		Integer nuOfMovedFiles = 0;
 
-			// Return
-			return nuOfMovedFiles;
+		// Clean productive environment
+		nuOfMovedFiles = nuOfMovedFiles + this.cleanProductiveEnvironment(context);
+
+		// Clean testing environment
+		nuOfMovedFiles = nuOfMovedFiles + this.cleanTestingEnvironment(context);
+
+		// Return
+		return nuOfMovedFiles;
 	}
 
 	/**
@@ -1459,11 +1470,11 @@ public class NotificationManager implements ManagerInterface
 			// Logging
 			String logText = "\n--> CLEAN PRODUCTIVE LOG DIRECTORIES: Begin of cleaning";
 			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
-			
+
 			// Get the root directory of log files
 			String directory = FileLocationFunctions.compileFilePath(FileLocationFunctions.getRootPath(), FileLocationFunctions.getLogSubPath());
 			nuOfMovedFiles = FileUtilFunctions.directoryDeleteExpiredFiles(directory, "*.log", this.cleanDaysToKeep);
-			
+
 			if (nuOfMovedFiles == null)
 			{
 				String errorString = "--> CLEAN PRODUCTIVE LOG DIRECTORIES: Error on processing cleaning.";
@@ -1505,44 +1516,44 @@ public class NotificationManager implements ManagerInterface
 			// Logging
 			String logText = "\n--> CLEAN TESTING LOG DIRECTORIES: Begin of cleaning";
 			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
-			
+
 			// Get the root directory of log files
 			String directory = FileLocationFunctions.compileFilePath(FileLocationFunctions.getRootPath(), FileLocationFunctions.getTestSubPath());
-			
+
 			// Clean ASSERT files
 			Integer fileCounter = FileUtilFunctions.directoryDeleteExpiredFiles(directory, "ASSERT-*.log", this.cleanDaysToKeep);
-			
+
 			if (fileCounter == null)
 			{
 				String errorString = "--> CLEAN TESTING LOG DIRECTORIES: Error on processing cleaning ASSERT files.";
 				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Notification", "ErrorOnProcessingFile"), errorString, null);
 				return 0;
 			}
-			
+
 			nuOfMovedFiles = nuOfMovedFiles + fileCounter;
-			
+
 			// Clean LOGGING files
 			fileCounter = FileUtilFunctions.directoryDeleteExpiredFiles(directory, "LOGGING-*.log", this.cleanDaysToKeep);
-			
+
 			if (fileCounter == null)
 			{
 				String errorString = "--> CLEAN TESTING LOG DIRECTORIES: Error on processing cleaning LOGGING files.";
 				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Notification", "ErrorOnProcessingFile"), errorString, null);
 				return 0;
 			}
-			
+
 			nuOfMovedFiles = nuOfMovedFiles + fileCounter;
-			
+
 			// Clean ERROR files
 			fileCounter = FileUtilFunctions.directoryDeleteExpiredFiles(directory, "ERROR-*.log", this.cleanDaysToKeep);
-			
+
 			if (fileCounter == null)
 			{
 				String errorString = "--> CLEAN TESTING LOG DIRECTORIES: Error on processing cleaning ERROR files.";
 				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Notification", "ErrorOnProcessingFile"), errorString, null);
 				return 0;
 			}
-			
+
 			nuOfMovedFiles = nuOfMovedFiles + fileCounter;
 
 			// / Logging
@@ -1573,46 +1584,18 @@ public class NotificationManager implements ManagerInterface
 	 */
 	private boolean readConfigurationCleaningConfigurationParameter(Context context)
 	{
-		// Initialize
-		String errorText = "";
-		boolean isError = false;
-		ResourceContainer resourceContainer = null;
-		Integer iValue = null;
-
 		try
 		{
 			// Read parameter: CleanDaysToKeep
-			resourceContainer = ResourceManager.configuration(context, "Notification", "CleanDaysToKeep");
-			iValue = context.getConfigurationManager().getPropertyAsIntegerValue(context, resourceContainer, resourceContainer.getAttributeDefaultSettingAsInteger(context), false);
-			iValue = resourceContainer.validateMinimumMaximumSetting(context, iValue);
+			this.cleanDaysToKeep = context.getConfigurationManager().getPropertyAsIntegerValue(context, ResourceManager.configuration(context, "Notification", "CleanDaysToKeep"), false);
 
-			if (iValue != null)
-			{
-				this.cleanDaysToKeep = iValue;
-			}
-			else
-			{
-				isError = true;
-			}
-
-			// Check parameter value
-			if (isError == true)
-			{
-				String errorString = "--> Error on reading configuration properties regarding log settings:";
-				errorString += errorText;
-				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Configuration", "IntegrityError"), errorString, null);
-				return true;
-			}
+			// Return
+			return false;
 		}
 		catch (Exception e)
 		{
-			String errorString = "--> Error on reading configuration properties regarding log settings:";
-			errorString += errorText;
-			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Configuration", "IntegrityError"), errorString, e);
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Configuration", "IntegrityError"), null, e);
 			return true;
 		}
-
-		// Return
-		return isError;
 	}
 }

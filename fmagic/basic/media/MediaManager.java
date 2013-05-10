@@ -133,14 +133,37 @@ public abstract class MediaManager implements ManagerInterface
 	{
 		boolean isError = false;
 
+		/*
+		 *  Read client/server specific configuration parameter
+		 */
 		if (readConfigurationLocalMediaFilePathRoot(context) == true) isError = true;
 		if (readConfigurationEncodingKeyList(context) == true) isError = true;
 		if (readConfigurationEncodingKeyNumber(context) == true) isError = true;
 		if (readConfigurationEncodingEnabled(context) == true) isError = true;
 		if (readConfigurationSpecificParameter(context) == true) isError = true;
 
-		if (readConfigurationCleaningConfigurationParameter(context) == true) isError = true;
-		if (readConfigurationMaximumMediaSize(context) == true) isError = true;
+		/*
+		 *  Read common configuration parameter
+		 */
+		try
+		{
+			// Read parameter: CleanPendingDaysToKeep
+			this.cleanPendingDaysToKeep = context.getConfigurationManager().getPropertyAsIntegerValue(context, ResourceManager.configuration(context, "Media", "CleanPendingDaysToKeep"), false);
+
+			// Read parameter: CleanDeletedDaysToKeep
+			this.cleanDeletedDaysToKeep = context.getConfigurationManager().getPropertyAsIntegerValue(context, ResourceManager.configuration(context, "Media", "CleanDeletedDaysToKeep"), false);
+
+			// Read parameter: CleanObsoleteDaysToKeep
+			this.cleanObsoleteDaysToKeep = context.getConfigurationManager().getPropertyAsIntegerValue(context, ResourceManager.configuration(context, "Media", "CleanObsoleteDaysToKeep"), false);
+			
+			// Read parameter: MaximumMediaSize
+			this.maximumMediaSize = context.getConfigurationManager().getPropertyAsIntegerValue(context, ResourceManager.configuration(context, "Media", "MaximumMediaSize"), false);
+		}
+		catch (Exception e)
+		{
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Configuration", "IntegrityError"), null, e);
+			isError = true;
+		}
 
 		/*
 		 * Return
@@ -202,147 +225,6 @@ public abstract class MediaManager implements ManagerInterface
 	 *         <TT>false</TT>.
 	 */
 	protected abstract boolean readConfigurationEncodingEnabled(Context context);
-
-	/**
-	 * Read configuration parameters regarding the cleaning services for file
-	 * directories.
-	 * 
-	 * @param context
-	 *            Application context.
-	 * 
-	 * @return Returns <TT>true</TT> if an error was found, otherwise
-	 *         <TT>false</TT>.
-	 */
-	private boolean readConfigurationCleaningConfigurationParameter(Context context)
-	{
-		// Initialize
-		String errorText = "";
-		boolean isError = false;
-		ResourceContainer resourceContainer = null;
-		Integer iValue = null;
-
-		try
-		{
-			// Read parameter: CleanPendingDaysToKeep
-			resourceContainer = ResourceManager.configuration(context, "Media", "CleanPendingDaysToKeep");
-			iValue = context.getConfigurationManager().getPropertyAsIntegerValue(context, resourceContainer, resourceContainer.getAttributeDefaultSettingAsInteger(context), false);
-			iValue = resourceContainer.validateMinimumMaximumSetting(context, iValue);
-
-			if (iValue != null)
-			{
-				this.cleanPendingDaysToKeep = iValue;
-			}
-			else
-			{
-				errorText += "\n--> On reading configuration property: 'CleanPendingDaysToKeep'";
-				isError = true;
-			}
-
-			// Read parameter: CleanDeletedDaysToKeep
-			resourceContainer = ResourceManager.configuration(context, "Media", "CleanDeletedDaysToKeep");
-			iValue = context.getConfigurationManager().getPropertyAsIntegerValue(context, resourceContainer, resourceContainer.getAttributeDefaultSettingAsInteger(context), false);
-			iValue = resourceContainer.validateMinimumMaximumSetting(context, iValue);
-
-			if (iValue != null)
-			{
-				this.cleanDeletedDaysToKeep = iValue;
-			}
-			else
-			{
-				errorText += "\n--> On reading configuration property: 'CleanDeletedDaysToKeep'";
-				isError = true;
-			}
-
-			// Read parameter: CleanObsoleteDaysToKeep
-			resourceContainer = ResourceManager.configuration(context, "Media", "CleanObsoleteDaysToKeep");
-			iValue = context.getConfigurationManager().getPropertyAsIntegerValue(context, resourceContainer, resourceContainer.getAttributeDefaultSettingAsInteger(context), false);
-			iValue = resourceContainer.validateMinimumMaximumSetting(context, iValue);
-
-			if (iValue != null)
-			{
-				this.cleanObsoleteDaysToKeep = iValue;
-			}
-			else
-			{
-				errorText += "\n--> On reading configuration property: 'CleanObsoleteDaysToKeep'";
-				isError = true;
-			}
-
-			// Check parameter value
-			if (isError == true)
-			{
-				String errorString = "--> Error on reading configuration properties regarding media settings:";
-				errorString += errorText;
-				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Configuration", "IntegrityError"), errorString, null);
-				return true;
-			}
-		}
-		catch (Exception e)
-		{
-			String errorString = "--> Error on reading configuration properties regarding media settings:";
-			errorString += errorText;
-			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Configuration", "IntegrityError"), errorString, e);
-			return true;
-		}
-
-		// Return
-		return isError;
-	}
-
-	/**
-	 * Read the current 'EncodingEnabled' value of server or client.
-	 * 
-	 * @param context
-	 *            Application context.
-	 * 
-	 * @return Returns <TT>true</TT> if an error was found, otherwise
-	 *         <TT>false</TT>.
-	 */
-	protected boolean readConfigurationMaximumMediaSize(Context context)
-	{
-		// Initialize
-		String errorText = "";
-		boolean isError = false;
-		ResourceContainer resourceContainer = null;
-		Integer iValue = null;
-
-		try
-		{
-			// Read parameter: MaximumMediaSize
-			resourceContainer = ResourceManager.configuration(context, "Media", "MaximumMediaSize");
-			iValue = context.getConfigurationManager().getPropertyAsIntegerValue(context, resourceContainer, resourceContainer.getAttributeDefaultSettingAsInteger(context), false);
-			iValue = resourceContainer.validateMinimumMaximumSetting(context, iValue);
-
-			if (iValue != null)
-			{
-				this.maximumMediaSize = iValue;
-			}
-			else
-			{
-				errorText += "\n--> On reading configuration property: 'MaximumMediaSize'";
-				isError = true;
-			}
-
-			// Check parameter value
-			if (isError == true)
-			{
-				String errorString = "--> Error on reading configuration properties regarding media settings:";
-				errorString += errorText;
-				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Configuration", "IntegrityError"), errorString, null);
-				return true;
-			}
-		}
-		catch (Exception e)
-		{
-			String errorString = "--> Error on reading configuration properties regarding media settings:";
-			errorString += errorText;
-			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Configuration", "IntegrityError"), errorString, e);
-			return true;
-		}
-
-		// Return
-		return isError;
-	}
 
 	@Override
 	public boolean validateResources(Context context)
@@ -1302,7 +1184,7 @@ public abstract class MediaManager implements ManagerInterface
 			Long currentFileSize = FileUtilFunctions.fileGetFileSize(uploadFileNamePath);
 			if (currentFileSize != null) errorString += "\n--> File size of media file: '" + String.valueOf(currentFileSize) + "' Byte = '" + String.valueOf(currentFileSize / 1024) + "' Kilobyte";
 
-			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnStoringFileLocally"), errorString, null);
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "MaximumMediaSizeExceeded"), errorString, null);
 			return false;
 		}
 
@@ -1320,7 +1202,7 @@ public abstract class MediaManager implements ManagerInterface
 			Long currentFileSize = FileUtilFunctions.fileGetFileSize(uploadFileNamePath);
 			if (currentFileSize != null) errorString += "\n--> File size of media file: '" + String.valueOf(currentFileSize) + "' Byte = '" + String.valueOf(currentFileSize / 1024) + "' Kilobyte";
 
-			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnStoringFileLocally"), errorString, null);
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "MaximumMediaSizeExceeded"), errorString, null);
 			return false;
 		}
 
@@ -1628,7 +1510,7 @@ public abstract class MediaManager implements ManagerInterface
 			Long currentFileSize = FileUtilFunctions.fileGetFileSize(uploadFileNamePath);
 			if (currentFileSize != null) errorString += "\n--> File size of media file: '" + String.valueOf(currentFileSize) + "' Byte = '" + String.valueOf(currentFileSize / 1024) + "' Kilobyte";
 
-			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnStoringFileLocally"), errorString, null);
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "MaximumMediaSizeExceeded"), errorString, null);
 			return false;
 		}
 
@@ -1646,7 +1528,7 @@ public abstract class MediaManager implements ManagerInterface
 			Long currentFileSize = FileUtilFunctions.fileGetFileSize(uploadFileNamePath);
 			if (currentFileSize != null) errorString += "\n--> File size of media file: '" + String.valueOf(currentFileSize) + "' Byte = '" + String.valueOf(currentFileSize / 1024) + "' Kilobyte";
 
-			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnStoringFileLocally"), errorString, null);
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "MaximumMediaSizeExceeded"), errorString, null);
 			return false;
 		}
 
@@ -2798,10 +2680,23 @@ public abstract class MediaManager implements ManagerInterface
 	 * Please notice: This setter is supposed test purposes only. It doesn't
 	 * work if it runs in productive environment.
 	 */
-	public void setCleanDeletedDaysToKeep(Context context, int cleanDeletedDaysToKeep)
+	public void testSetCleanDeletedDaysToKeep(Context context, int cleanDeletedDaysToKeep)
 	{
 		if (!context.isRunningInTestMode()) return;
 
 		this.cleanDeletedDaysToKeep = cleanDeletedDaysToKeep;
+	}
+
+	/**
+	 * TEST Setter
+	 * 
+	 * Please notice: This setter is supposed test purposes only. It doesn't
+	 * work if it runs in productive environment.
+	 */
+	public void testSetMaximumMediaSize(Context context, int maximumMediaSize)
+	{
+		if (!context.isRunningInTestMode()) return;
+
+		this.maximumMediaSize = maximumMediaSize;
 	}
 }

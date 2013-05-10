@@ -171,7 +171,7 @@ public class TestRunnerMediaCommand extends TestRunner
 			
 			// Prepare test container
 			testContainer = new TestContainerMediaCommand(client.getContext(), this, false);
-			testContainer.setParameterClient(client);
+			testContainer.setParameterClientServer(client, server);
 			
 			// Execute test
 			testContainer.executeComponentTest();

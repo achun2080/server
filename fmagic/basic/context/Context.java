@@ -125,9 +125,6 @@ public abstract class Context implements Cloneable, ManagerInterface
 	private Exception dumpFirstErrorException = null;
 	private String dumpFirstErrorShutdownNotificationText = null;
 
-	final private int MAX_NU_OF_DUMP_ITEMS_MINIMUM = 1000;
-	final private int MAX_NU_OF_DUMP_ITEMS_MAXIMUM = 5000;
-	final private int MAX_NU_OF_DUMP_ITEMS_DEFAULT = 2000;
 	private Integer dumpMaxNuOfDumpItems = null;
 
 	// WATCHDOG mode
@@ -165,14 +162,15 @@ public abstract class Context implements Cloneable, ManagerInterface
 	 *            is running in productive mode.
 	 * 
 	 * @param testSessionName
-	 *            Is to be set to the name of the test session, if the application
-	 *            is running in test mode, or <TT>null</TT> if the application
-	 *            is running in productive mode.
+	 *            Is to be set to the name of the test session, if the
+	 *            application is running in test mode, or <TT>null</TT> if the
+	 *            application is running in productive mode.
 	 */
 	public Context(String codeName, String applicationName,
 			int applicationVersion, String originName,
-			ApplicationManager applicationManager, MediaManager mediaManager, TestManager testManager,
-			boolean runningInTestMode, String testCaseName, String testSessionName)
+			ApplicationManager applicationManager, MediaManager mediaManager,
+			TestManager testManager, boolean runningInTestMode,
+			String testCaseName, String testSessionName)
 	{
 		this.codeName = FileUtilFunctions.generalFitToFileNameCompatibility(codeName);
 		this.applicationName = FileUtilFunctions.generalFitToFileNameCompatibility(applicationName);
@@ -208,7 +206,6 @@ public abstract class Context implements Cloneable, ManagerInterface
 			}
 
 			this.contextType = Context.ContextTypeEnum.TEST;
-
 
 			if (testSessionName == null || testSessionName.length() == 0)
 			{
@@ -566,31 +563,35 @@ public abstract class Context implements Cloneable, ManagerInterface
 	 */
 	public void addDumpMessageElement(String messageText)
 	{
-		// Check variables
-		if (this.dumpListMessages == null) return;
-
-		// Load configuration parameter if not done yet
-		if (this.dumpMaxNuOfDumpItems == null)
+		try
 		{
-			Integer iValue = this.getConfigurationManager().getPropertyAsIntegerValue(this, ResourceManager.configuration(this, "Context", "MaxNuOfDumpItems"), MAX_NU_OF_DUMP_ITEMS_DEFAULT, false);
-			if (iValue != null && iValue < MAX_NU_OF_DUMP_ITEMS_MINIMUM) iValue = MAX_NU_OF_DUMP_ITEMS_MINIMUM;
-			if (iValue != null && iValue > MAX_NU_OF_DUMP_ITEMS_MAXIMUM) iValue = MAX_NU_OF_DUMP_ITEMS_MAXIMUM;
-			this.dumpMaxNuOfDumpItems = iValue;
-		}
+			// Check variables
+			if (this.dumpListMessages == null) return;
 
-		// Check if the maximum number of allowed list items is exceeded
-		if (this.dumpListMessages.size() >= this.dumpMaxNuOfDumpItems)
+			// Load configuration parameter if not done yet
+			if (this.dumpMaxNuOfDumpItems == null)
+			{
+				this.dumpMaxNuOfDumpItems = this.getConfigurationManager().getPropertyAsIntegerValue(this, ResourceManager.configuration(this, "Context", "MaxNuOfDumpItems"), false);
+			}
+
+			// Check if the maximum number of allowed list items is exceeded
+			if (this.dumpListMessages.size() >= this.dumpMaxNuOfDumpItems)
+			{
+				// Reset dump list
+				this.resetDumpList();
+
+				// Notify event
+				String eventText = "--> Number of allowed items: '" + String.valueOf(this.dumpMaxNuOfDumpItems) + "'";
+				this.getNotificationManager().notifyEvent(this, ResourceManager.notification(this, "Context", "MaxNuOfDumpItemsExceeded"), eventText, null);
+			}
+
+			// Add message to the dump list
+			this.dumpListMessages.add(messageText);
+		}
+		catch (Exception e)
 		{
-			// Reset dump list
-			this.resetDumpList();
-
-			// Notify event
-			String eventText = "--> Number of allowed items: '" + String.valueOf(this.dumpMaxNuOfDumpItems) + "'";
-			this.getNotificationManager().notifyEvent(this, ResourceManager.notification(this, "Context", "MaxNuOfDumpItemsExceeded"), eventText, null);
+			this.getNotificationManager().notifyError(this, ResourceManager.notification(this, "Resource", "IntegrityError"), null, e);
 		}
-
-		// Add message to the dump list
-		this.dumpListMessages.add(messageText);
 	}
 
 	/**

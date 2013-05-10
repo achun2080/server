@@ -33,6 +33,12 @@ import fmagic.test.suite.TestSuite;
  */
 public class TestManager implements ManagerInterface
 {
+	private String errorLastErrorIdentifier = null;
+	private String errorLastErrorAdditionalText = null;
+	private Exception errorLastErrorException = null;
+
+	private String errorToBeSuppressedErrorIdentifier = null;
+
 	/**
 	 * Constructor
 	 */
@@ -112,8 +118,8 @@ public class TestManager implements ManagerInterface
 	}
 
 	/**
-	 * Push an error message to the error protocols of test container, test runner and
-	 * test suite.
+	 * Push an error message to the error protocols of test container, test
+	 * runner and test suite.
 	 * 
 	 * @param context
 	 *            Application context of the message.
@@ -594,6 +600,8 @@ public class TestManager implements ManagerInterface
 		if (assertText == null || assertText.length() == 0) assertText = "Assertion message";
 
 		// Create exception
+		if (additionalText == null) additionalText = "";
+
 		try
 		{
 			throw new Exception();
@@ -607,8 +615,35 @@ public class TestManager implements ManagerInterface
 
 			if (stackTraceText != null && stackTraceText.length() > 0)
 			{
-				if (additionalText == null) additionalText = "";
 				additionalText += "\n\n" + stackTraceText;
+			}
+		}
+
+		// Publish error message notified by the system
+		TestManager testManager = context.getTestManager();
+
+		if (testManager.errorLastErrorIdentifier != null)
+		{
+			additionalText += "\n";
+
+			additionalText += "\n--> Error code reported by the system: '" + testManager.errorLastErrorIdentifier + "'";
+
+			if (testManager.errorLastErrorAdditionalText != null)
+			{
+				additionalText += "\n" + testManager.errorLastErrorAdditionalText;
+			}
+
+			if (testManager.errorLastErrorException != null)
+			{
+				Writer writer = new StringWriter();
+				PrintWriter printWriter = new PrintWriter(writer);
+				testManager.errorLastErrorException.printStackTrace(printWriter);
+				String stackTraceText = writer.toString();
+
+				if (stackTraceText != null && stackTraceText.length() > 0)
+				{
+					additionalText += "\n\n" + stackTraceText;
+				}
 			}
 		}
 
@@ -621,6 +656,9 @@ public class TestManager implements ManagerInterface
 		// Push message to the error protocols of test container, test runner
 		// and test suite
 		TestManager.addErrorToErrorProtocolLists(context, testContainer, assertText, additionalText);
+
+		// Clear last error message
+		context.getTestManager().errorClearErrorMessage();
 	}
 
 	/**
@@ -669,7 +707,11 @@ public class TestManager implements ManagerInterface
 	 */
 	public static void servicePrintProgress(Context context)
 	{
+		// Write progress to the assert file
 		context.getTestManager().writeMessageToAssertfile(context, null, null);
+
+		// Clear last error message
+		context.getTestManager().errorClearErrorMessage();
 	}
 
 	/**
@@ -1410,6 +1452,49 @@ public class TestManager implements ManagerInterface
 	}
 
 	/**
+	 * Assert: Check an error code if it was the last error occurred at runtime.
+	 * 
+	 * @param context
+	 *            Application context of the message.
+	 * 
+	 * @param testContainer
+	 *            The test container that invoked this method, or <TT>null</TT>
+	 *            if no test container is available.
+	 * 
+	 * @param additionalText
+	 *            Additional text of the message.
+	 * 
+	 * @param identifier
+	 *            The error code to be asserted, coded as a notification
+	 *            resource item.
+	 */
+	public static void assertErrorCode(Context context, TestContainer testContainer, String additionalText, String identifier)
+	{
+		if (identifier == null) return;
+
+		if (context.getTestManager().errorLastErrorIdentifier == null || !context.getTestManager().errorLastErrorIdentifier.equals(identifier))
+		{
+			String assertText = "Assertion failed: Comparing an error code with the last error code occurred at runtime";
+			assertText += "\n--> Error code to check: '" + identifier + "'";
+
+			if (context.getTestManager().errorLastErrorIdentifier == null)
+			{
+				assertText += "\n--> Last error code at runtime: ''";
+			}
+			else
+			{
+				assertText += "\n--> Last error code at runtime: '" + context.getTestManager().errorLastErrorIdentifier + "'";
+			}
+
+			TestManager.servicePrintError(context, testContainer, assertText, additionalText);
+		}
+		else
+		{
+			TestManager.servicePrintProgress(context);
+		}
+	}
+
+	/**
 	 * Print the error protocol of a test container, test runner or test suite.
 	 * 
 	 * @param assertionNumberOfErrors
@@ -1454,5 +1539,89 @@ public class TestManager implements ManagerInterface
 
 		// Return
 		return returnText;
+	}
+
+	/**
+	 * Error: Set an error message code that is to be suppressed once by the
+	 * notification manager.
+	 * 
+	 * @param context
+	 *            Application context of the message.
+	 * 
+	 * @param identifier
+	 *            The resource identifier of the error notification.
+	 */
+	public synchronized static void errorSuppressErrorMessageOnce(Context context, String identifier)
+	{
+		context.getTestManager().errorToBeSuppressedErrorIdentifier = identifier;
+	}
+
+	/**
+	 * Error: Check if a specific error code is to be suppressed by the
+	 * notification manager.
+	 * <p>
+	 * After checking the status the error code to be suppressed is reset by
+	 * this method automatically.
+	 * 
+	 * @param context
+	 *            Application context of the message.
+	 * 
+	 * @param identifier
+	 *            The resource identifier of the error notification.
+	 * 
+	 * @return Returns <TT>true</TT> if the error message has to be suppressed,
+	 *         otherwise <TT>false</TT>.
+	 */
+	public synchronized static boolean errorIsSuppressedErrorMessage(Context context, String identifier)
+	{
+		if (context.getTestManager().errorToBeSuppressedErrorIdentifier == null) return false;
+		if (identifier == null) return false;
+
+		boolean isToBeSuppressed = false;
+
+		if (context.getTestManager().errorToBeSuppressedErrorIdentifier.equals(identifier)) isToBeSuppressed = true;
+
+		context.getTestManager().errorToBeSuppressedErrorIdentifier = null;
+
+		return isToBeSuppressed;
+	}
+
+	/**
+	 * Error: Notify an error that occurred to the test manager.
+	 * <p>
+	 * After checking the status the error code to be suppressed is reset by
+	 * this method automatically.
+	 * 
+	 * @param context
+	 *            Application context of the message.
+	 * 
+	 * @param identifier
+	 *            The resource identifier of the error notification.
+	 * 
+	 * @param additionalText
+	 *            An additional text to notify.
+	 * 
+	 * @param exception
+	 *            An exception to notify.
+	 */
+	public synchronized static void errorNotifyErrorMessage(Context context, String identifier, String additionalText, Exception exception)
+	{
+		context.getTestManager().errorClearErrorMessage();
+
+		if (identifier == null) return;
+
+		context.getTestManager().errorLastErrorIdentifier = identifier;
+		context.getTestManager().errorLastErrorAdditionalText = additionalText;
+		context.getTestManager().errorLastErrorException = exception;
+	}
+
+	/**
+	 * Error: Clear error notification in the test manager.
+	 */
+	private synchronized void errorClearErrorMessage()
+	{
+		this.errorLastErrorIdentifier = null;
+		this.errorLastErrorAdditionalText = null;
+		this.errorLastErrorException = null;
 	}
 }

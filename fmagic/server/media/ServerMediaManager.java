@@ -28,7 +28,7 @@ public class ServerMediaManager extends MediaManager
 	protected boolean readConfigurationLocalMediaFilePathRoot(Context context)
 	{
 		ResourceContainer resourceContainer = ResourceManager.configuration(context, "Media", "ServerLocalMediaFilePathRoot");
-		this.mediaRootFilePath = context.getConfigurationManager().getProperty(context, resourceContainer, null, true);
+		this.mediaRootFilePath = context.getConfigurationManager().getProperty(context, resourceContainer, true);
 
 		if (this.mediaRootFilePath == null || this.mediaRootFilePath.length() == 0)
 		{
@@ -50,7 +50,7 @@ public class ServerMediaManager extends MediaManager
 
 		// Read configuration item
 		ResourceContainer resourceContainer = ResourceManager.configuration(context, "Media", "ServerEncodingKeyList");
-		String serverMediaKeyListString = context.getConfigurationManager().getProperty(context, resourceContainer, null, false);
+		String serverMediaKeyListString = context.getConfigurationManager().getProperty(context, resourceContainer, false);
 
 		// Get key list
 		if (serverMediaKeyListString != null && serverMediaKeyListString.length() > 0)
@@ -128,7 +128,7 @@ public class ServerMediaManager extends MediaManager
 	{
 		// Read parameter value
 		ResourceContainer resourceContainer = ResourceManager.configuration(context, "Media", "ServerEncodingKeyNumber");
-		String configurationServerEncodingKeyNumberString = context.getConfigurationManager().getProperty(context, resourceContainer, null, false);
+		String configurationServerEncodingKeyNumberString = context.getConfigurationManager().getProperty(context, resourceContainer, false);
 
 		// Key number is not set
 		if (configurationServerEncodingKeyNumberString == null) return false;
@@ -172,7 +172,7 @@ public class ServerMediaManager extends MediaManager
 	protected boolean readConfigurationEncodingEnabled(Context context)
 	{
 		ResourceContainer resourceContainer = ResourceManager.configuration(context, "Media", "ServerEncodingEnabled");
-		this.encodingEnabled = context.getConfigurationManager().getPropertyAsBooleanValue(context, resourceContainer, false, false);
+		this.encodingEnabled = context.getConfigurationManager().getPropertyAsBooleanValue(context, resourceContainer, false);
 
 		// Check parameter value
 		if (this.encodingEnabled == true && this.encodingKeyNumber == 0)

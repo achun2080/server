@@ -275,47 +275,19 @@ public abstract class ApplicationManager implements ManagerInterface
 	@Override
 	public boolean readConfiguration(Context context)
 	{
-		// Initialize
-		String errorText = "";
-		boolean isError = false;
-		ResourceContainer resourceContainer = null;
-		Integer iValue = null;
-
 		try
 		{
 			// Read parameter: MaximumWaitingTimeForPendingThreadsInSeconds
-			resourceContainer = ResourceManager.configuration(context, "Shutdown", "MaximumWaitingTimeForPendingThreadsInSeconds");
-			iValue = context.getConfigurationManager().getPropertyAsIntegerValue(context, resourceContainer, resourceContainer.getAttributeDefaultSettingAsInteger(context), false);
-			iValue = resourceContainer.validateMinimumMaximumSetting(context, iValue);
-
-			if (iValue != null)
-			{
-				this.maximumWaitingTimeForPendingThreadsInSeconds = iValue;
-			}
-			else
-			{
-				isError = true;
-			}
-
-			// Check parameter value
-			if (isError == true)
-			{
-				String errorString = "--> Error on reading configuration properties:";
-				errorString += errorText;
-				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Configuration", "IntegrityError"), errorString, null);
-				return true;
-			}
+			this.maximumWaitingTimeForPendingThreadsInSeconds = context.getConfigurationManager().getPropertyAsIntegerValue(context, ResourceManager.configuration(context, "Shutdown", "MaximumWaitingTimeForPendingThreadsInSeconds"), false);
+			
+			// Return
+			return false;
 		}
 		catch (Exception e)
 		{
-			String errorString = "--> Error on reading configuration properties:";
-			errorString += errorText;
-			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Configuration", "IntegrityError"), errorString, e);
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Configuration", "IntegrityError"), null, e);
 			return true;
 		}
-
-		// Return
-		return isError;
 	}
 
 	/**
@@ -439,17 +411,17 @@ public abstract class ApplicationManager implements ManagerInterface
 		try
 		{
 			// Read configuration setting of "NotifyLabelEvents"
-			this.notifyLabelEvents = this.getContext().getConfigurationManager().getPropertyAsBooleanValue(this.getContext(), ResourceManager.configuration(context, "Label", "NotifyLabelEvents"), true, false);
+			this.notifyLabelEvents = this.getContext().getConfigurationManager().getPropertyAsBooleanValue(this.getContext(), ResourceManager.configuration(context, "Label", "NotifyLabelEvents"), false);
 
 			// Read configuration parameter
-			supportedLanguagesString = this.getContext().getConfigurationManager().getProperty(this.getContext(), ResourceManager.configuration(context, "Application", "SupportedLanguages"), "", true);
+			supportedLanguagesString = this.getContext().getConfigurationManager().getProperty(this.getContext(), ResourceManager.configuration(context, "Application", "SupportedLanguages"), true);
 			if (supportedLanguagesString == null || supportedLanguagesString.length() == 0) isSuccessful = false;
 
-			this.mainLanguage = this.getContext().getConfigurationManager().getProperty(this.getContext(), ResourceManager.configuration(context, "Application", "MainLanguage"), "", true);
+			this.mainLanguage = this.getContext().getConfigurationManager().getProperty(this.getContext(), ResourceManager.configuration(context, "Application", "MainLanguage"), true);
 			this.mainLanguage.trim();
 			if (this.mainLanguage == null || this.mainLanguage.length() == 0) isSuccessful = false;
 
-			this.secondaryLanguage = this.getContext().getConfigurationManager().getProperty(this.getContext(), ResourceManager.configuration(context, "Application", "SecondaryLanguage"), "", false);
+			this.secondaryLanguage = this.getContext().getConfigurationManager().getProperty(this.getContext(), ResourceManager.configuration(context, "Application", "SecondaryLanguage"), false);
 			this.secondaryLanguage.trim();
 			if (this.secondaryLanguage == null || this.secondaryLanguage.length() == 0) isSuccessful = false;
 

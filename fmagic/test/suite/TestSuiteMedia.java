@@ -1,8 +1,8 @@
 package fmagic.test.suite;
 
-import fmagic.test.container.TestContainerMediaLocal;
 import fmagic.test.runner.TestRunnerMediaClient;
 import fmagic.test.runner.TestRunnerMediaCommand;
+import fmagic.test.runner.TestRunnerMediaServer;
 
 /**
  * This class executes tests regarding media.
@@ -27,11 +27,14 @@ public class TestSuiteMedia extends TestSuite
 	{
 		try
 		{
-			TestRunnerMediaCommand testRunner = new TestRunnerMediaCommand(this, "command");
-
-			testRunner.setup();
-			testRunner.executeComponentTest();
-			testRunner.cleanup();
+//			this.addTestRunner(new TestRunnerMediaServer(this, "server"));
+//			this.addTestRunner(new TestRunnerMediaClient(this, "client"));
+			this.addTestRunner(new TestRunnerMediaCommand(this, "command"));
+			
+			this.executeComponentTests();
+//			this.executeConcurrentTests();
+//			this.executeStressTests();
+//			this.executeIntegerationTests();
 		}
 		catch (Exception e)
 		{

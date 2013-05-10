@@ -75,7 +75,7 @@ public class ServerCommandHandshake extends ServerCommand
 		try
 		{
 			// Get public key of the server
-			this.serverPublicKey = this.context.getConfigurationManager().getProperty(this.context, ResourceManager.configuration(this.context, "Application", "PublicKey"), null, true);
+			this.serverPublicKey = this.context.getConfigurationManager().getProperty(this.context, ResourceManager.configuration(this.context, "Application", "PublicKey"), true);
 
 			// Set command to status successful
 			this.isSuccessful = true;

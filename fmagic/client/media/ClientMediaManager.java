@@ -28,7 +28,7 @@ public class ClientMediaManager extends MediaManager
 	protected boolean readConfigurationLocalMediaFilePathRoot(Context context)
 	{
 		ResourceContainer resourceContainer = ResourceManager.configuration(context, "Media", "ClientLocalMediaFilePathRoot");
-		this.mediaRootFilePath = context.getConfigurationManager().getProperty(context, resourceContainer, null, true);
+		this.mediaRootFilePath = context.getConfigurationManager().getProperty(context, resourceContainer, true);
 
 		if (this.mediaRootFilePath == null || this.mediaRootFilePath.length() == 0)
 		{
@@ -172,7 +172,7 @@ public class ClientMediaManager extends MediaManager
 	protected boolean readConfigurationEncodingEnabled(Context context)
 	{
 		ResourceContainer resourceContainer = ResourceManager.configuration(context, "Media", "ClientEncodingEnabled");
-		this.encodingEnabled = context.getConfigurationManager().getPropertyAsBooleanValue(context, resourceContainer, false, false);
+		this.encodingEnabled = context.getConfigurationManager().getPropertyAsBooleanValue(context, resourceContainer, false);
 
 		// Check parameter value
 		if (this.encodingEnabled == true && this.encodingKeyNumber == 0)

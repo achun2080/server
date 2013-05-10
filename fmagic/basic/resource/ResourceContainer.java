@@ -823,17 +823,17 @@ public class ResourceContainer implements Cloneable
 			}
 
 			// Minimum/Maximum/Default settings
-			Integer minimumValue = this.getAttributeMinimumSettingAsInteger(context);
-			Integer maximumValue = this.getAttributeMaximumSettingAsInteger(context);
-			Integer defaultValue = this.getAttributeDefaultSettingAsInteger(context);
+			String minimumValue = this.getAttributeMainValueByGroupName(context, "Common", "Minimum");
+			String maximumValue = this.getAttributeMainValueByGroupName(context, "Common", "Maximum");
+			String defaultValue = this.getAttributeMainValueByGroupName(context, "Common", "Default");
 
 			if (minimumValue != null || maximumValue != null || defaultValue != null)
 			{
 				outputString += cutLines(":::::::::: " + "Settings" + "\n#", 60, "# ");
 
-				if (minimumValue != null) outputString += cutLines("Minimum value: " + String.valueOf(minimumValue), 60, "# ");
-				if (maximumValue != null) outputString += cutLines("Maximum value: " + String.valueOf(maximumValue), 60, "# ");
-				if (defaultValue != null) outputString += cutLines("Default value: " + String.valueOf(defaultValue), 60, "# ");
+				if (minimumValue != null) outputString += cutLines("Minimum value: " + minimumValue, 60, "# ");
+				if (maximumValue != null) outputString += cutLines("Maximum value: " + maximumValue, 60, "# ");
+				if (defaultValue != null) outputString += cutLines("Default value: " + defaultValue, 60, "# ");
 			}
 
 			// Identifier
@@ -1020,224 +1020,6 @@ public class ResourceContainer implements Cloneable
 		if (attributeValue == null || attributeValue.length() == 0) return null;
 
 		return attributeValue;
-	}
-
-	/**
-	 * Get the <TT>Minimum</TT> setting of a resource item.
-	 * 
-	 * @param context
-	 *            The context to use.
-	 * 
-	 * @return Returns the setting of the attribute, or <TT>null</TT> if no
-	 *         value was found.
-	 */
-	public String getAttributeMinimumSetting(Context context)
-	{
-		ResourceContainer attributeResource = ResourceManager.attribute(context, "Common", "Minimum");
-		if (attributeResource == null) return null;
-
-		String attributeName = attributeResource.getAliasName();
-		if (attributeName == null || attributeName.length() == 0) return null;
-
-		String attributeValue = this.attributes.get(attributeName);
-		if (attributeValue == null || attributeValue.length() == 0) return null;
-
-		return attributeValue;
-	}
-
-	/**
-	 * Get the <TT>Minimum</TT> setting of a resource item, as <TT>Integer</TT>
-	 * value.
-	 * 
-	 * @param context
-	 *            The context to use.
-	 * 
-	 * @return Returns the setting of the attribute, or <TT>null</TT> if no
-	 *         value was found.
-	 */
-	public Integer getAttributeMinimumSettingAsInteger(Context context)
-	{
-		String attributeValueString = getAttributeMinimumSetting(context);
-		if (attributeValueString == null || attributeValueString.length() == 0) return null;
-
-		Integer attributeValueInteger = 0;
-
-		try
-		{
-			attributeValueInteger = Integer.valueOf(attributeValueString);
-		}
-		catch (Exception e)
-		{
-			return null;
-		}
-
-		return attributeValueInteger;
-	}
-
-	/**
-	 * Get the <TT>Maximum</TT> setting of a resource item.
-	 * 
-	 * @param context
-	 *            The context to use.
-	 * 
-	 * @return Returns the setting of the attribute, or <TT>null</TT> if no
-	 *         value was found.
-	 */
-	public String getAttributeMaximumSetting(Context context)
-	{
-		ResourceContainer attributeResource = ResourceManager.attribute(context, "Common", "Maximum");
-		if (attributeResource == null) return null;
-
-		String attributeName = attributeResource.getAliasName();
-		if (attributeName == null || attributeName.length() == 0) return null;
-
-		String attributeValue = this.attributes.get(attributeName);
-		if (attributeValue == null || attributeValue.length() == 0) return null;
-
-		return attributeValue;
-	}
-
-	/**
-	 * Get the <TT>Maximum</TT> setting of a resource item, as <<TT>Integer</TT>
-	 * value.
-	 * 
-	 * @param context
-	 *            The context to use.
-	 * 
-	 * @return Returns the setting of the attribute, or <TT>null</TT> if no
-	 *         value was found.
-	 */
-	public Integer getAttributeMaximumSettingAsInteger(Context context)
-	{
-		String attributeValueString = getAttributeMaximumSetting(context);
-		if (attributeValueString == null || attributeValueString.length() == 0) return null;
-
-		Integer attributeValueInteger = 0;
-
-		try
-		{
-			attributeValueInteger = Integer.valueOf(attributeValueString);
-		}
-		catch (Exception e)
-		{
-			return null;
-		}
-
-		return attributeValueInteger;
-	}
-
-	/**
-	 * Get the <TT>Default</TT> setting of a resource item.
-	 * 
-	 * @param context
-	 *            The context to use.
-	 * 
-	 * @return Returns the setting of the attribute, or <TT>null</TT> if no
-	 *         value was found.
-	 */
-	public String getAttributeDefaultSetting(Context context)
-	{
-		ResourceContainer attributeResource = ResourceManager.attribute(context, "Common", "Default");
-		if (attributeResource == null) return null;
-
-		String attributeName = attributeResource.getAliasName();
-		if (attributeName == null || attributeName.length() == 0) return null;
-
-		String attributeValue = this.attributes.get(attributeName);
-		if (attributeValue == null || attributeValue.length() == 0) return null;
-
-		return attributeValue;
-	}
-
-	/**
-	 * Get the <TT>Default</TT> setting of a resource item, as <<TT>Integer</TT>
-	 * value.
-	 * 
-	 * @param context
-	 *            The context to use.
-	 * 
-	 * @return Returns the setting of the attribute, or <TT>null</TT> if no
-	 *         value was found.
-	 */
-	public Integer getAttributeDefaultSettingAsInteger(Context context)
-	{
-		String attributeValueString = getAttributeDefaultSetting(context);
-		if (attributeValueString == null || attributeValueString.length() == 0) return null;
-
-		Integer attributeValueInteger = 0;
-
-		try
-		{
-			attributeValueInteger = Integer.valueOf(attributeValueString);
-		}
-		catch (Exception e)
-		{
-			return null;
-		}
-
-		return attributeValueInteger;
-	}
-
-	/**
-	 * Validate the settings of <TT>Minimum</TT> and
-	 * <TT>Maximum>/TT> of a resource item, and set the <TT>Default</TT> value
-	 * if necessary.
-	 * 
-	 * @param context
-	 *            The context to use.
-	 * 
-	 * @param valueToValidate
-	 *            The value to validate.
-	 * 
-	 * @return Returns the validated value, or <TT>null</TT> if an error
-	 *         occurred, or no value is available, or the value was not in
-	 *         range.
-	 */
-	public Integer validateMinimumMaximumSetting(Context context, Integer valueToValidate)
-	{
-		String errorText = "";
-		boolean isError = false;
-
-		Integer validatedValue = valueToValidate;
-
-		Integer minimumValue = this.getAttributeMinimumSettingAsInteger(context);
-		Integer maximumValue = this.getAttributeMaximumSettingAsInteger(context);
-		Integer defaultValue = this.getAttributeDefaultSettingAsInteger(context);
-
-		if (validatedValue == null) validatedValue = defaultValue;
-
-		if (minimumValue != null && validatedValue != null && validatedValue < minimumValue)
-		{
-			errorText += "\n--> Current value '" + String.valueOf(validatedValue) + "' set to the configuration property '" + this.getRecourceIdentifier() + "' is lower than the allowed minimum value '" + String.valueOf(minimumValue) + "'.";
-			errorText += "\n--> The value was set to '" + String.valueOf(minimumValue) + "'.";
-			validatedValue = minimumValue;
-			isError = true;
-		}
-
-		if (maximumValue != null && validatedValue != null && validatedValue > maximumValue)
-		{
-			errorText += "\n--> Current value '" + String.valueOf(validatedValue) + "' set to the configuration property '" + this.getRecourceIdentifier() + "' is greater than the allowed maximum value '" + String.valueOf(maximumValue) + "'.";
-			errorText += "\n--> The value was set to '" + String.valueOf(maximumValue) + "'.";
-			validatedValue = maximumValue;
-			isError = true;
-		}
-
-		if (validatedValue == null)
-		{
-			errorText += "\n--> No setting available for the configuration property '" + this.getRecourceIdentifier() + "'.";
-			isError = true;
-		}
-
-		// Check on error
-		if (isError == true)
-		{
-			String errorString = "--> Error on validating configuration property.";
-			errorString += errorText;
-			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Resource", "IntegrityError"), errorString, null);
-		}
-
-		// Return
-		return validatedValue;
 	}
 
 	/**
