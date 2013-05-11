@@ -61,13 +61,13 @@ public class TestRunnerMediaCommand extends TestRunner
 
 			// Create application servers for the test
 			serverAp1 = this.createApplicationServer("ap1");
-//			serverAp2 = this.createApplicationServer("ap2");
-//			serverAp3 = this.createApplicationServer("ap3");
+			serverAp2 = this.createApplicationServer("ap2");
+			serverAp3 = this.createApplicationServer("ap3");
 			
 			// Create client applications for the test
 			clientAp1 = this.createApplicationClient("cl1");
-//			clientAp2 = this.createApplicationClient("cl2");
-//			clientAp3 = this.createApplicationClient("cl3");
+			clientAp2 = this.createApplicationClient("cl2");
+			clientAp3 = this.createApplicationClient("cl3");
 		}
 		catch (Exception e)
 		{
@@ -167,11 +167,15 @@ public class TestRunnerMediaCommand extends TestRunner
 			ClientManager client = this.clientAp1;
 			ServerManager server = this.serverAp1;
 			
-			client.setSocketConnectionParameter("localhost", server.getServerSocketPort(), 1000000);
+			client.setSocketConnectionParameter("localhost", server.getServerSocketPort(), 10000);
 			
 			// Prepare test container
 			testContainer = new TestContainerMediaCommand(client.getContext(), this, false);
 			testContainer.setParameterClientServer(client, server);
+			testContainer.setParameterResourceGroup("Factory");
+			testContainer.setParameterResourceName("Doorway");
+			testContainer.setParameterDataIdentifierTestUpload("9001");
+			testContainer.setParameterNumberOfMediaToBeUploaded(100);
 			
 			// Execute test
 			testContainer.executeComponentTest();

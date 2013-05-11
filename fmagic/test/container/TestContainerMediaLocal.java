@@ -19,6 +19,7 @@ public class TestContainerMediaLocal extends TestContainer
 {
 	private String parameterResourceGroup = "Apartment";
 	private String parameterResourceName = "Room";
+	private int parameterNumberOfMediaToBeUploaded = 50;
 	private String parameterDataIdentifierTestUpload = "1234";
 	private String parameterDataIdentifierTestObsolete = "1235";
 	private int parameterTestCycleNumberOfFiles = 100;
@@ -338,7 +339,7 @@ public class TestContainerMediaLocal extends TestContainer
 			if (fileList != null) TestManager.assertGreaterThan(this.getContext(), this, additionalText, fileList.size(), 0);
 
 			// Try some uploads
-			for (int i = 0; i < 100; i++)
+			for (int i = 0; i < this.parameterNumberOfMediaToBeUploaded; i++)
 			{
 				int index = FileUtilFunctions.generalGetRandomValue(0, fileList.size() - 1);
 				this.doUploadFile(this.parameterResourceGroup, this.parameterResourceName, this.parameterDataIdentifierTestUpload, fileList.get(index));
@@ -1522,5 +1523,13 @@ public class TestContainerMediaLocal extends TestContainer
 	public void setParameterTestCycleDataIdentifierToo(int parameterTestCycleDataIdentifierToo)
 	{
 		this.parameterTestCycleDataIdentifierToo = parameterTestCycleDataIdentifierToo;
+	}
+
+	/**
+	 * Setter
+	 */
+	public void setParameterNumberOfMediaToBeUploaded(int parameterNumberOfMediaToBeUploaded)
+	{
+		this.parameterNumberOfMediaToBeUploaded = parameterNumberOfMediaToBeUploaded;
 	}
 }

@@ -32,9 +32,7 @@ public class TestContainerMediaCommand extends TestContainer
 	private String parameterResourceGroup = "Factory";
 	private String parameterResourceName = "Doorway";
 	private String parameterDataIdentifierTestUpload = "9001";
-	private int parameterTestCycleNumberOfFiles = 1;
-	private int parameterTestCycleDataIdentifierFrom = 600;
-	private int parameterTestCycleDataIdentifierToo = 610;
+	private int parameterNumberOfMediaToBeUploaded = 50;
 
 	// Command properties
 	private ClientManager parameterClient = null;
@@ -217,7 +215,7 @@ public class TestContainerMediaCommand extends TestContainer
 			TestManager.assertGreaterThan(this.getContext(), this, additionalText, fileList.size(), 0);
 
 			// Try some uploads
-			for (int i = 0; i < 0; i++)
+			for (int i = 0; i < this.parameterNumberOfMediaToBeUploaded; i++)
 			{
 				// Get random index of file item in list
 				int index = FileUtilFunctions.generalGetRandomValue(0, fileList.size() - 1);
@@ -475,7 +473,7 @@ public class TestContainerMediaCommand extends TestContainer
 			ResponseContainer responseContainer;
 
 			// Delete old session
-			this.cleanClientSession();
+			this.doCleanClientSession();
 
 			// COMMAND Create Session
 			command = new ClientCommandCreateSession(parameterClient.getContext(), parameterClient);
@@ -514,9 +512,9 @@ public class TestContainerMediaCommand extends TestContainer
 	}
 
 	/**
-	 * Start connection to the application server
+	 * Clean client session on client local data file.
 	 */
-	private void cleanClientSession()
+	private void doCleanClientSession()
 	{
 		try
 		{
@@ -656,25 +654,9 @@ public class TestContainerMediaCommand extends TestContainer
 	/**
 	 * Setter
 	 */
-	public void setParameterTestCycleNumberOfFiles(int parameterTestCycleNumberOfFiles)
+	public void setParameterNumberOfMediaToBeUploaded(int parameterNumberOfMediaToBeUploaded)
 	{
-		this.parameterTestCycleNumberOfFiles = parameterTestCycleNumberOfFiles;
-	}
-
-	/**
-	 * Setter
-	 */
-	public void setParameterTestCycleDataIdentifierFrom(int parameterTestCycleDataIdentifierFrom)
-	{
-		this.parameterTestCycleDataIdentifierFrom = parameterTestCycleDataIdentifierFrom;
-	}
-
-	/**
-	 * Setter
-	 */
-	public void setParameterTestCycleDataIdentifierToo(int parameterTestCycleDataIdentifierToo)
-	{
-		this.parameterTestCycleDataIdentifierToo = parameterTestCycleDataIdentifierToo;
+		this.parameterNumberOfMediaToBeUploaded = parameterNumberOfMediaToBeUploaded;
 	}
 
 	/**

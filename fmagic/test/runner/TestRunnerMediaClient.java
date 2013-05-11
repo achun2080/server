@@ -3,6 +3,7 @@ package fmagic.test.runner;
 import java.util.List;
 
 import fmagic.basic.context.Context;
+import fmagic.basic.resource.ResourceManager;
 import fmagic.client.application.ClientManager;
 import fmagic.test.application.TestManager;
 import fmagic.test.container.TestContainer;
@@ -60,6 +61,22 @@ public class TestRunnerMediaClient extends TestRunner
 			clientAp1 = this.createApplicationClient("cl1");
 			clientAp2 = this.createApplicationClient("cl2");
 			clientAp3 = this.createApplicationClient("cl3");
+			
+			// Set test parameter to local data of the clients
+			Context context;
+			
+			context = clientAp1.getContext();
+			context.getLocaldataManager().writeProperty(context, ResourceManager.localdata(context, "Media", "ClientEncodingKeyNumber"), "1");
+			context.getLocaldataManager().writeProperty(context, ResourceManager.localdata(context, "Media", "ClientEncodingKeyList"), "1:ar34ab12 , 2:z778e15h");
+			
+			context = clientAp2.getContext();
+			context.getLocaldataManager().writeProperty(context, ResourceManager.localdata(context, "Media", "ClientEncodingKeyNumber"), "3");
+			context.getLocaldataManager().writeProperty(context, ResourceManager.localdata(context, "Media", "ClientEncodingKeyList"), "1:ar34ab12Xxx , 2:z778e15hYyy , 3:ui12ij45Zzz , 4:BB5678ab125ghiIHG");
+			
+			context = clientAp3.getContext();
+			context.getLocaldataManager().writeProperty(context, ResourceManager.localdata(context, "Media", "ClientEncodingKeyNumber"), "5");
+			context.getLocaldataManager().writeProperty(context, ResourceManager.localdata(context, "Media", "ClientEncodingKeyList"), "1:ar34ab12Aaa , 2:z778e15hYBbb , 3:ui12ij45ZCcc , 4:AA5678ab125ghiIHGDdd, 5:12hszs99uejrEee");
+
 		}
 		catch (Exception e)
 		{
@@ -156,6 +173,7 @@ public class TestRunnerMediaClient extends TestRunner
 			testMediaSingle = new TestContainerMediaLocal(context, this, false);
 			testMediaSingle.setParameterResourceGroup("Apartment");
 			testMediaSingle.setParameterResourceName("Room");
+			testMediaSingle.setParameterNumberOfMediaToBeUploaded(50);
 			testMediaSingle.setParameterDataIdentifierTestUpload("5001");
 			testMediaSingle.setParameterDataIdentifierTestObsolete("5002");
 			testMediaSingle.setParameterTestCycleNumberOfFiles(100);
@@ -216,17 +234,16 @@ public class TestRunnerMediaClient extends TestRunner
 	{
 		TestContainerMediaLocal testMediaConcurrent;
 
-		int nuOfFiles = 100;
-
 		try
 		{
 			// Room 1
 			testMediaConcurrent = new TestContainerMediaLocal(this.clientAp1.getContext(), this, true);
 			testMediaConcurrent.setParameterResourceGroup("Apartment");
 			testMediaConcurrent.setParameterResourceName("Room");
+			testMediaConcurrent.setParameterNumberOfMediaToBeUploaded(50);
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("2345");
 			testMediaConcurrent.setParameterDataIdentifierTestObsolete("2346");
-			testMediaConcurrent.setParameterTestCycleNumberOfFiles(nuOfFiles);
+			testMediaConcurrent.setParameterTestCycleNumberOfFiles(100);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierFrom(1);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierToo(40);
 			threadList.add(new Thread(testMediaConcurrent));
@@ -235,9 +252,10 @@ public class TestRunnerMediaClient extends TestRunner
 			testMediaConcurrent = new TestContainerMediaLocal(this.clientAp2.getContext(), this, true);
 			testMediaConcurrent.setParameterResourceGroup("Apartment");
 			testMediaConcurrent.setParameterResourceName("Room");
+			testMediaConcurrent.setParameterNumberOfMediaToBeUploaded(50);
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("2347");
 			testMediaConcurrent.setParameterDataIdentifierTestObsolete("2348");
-			testMediaConcurrent.setParameterTestCycleNumberOfFiles(nuOfFiles);
+			testMediaConcurrent.setParameterTestCycleNumberOfFiles(100);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierFrom(1);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierToo(40);
 			threadList.add(new Thread(testMediaConcurrent));
@@ -246,9 +264,10 @@ public class TestRunnerMediaClient extends TestRunner
 			testMediaConcurrent = new TestContainerMediaLocal(this.clientAp3.getContext(), this, true);
 			testMediaConcurrent.setParameterResourceGroup("Apartment");
 			testMediaConcurrent.setParameterResourceName("Room");
+			testMediaConcurrent.setParameterNumberOfMediaToBeUploaded(50);
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("2349");
 			testMediaConcurrent.setParameterDataIdentifierTestObsolete("2350");
-			testMediaConcurrent.setParameterTestCycleNumberOfFiles(nuOfFiles);
+			testMediaConcurrent.setParameterTestCycleNumberOfFiles(100);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierFrom(1);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierToo(40);
 			threadList.add(new Thread(testMediaConcurrent));
@@ -257,9 +276,10 @@ public class TestRunnerMediaClient extends TestRunner
 			testMediaConcurrent = new TestContainerMediaLocal(this.clientAp1.getContext(), this, true);
 			testMediaConcurrent.setParameterResourceGroup("Apartment");
 			testMediaConcurrent.setParameterResourceName("Floor");
+			testMediaConcurrent.setParameterNumberOfMediaToBeUploaded(50);
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("1236");
 			testMediaConcurrent.setParameterDataIdentifierTestObsolete("1237");
-			testMediaConcurrent.setParameterTestCycleNumberOfFiles(nuOfFiles);
+			testMediaConcurrent.setParameterTestCycleNumberOfFiles(100);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierFrom(1);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierToo(10);
 			threadList.add(new Thread(testMediaConcurrent));
@@ -268,9 +288,10 @@ public class TestRunnerMediaClient extends TestRunner
 			testMediaConcurrent = new TestContainerMediaLocal(this.clientAp2.getContext(), this, true);
 			testMediaConcurrent.setParameterResourceGroup("Apartment");
 			testMediaConcurrent.setParameterResourceName("Bedroom");
+			testMediaConcurrent.setParameterNumberOfMediaToBeUploaded(50);
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("1238");
 			testMediaConcurrent.setParameterDataIdentifierTestObsolete("1239");
-			testMediaConcurrent.setParameterTestCycleNumberOfFiles(nuOfFiles);
+			testMediaConcurrent.setParameterTestCycleNumberOfFiles(100);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierFrom(1);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierToo(2);
 			threadList.add(new Thread(testMediaConcurrent));
@@ -279,9 +300,10 @@ public class TestRunnerMediaClient extends TestRunner
 			testMediaConcurrent = new TestContainerMediaLocal(this.clientAp3.getContext(), this, true);
 			testMediaConcurrent.setParameterResourceGroup("Apartment");
 			testMediaConcurrent.setParameterResourceName("Kitchen");
+			testMediaConcurrent.setParameterNumberOfMediaToBeUploaded(50);
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("1240");
 			testMediaConcurrent.setParameterDataIdentifierTestObsolete("1241");
-			testMediaConcurrent.setParameterTestCycleNumberOfFiles(nuOfFiles);
+			testMediaConcurrent.setParameterTestCycleNumberOfFiles(100);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierFrom(1);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierToo(10000);
 			threadList.add(new Thread(testMediaConcurrent));
@@ -290,9 +312,10 @@ public class TestRunnerMediaClient extends TestRunner
 			testMediaConcurrent = new TestContainerMediaLocal(this.clientAp1.getContext(), this, true);
 			testMediaConcurrent.setParameterResourceGroup("Apartment");
 			testMediaConcurrent.setParameterResourceName("Bathroom");
+			testMediaConcurrent.setParameterNumberOfMediaToBeUploaded(50);
 			testMediaConcurrent.setParameterDataIdentifierTestUpload("1242");
 			testMediaConcurrent.setParameterDataIdentifierTestObsolete("1243");
-			testMediaConcurrent.setParameterTestCycleNumberOfFiles(nuOfFiles);
+			testMediaConcurrent.setParameterTestCycleNumberOfFiles(100);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierFrom(500);
 			testMediaConcurrent.setParameterTestCycleDataIdentifierToo(1000);
 			threadList.add(new Thread(testMediaConcurrent));

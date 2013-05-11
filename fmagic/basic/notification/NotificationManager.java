@@ -1244,11 +1244,11 @@ public class NotificationManager implements ManagerInterface
 		// Handle error messages during test mode
 		if (context.isRunningInTestMode())
 		{
-			// Check if the error message is to be suppressed
-			if (TestManager.errorIsSuppressedErrorMessage(context, resourceContainer.getRecourceIdentifier())) return;
-			
-			// Notify the error message for the test manager
+			// First: Notify the error message for the test manager
 			TestManager.errorNotifyErrorMessage(context, resourceContainer.getRecourceIdentifier(), additionalText, exception);
+
+			// Then: Check if the error message is to be suppressed
+			if (TestManager.errorIsSuppressedErrorMessage(context, resourceContainer.getRecourceIdentifier())) return;
 		}
 
 		// Lock message processing
