@@ -113,7 +113,7 @@ public abstract class TestSuite
 			this.writeProcessStatusToFile(ProcessingStatusEnum.PROGRESS, test, "executeStressTests()");
 
 			test.setup();
-			test.executeConcurrentTest();
+			test.executeStressTest();
 			test.cleanup();
 		}
 	}
@@ -238,18 +238,18 @@ public abstract class TestSuite
 				messageText += "Test suite started at " + simpleDateFormat.format(messageDate);
 				fileName = this.testSuiteName + "-a-STARTED.log";
 			}
-			else if (processingStatus == ProcessingStatusEnum.STOPPED)
-			{
-				messageText += "Test suite stopped at " + simpleDateFormat.format(messageDate);
-				fileName = this.testSuiteName + "-b-STOPPED.log";
-			}
 			else if (processingStatus == ProcessingStatusEnum.PROGRESS)
 			{
 				messageText += "At " + simpleDateFormat.format(messageDate);
 				
 				if (testRunner != null) messageText += " [" + testRunner.getTestRunnerName() + "][" + testRunner.getTestSessionName() + "]";				if (progressText != null) messageText += " " +  progressText;
 				
-				fileName = this.testSuiteName + "-c-PROGRESS.log";
+				fileName = this.testSuiteName + "-b-PROGRESS.log";
+			}
+			else if (processingStatus == ProcessingStatusEnum.STOPPED)
+			{
+				messageText += "Test suite stopped at " + simpleDateFormat.format(messageDate);
+				fileName = this.testSuiteName + "-c-STOPPED.log";
 			}
 			else if (processingStatus == ProcessingStatusEnum.RESULT)
 			{

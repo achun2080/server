@@ -33,9 +33,9 @@ import fmagic.test.suite.TestSuite;
  */
 public class TestManager implements ManagerInterface
 {
-	private String errorLastErrorIdentifier = null;
-	private String errorLastErrorAdditionalText = null;
-	private Exception errorLastErrorException = null;
+	private String runtimeErrorIdentifier = null;
+	private String runtimeErrorAdditionalText = null;
+	private Exception runtimeErrorException = null;
 
 	private String errorToBeSuppressedErrorIdentifier = null;
 
@@ -139,7 +139,6 @@ public class TestManager implements ManagerInterface
 		// Check parameter
 		if (testContainer == null) return;
 		if (assertText == null && additionalText == null) return;
-		if (assertText.length() == 0 && additionalText.length() == 0) return;
 
 		// Gets error file name as the identifier of the error protocol list
 		String errorFileName = FileLocationFunctions.compileFilePath(FileLocationFunctions.getRootPath(), FileLocationFunctions.getTestLoggingSubPath(), FileLocationFunctions.getTestLoggingSubSubPath(), FileLocationFunctions.getTestLoggingErrorFileName());
@@ -172,6 +171,49 @@ public class TestManager implements ManagerInterface
 		if (errorText == null) errorText = "";
 		if (assertText != null && assertText.length() > 0) errorText += "\n" + assertText;
 		if (additionalText != null && additionalText.length() > 0) errorText += "\n" + additionalText;
+		testSuite.getAssertionErrorProtocol().put(errorFileName, errorText);
+		testSuite.increaseAssertionNumberOfErrors();
+	}
+
+	/**
+	 * Push an error message to the error protocols of a test
+	 * runner and a test suite.
+	 * 
+	 * @param testRunner
+	 *            The test runner that invoked this method, or <TT>null</TT>
+	 *            if no test container is available.
+	 * 
+	 * @param assertText
+	 *            Headline text that describes the assertion.
+	 * 
+	 * @param additionalText
+	 *            Additional text of the message.
+	 */
+	public static synchronized void addErrorToErrorProtocolLists(TestRunner testRunner, String assertText, String additionalText)
+	{
+		// Check parameter
+		if (testRunner == null) return;
+		if (assertText == null && additionalText == null) return;
+
+		// Gets error file name as the identifier of the error protocol list
+		String errorFileName = "Error on processing test runner";
+
+		// Add error messages to: Test Runner
+		String errorText = testRunner.getAssertionErrorProtocol().get(errorFileName);
+		if (errorText == null) errorText = "";
+		if (assertText != null && assertText.length() > 0) errorText += "\n" + assertText;
+		if (additionalText != null && additionalText.length() > 0) errorText += "\n" + additionalText + "\n";
+		testRunner.getAssertionErrorProtocol().put(errorFileName, errorText);
+		testRunner.increaseAssertionNumberOfErrors();
+
+		// Add error messages to: Test Suite
+		TestSuite testSuite = testRunner.getTestSuite();
+		if (testSuite == null) return;
+
+		errorText = testSuite.getAssertionErrorProtocol().get(errorFileName);
+		if (errorText == null) errorText = "";
+		if (assertText != null && assertText.length() > 0) errorText += "\n" + assertText;
+		if (additionalText != null && additionalText.length() > 0) errorText += "\n" + additionalText + "\n";
 		testSuite.getAssertionErrorProtocol().put(errorFileName, errorText);
 		testSuite.increaseAssertionNumberOfErrors();
 	}
@@ -579,6 +621,47 @@ public class TestManager implements ManagerInterface
 	}
 
 	/**
+	 * Publish a runtime error message notified by the system.
+	 * 
+	 * @return Returns the error text of the error message of the system, if
+	 *         available.
+	 */
+	private String servicePrintRuntimeError()
+	{
+		// Prepare variables
+		String errorText = "";
+
+		// Get error text, if available
+		if (this.errorIsRuntimeError())
+		{
+			errorText += "\n";
+
+			errorText += "\n--> Error code reported by the system: '" + this.runtimeErrorIdentifier + "'";
+
+			if (this.runtimeErrorAdditionalText != null)
+			{
+				errorText += "\n" + this.runtimeErrorAdditionalText;
+			}
+
+			if (this.runtimeErrorException != null)
+			{
+				Writer writer = new StringWriter();
+				PrintWriter printWriter = new PrintWriter(writer);
+				this.runtimeErrorException.printStackTrace(printWriter);
+				String stackTraceText = writer.toString();
+
+				if (stackTraceText != null && stackTraceText.length() > 0)
+				{
+					errorText += "\n\n" + stackTraceText;
+				}
+			}
+		}
+
+		// Return
+		return errorText;
+	}
+
+	/**
 	 * Assert: Print error message to the assertion file.
 	 * 
 	 * @param context
@@ -619,32 +702,10 @@ public class TestManager implements ManagerInterface
 			}
 		}
 
-		// Publish error message notified by the system
-		TestManager testManager = context.getTestManager();
-
-		if (testManager.errorLastErrorIdentifier != null)
+		// Publish runtime error message notified by the system
+		if (context.getTestManager().errorIsRuntimeError())
 		{
-			additionalText += "\n";
-
-			additionalText += "\n--> Error code reported by the system: '" + testManager.errorLastErrorIdentifier + "'";
-
-			if (testManager.errorLastErrorAdditionalText != null)
-			{
-				additionalText += "\n" + testManager.errorLastErrorAdditionalText;
-			}
-
-			if (testManager.errorLastErrorException != null)
-			{
-				Writer writer = new StringWriter();
-				PrintWriter printWriter = new PrintWriter(writer);
-				testManager.errorLastErrorException.printStackTrace(printWriter);
-				String stackTraceText = writer.toString();
-
-				if (stackTraceText != null && stackTraceText.length() > 0)
-				{
-					additionalText += "\n\n" + stackTraceText;
-				}
-			}
+			additionalText += context.getTestManager().servicePrintRuntimeError();
 		}
 
 		// Print message to regular assert file
@@ -659,6 +720,7 @@ public class TestManager implements ManagerInterface
 
 		// Clear last error message
 		context.getTestManager().errorClearErrorMessage();
+		context.getTestManager().errorClearSuppressedErrorCode();
 	}
 
 	/**
@@ -705,13 +767,44 @@ public class TestManager implements ManagerInterface
 	 * @param context
 	 *            Application context of the message.
 	 */
-	public static void servicePrintProgress(Context context)
+	public static void servicePrintProgress(Context context, TestContainer testContainer)
 	{
-		// Write progress to the assert file
-		context.getTestManager().writeMessageToAssertfile(context, null, null);
+		try
+		{
+			// Write progress to the assert file
+			context.getTestManager().writeMessageToAssertfile(context, null, null);
 
-		// Clear last error message
-		context.getTestManager().errorClearErrorMessage();
+			// Publish runtime error message notified by the system
+			TestManager testManager = context.getTestManager();
+
+			if (testManager.errorIsRuntimeError())
+			{
+				if (testManager.errorToBeSuppressedErrorIdentifier == null || !testManager.errorToBeSuppressedErrorIdentifier.equals(testManager.runtimeErrorIdentifier))
+				{
+					String assertText = "\n\nRUNTIME ERROR REPORTED";
+					String errorText = context.getTestManager().servicePrintRuntimeError();
+
+					// Print message to regular assert file
+					context.getTestManager().writeMessageToAssertfile(context, assertText, errorText);
+
+					// Print message to error file
+					context.getTestManager().writeMessageToErrorFile(context, assertText, errorText);
+
+					// Push message to the error protocols of test container,
+					// test
+					// runner and test suite
+					TestManager.addErrorToErrorProtocolLists(context, testContainer, assertText, errorText);
+				}
+			}
+
+			// Clear last error message
+			context.getTestManager().errorClearErrorMessage();
+			context.getTestManager().errorClearSuppressedErrorCode();
+		}
+		catch (Exception e)
+		{
+			// Be silent
+		}
 	}
 
 	/**
@@ -746,7 +839,7 @@ public class TestManager implements ManagerInterface
 		}
 		else
 		{
-			TestManager.servicePrintProgress(context);
+			TestManager.servicePrintProgress(context, testContainer);
 		}
 	}
 
@@ -782,7 +875,7 @@ public class TestManager implements ManagerInterface
 		}
 		else
 		{
-			TestManager.servicePrintProgress(context);
+			TestManager.servicePrintProgress(context, testContainer);
 		}
 	}
 
@@ -818,7 +911,7 @@ public class TestManager implements ManagerInterface
 		}
 		else
 		{
-			TestManager.servicePrintProgress(context);
+			TestManager.servicePrintProgress(context, testContainer);
 		}
 	}
 
@@ -854,7 +947,7 @@ public class TestManager implements ManagerInterface
 		}
 		else
 		{
-			TestManager.servicePrintProgress(context);
+			TestManager.servicePrintProgress(context, testContainer);
 		}
 	}
 
@@ -889,7 +982,7 @@ public class TestManager implements ManagerInterface
 		}
 		else
 		{
-			TestManager.servicePrintProgress(context);
+			TestManager.servicePrintProgress(context, testContainer);
 		}
 	}
 
@@ -925,7 +1018,7 @@ public class TestManager implements ManagerInterface
 		}
 		else
 		{
-			TestManager.servicePrintProgress(context);
+			TestManager.servicePrintProgress(context, testContainer);
 		}
 	}
 
@@ -961,7 +1054,7 @@ public class TestManager implements ManagerInterface
 		}
 		else
 		{
-			TestManager.servicePrintProgress(context);
+			TestManager.servicePrintProgress(context, testContainer);
 		}
 	}
 
@@ -996,7 +1089,7 @@ public class TestManager implements ManagerInterface
 		}
 		else
 		{
-			TestManager.servicePrintProgress(context);
+			TestManager.servicePrintProgress(context, testContainer);
 		}
 	}
 
@@ -1031,7 +1124,7 @@ public class TestManager implements ManagerInterface
 		}
 		else
 		{
-			TestManager.servicePrintProgress(context);
+			TestManager.servicePrintProgress(context, testContainer);
 		}
 	}
 
@@ -1070,7 +1163,7 @@ public class TestManager implements ManagerInterface
 		}
 		else
 		{
-			TestManager.servicePrintProgress(context);
+			TestManager.servicePrintProgress(context, testContainer);
 		}
 	}
 
@@ -1105,7 +1198,7 @@ public class TestManager implements ManagerInterface
 		}
 		else
 		{
-			TestManager.servicePrintProgress(context);
+			TestManager.servicePrintProgress(context, testContainer);
 		}
 	}
 
@@ -1136,7 +1229,7 @@ public class TestManager implements ManagerInterface
 		}
 		else
 		{
-			TestManager.servicePrintProgress(context);
+			TestManager.servicePrintProgress(context, testContainer);
 		}
 	}
 
@@ -1167,7 +1260,7 @@ public class TestManager implements ManagerInterface
 		}
 		else
 		{
-			TestManager.servicePrintProgress(context);
+			TestManager.servicePrintProgress(context, testContainer);
 		}
 	}
 
@@ -1198,7 +1291,7 @@ public class TestManager implements ManagerInterface
 		}
 		else
 		{
-			TestManager.servicePrintProgress(context);
+			TestManager.servicePrintProgress(context, testContainer);
 		}
 	}
 
@@ -1229,7 +1322,7 @@ public class TestManager implements ManagerInterface
 		}
 		else
 		{
-			TestManager.servicePrintProgress(context);
+			TestManager.servicePrintProgress(context, testContainer);
 		}
 	}
 
@@ -1260,7 +1353,7 @@ public class TestManager implements ManagerInterface
 		}
 		else
 		{
-			TestManager.servicePrintProgress(context);
+			TestManager.servicePrintProgress(context, testContainer);
 		}
 	}
 
@@ -1295,7 +1388,7 @@ public class TestManager implements ManagerInterface
 		}
 		else
 		{
-			TestManager.servicePrintProgress(context);
+			TestManager.servicePrintProgress(context, testContainer);
 		}
 	}
 
@@ -1330,7 +1423,7 @@ public class TestManager implements ManagerInterface
 		}
 		else
 		{
-			TestManager.servicePrintProgress(context);
+			TestManager.servicePrintProgress(context, testContainer);
 		}
 	}
 
@@ -1365,7 +1458,7 @@ public class TestManager implements ManagerInterface
 		}
 		else
 		{
-			TestManager.servicePrintProgress(context);
+			TestManager.servicePrintProgress(context, testContainer);
 		}
 	}
 
@@ -1406,7 +1499,7 @@ public class TestManager implements ManagerInterface
 		}
 		else
 		{
-			TestManager.servicePrintProgress(context);
+			TestManager.servicePrintProgress(context, testContainer);
 		}
 	}
 
@@ -1447,12 +1540,12 @@ public class TestManager implements ManagerInterface
 		}
 		else
 		{
-			TestManager.servicePrintProgress(context);
+			TestManager.servicePrintProgress(context, testContainer);
 		}
 	}
 
 	/**
-	 * Assert: Check an error code if it was the last error occurred at runtime.
+	 * Assert: Check if a specific runtime error occurred.
 	 * 
 	 * @param context
 	 *            Application context of the message.
@@ -1468,29 +1561,132 @@ public class TestManager implements ManagerInterface
 	 *            The error code to be asserted, coded as a notification
 	 *            resource item.
 	 */
-	public static void assertErrorCode(Context context, TestContainer testContainer, String additionalText, String identifier)
+	public static void assertRuntimeErrorCode(Context context, TestContainer testContainer, String additionalText, String identifier)
 	{
 		if (identifier == null) return;
 
-		if (context.getTestManager().errorLastErrorIdentifier == null || !context.getTestManager().errorLastErrorIdentifier.equals(identifier))
+		if (context.getTestManager().runtimeErrorIdentifier != null && !context.getTestManager().runtimeErrorIdentifier.equals(identifier))
 		{
-			String assertText = "Assertion failed: Comparing an error code with the last error code occurred at runtime";
+			String assertText = "Assertion failed: Checking on a specific runtime error code";
 			assertText += "\n--> Error code to check: '" + identifier + "'";
 
-			if (context.getTestManager().errorLastErrorIdentifier == null)
+			if (context.getTestManager().runtimeErrorIdentifier == null)
 			{
-				assertText += "\n--> Last error code at runtime: ''";
+				assertText += "\n--> Runtime error code: ''";
 			}
 			else
 			{
-				assertText += "\n--> Last error code at runtime: '" + context.getTestManager().errorLastErrorIdentifier + "'";
+				assertText += "\n--> Runtime error code: '" + context.getTestManager().runtimeErrorIdentifier + "'";
 			}
 
 			TestManager.servicePrintError(context, testContainer, assertText, additionalText);
 		}
 		else
 		{
-			TestManager.servicePrintProgress(context);
+			TestManager.servicePrintProgress(context, testContainer);
+		}
+	}
+
+	/**
+	 * Assert: Check if a specific runtime error NOT occurred.
+	 * 
+	 * @param context
+	 *            Application context of the message.
+	 * 
+	 * @param testContainer
+	 *            The test container that invoked this method, or <TT>null</TT>
+	 *            if no test container is available.
+	 * 
+	 * @param additionalText
+	 *            Additional text of the message.
+	 * 
+	 * @param identifier
+	 *            The error code to be asserted, coded as a notification
+	 *            resource item.
+	 */
+	public static void assertNotRuntimeErrorCode(Context context, TestContainer testContainer, String additionalText, String identifier)
+	{
+		if (identifier == null) return;
+
+		if (context.getTestManager().runtimeErrorIdentifier != null && context.getTestManager().runtimeErrorIdentifier.equals(identifier))
+		{
+			String assertText = "Assertion failed: Excepting a specific runtime error code";
+			assertText += "\n--> Error code to except: '" + identifier + "'";
+
+			if (context.getTestManager().runtimeErrorIdentifier == null)
+			{
+				assertText += "\n--> Runtime error code: ''";
+			}
+			else
+			{
+				assertText += "\n--> Runtime error code: '" + context.getTestManager().runtimeErrorIdentifier + "'";
+			}
+
+			TestManager.servicePrintError(context, testContainer, assertText, additionalText);
+		}
+		else
+		{
+			TestManager.servicePrintProgress(context, testContainer);
+		}
+	}
+
+	/**
+	 * Assert: Check if any runtime error occurred.
+	 * 
+	 * @param context
+	 *            Application context of the message.
+	 * 
+	 * @param testContainer
+	 *            The test container that invoked this method, or <TT>null</TT>
+	 *            if no test container is available.
+	 * 
+	 * @param additionalText
+	 *            Additional text of the message.
+	 */
+	public static void assertRuntimeError(Context context, TestContainer testContainer, String additionalText)
+	{
+		if (!context.getTestManager().errorIsRuntimeError())
+		{
+			String assertText = "Assertion failed: Checking on any runtime error";
+			assertText += "\n--> No runtime error occurred";
+
+			TestManager.servicePrintError(context, testContainer, assertText, additionalText);
+		}
+		else
+		{
+			TestManager.servicePrintProgress(context, testContainer);
+		}
+	}
+
+	/**
+	 * Assert: Except that a runtime error occurred.
+	 * 
+	 * @param context
+	 *            Application context of the message.
+	 * 
+	 * @param testContainer
+	 *            The test container that invoked this method, or <TT>null</TT>
+	 *            if no test container is available.
+	 * 
+	 * @param additionalText
+	 *            Additional text of the message.
+	 */
+	public static void assertNotRuntimeError(Context context, TestContainer testContainer, String additionalText)
+	{
+		if (context.getTestManager().errorIsRuntimeError())
+		{
+			String assertText = "Assertion failed: Except any runtime error";
+
+			if (context.getTestManager().runtimeErrorIdentifier != null)
+			{
+				assertText += "\n--> Runtime error code: '" + context.getTestManager().runtimeErrorIdentifier + "'";
+			}
+
+			TestManager.servicePrintError(context, testContainer, assertText, additionalText);
+		}
+		else
+		{
+			TestManager.servicePrintProgress(context, testContainer);
 		}
 	}
 
@@ -1533,7 +1729,7 @@ public class TestManager implements ManagerInterface
 			if (errortext == null) continue;
 			if (errortext.length() == 0) continue;
 
-			returnText += "\n:::::::::: '" + protocolFileName + "\n";
+			returnText += "\n:::::::::: '" + protocolFileName + "'\n";
 			returnText += errortext;
 		}
 
@@ -1581,8 +1777,6 @@ public class TestManager implements ManagerInterface
 
 		if (context.getTestManager().errorToBeSuppressedErrorIdentifier.equals(identifier)) isToBeSuppressed = true;
 
-		context.getTestManager().errorToBeSuppressedErrorIdentifier = null;
-
 		return isToBeSuppressed;
 	}
 
@@ -1610,9 +1804,9 @@ public class TestManager implements ManagerInterface
 
 		if (identifier == null) return;
 
-		context.getTestManager().errorLastErrorIdentifier = identifier;
-		context.getTestManager().errorLastErrorAdditionalText = additionalText;
-		context.getTestManager().errorLastErrorException = exception;
+		context.getTestManager().runtimeErrorIdentifier = identifier;
+		context.getTestManager().runtimeErrorAdditionalText = additionalText;
+		context.getTestManager().runtimeErrorException = exception;
 	}
 
 	/**
@@ -1620,8 +1814,25 @@ public class TestManager implements ManagerInterface
 	 */
 	private synchronized void errorClearErrorMessage()
 	{
-		this.errorLastErrorIdentifier = null;
-		this.errorLastErrorAdditionalText = null;
-		this.errorLastErrorException = null;
+		this.runtimeErrorIdentifier = null;
+		this.runtimeErrorAdditionalText = null;
+		this.runtimeErrorException = null;
+	}
+
+	/**
+	 * Error: Clear suppressed error code.
+	 */
+	private synchronized void errorClearSuppressedErrorCode()
+	{
+		this.errorToBeSuppressedErrorIdentifier = null;
+	}
+
+	/**
+	 * Error: Check if runtime error occurred.
+	 */
+	private boolean errorIsRuntimeError()
+	{
+		if (this.runtimeErrorIdentifier != null && this.runtimeErrorIdentifier.length() > 0) return true;
+		return false;
 	}
 }

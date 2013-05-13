@@ -72,7 +72,7 @@ public class FileLocationFunctions
 	private static final String testLoggingSubSubPath = "${testsession}";
 	private static final String testLoggingLogFileName = "LOGGING-${application}-${origin}-${codename}-[${thread}].log";
 	private static final String testLoggingAssertFileName = "ASSERT-${application}-${origin}-${codename}-[${thread}].log";
-	private static final String testLoggingErrorFileName = "ERROR-${application}-${origin}.log";
+	private static final String testLoggingErrorFileName = "ERROR-${application}-${origin}-${codename}-[${thread}].log";
 
 	private static final String testResourceSubPath = "test/${testcasename}/fmagic.resource";
 	private static final String testStuffSubPath = "test/${testcasename}/fmagic.stuff";

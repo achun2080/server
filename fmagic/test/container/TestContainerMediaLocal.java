@@ -1396,7 +1396,7 @@ public class TestContainerMediaLocal extends TestContainer
 						String errorIdentifier = ResourceManager.notification(this.getContext(), "Media", "MaximumMediaSizeExceeded").getRecourceIdentifier();
 						TestManager.errorSuppressErrorMessageOnce(this.getContext(), errorIdentifier);
 						boolean booleanResult = this.getContext().getMediaManager().operationStoreLocal(this.getContext(), media, fileList.get(i), name);
-						TestManager.assertErrorCode(this.getContext(), this, null, errorIdentifier);
+						TestManager.assertRuntimeErrorCode(this.getContext(), this, null, errorIdentifier);
 						TestManager.assertFalse(this.getContext(), this, null, booleanResult);
 					}
 					// Upload regularly
@@ -1447,7 +1447,7 @@ public class TestContainerMediaLocal extends TestContainer
 						String errorIdentifier = ResourceManager.notification(this.getContext(), "Media", "MaximumMediaSizeExceeded").getRecourceIdentifier();
 						TestManager.errorSuppressErrorMessageOnce(this.getContext(), errorIdentifier);
 						boolean booleanResult = this.getContext().getMediaManager().operationStoreLocal(this.getContext(), media, fileList.get(i), name);
-						TestManager.assertErrorCode(this.getContext(), this, null, errorIdentifier);
+						TestManager.assertRuntimeErrorCode(this.getContext(), this, null, errorIdentifier);
 						TestManager.assertFalse(this.getContext(), this, null, booleanResult);
 					}
 					// Upload regularly

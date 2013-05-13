@@ -25,6 +25,7 @@ public class ResponseContainer
 	final private String serverApplicationIdentifier;
 	final private int serverVersion;
 	private String clientSessionIdentifier;
+	private String clientCodeName;
 
 	// CommandManager data
 	final private String commandIdentifier;
@@ -225,6 +226,7 @@ public class ResponseContainer
 		outputString += "\n" + "Application identifier: " + this.serverApplicationIdentifier;
 		outputString += "\n" + "Server version: " + String.valueOf(this.serverVersion);
 		outputString += "\n" + "Session: " + this.clientSessionIdentifier;
+		outputString += "\n" + "Client code name: " + this.clientCodeName;
 		outputString += "\n" + "CommandManager identifier: " + this.commandIdentifier;
 
 		// Properties
@@ -294,6 +296,14 @@ public class ResponseContainer
 	public String getServerApplicationIdentifier()
 	{
 		return serverApplicationIdentifier;
+	}
+
+	/**
+	 * Setter
+	 */
+	public void setClientCodeName(String clientCodeName)
+	{
+		this.clientCodeName = clientCodeName;
 	}
 
 	/**

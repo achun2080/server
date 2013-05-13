@@ -36,7 +36,7 @@ public abstract class ClientCommand extends Command
 		this.client = client;
 
 		// Create a request container
-		this.requestContainer = new RequestContainer(client.getApplicationIdentifier().toString(), client.getApplicationVersion(), commandIdentifier);
+		this.requestContainer = new RequestContainer(client.getApplicationIdentifier().toString(), client.getApplicationVersion(), context.getCodeName(), commandIdentifier);
 		this.setClientSessionIdentifier();
 
 		// Create a response container with a default error message

@@ -374,6 +374,7 @@ public class ServerWorkerThread implements Runnable
 		try
 		{
 			responseContainer.setSession(requestContainer.getClientSessionIdentifier());
+			responseContainer.setClientCodeName(requestContainer.getClientCodeName());
 		}
 		catch (Exception exception)
 		{

@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+import fmagic.basic.file.FileUtilFunctions;
+
 /**
  * This class contains all data needed for a client request to a server via
  * socket.
@@ -21,6 +23,7 @@ public class RequestContainer
 	// Common data
 	final private String clientApplicationIdentifier;
 	final private int clientVersion;
+	final private String clientCodeName;
 	private String clientSessionIdentifier = "";
 
 	// CommandManager data
@@ -46,13 +49,15 @@ public class RequestContainer
 	 *            The software version of the client.
 	 * 
 	 * @param commandIdentifier
-	 *            The alias name of the command identifier to be executed on server.
+	 *            The alias name of the command identifier to be executed on
+	 *            server.
 	 */
 	public RequestContainer(String clientApplicationIdentifier,
-			int clientVersion, String commandIdentifier)
+			int clientVersion, String clientCodeName, String commandIdentifier)
 	{
 		this.clientApplicationIdentifier = clientApplicationIdentifier;
 		this.clientVersion = clientVersion;
+		this.clientCodeName = clientCodeName;
 		this.commandIdentifier = commandIdentifier;
 		this.properties = new HashMap<String, String>();
 	}
@@ -133,7 +138,7 @@ public class RequestContainer
 	 */
 	public String createClientSessionIdentifier()
 	{
-		this.clientSessionIdentifier = String.valueOf(new Date().getTime()).trim();
+		this.clientSessionIdentifier = String.valueOf(new Date().getTime()).trim() + String.valueOf(FileUtilFunctions.generalGetRandomValue(0, 100000));
 		return this.clientSessionIdentifier;
 	}
 
@@ -162,6 +167,14 @@ public class RequestContainer
 	}
 
 	/**
+	 * Getter
+	 */
+	public String getClientCodeName()
+	{
+		return clientCodeName;
+	}
+
+	/**
 	 * To string
 	 */
 	@Override
@@ -176,6 +189,7 @@ public class RequestContainer
 		outputString += "----------" + "\n";
 		outputString += "Application identifier: " + this.clientApplicationIdentifier + "\n";
 		outputString += "Client version: " + String.valueOf(clientVersion) + "\n";
+		outputString += "Client code name: " + this.clientCodeName + "\n";
 		outputString += "Client session: " + String.valueOf(clientSessionIdentifier) + "\n";
 
 		outputString += "----------" + "\n";
@@ -199,7 +213,7 @@ public class RequestContainer
 				String identifier = iterManual.next();
 				String value = this.properties.get(identifier);
 				outputString += "\n" + identifier + " = ";
-				
+
 				if (value != null)
 				{
 					if (value.length() > 100)

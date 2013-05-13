@@ -102,7 +102,7 @@ public abstract class ServerManager extends ApplicationManager
 		{
 			// Read parameter: MaxNuOfActiveSessions
 			this.maxNuOfActiveSessions = context.getConfigurationManager().getPropertyAsIntegerValue(context, ResourceManager.configuration(context, "Session", "MaxNuOfActiveSessions"), false);
-			
+
 			// Read parameter: PercentageRateForCleaning
 			this.percentageRateForCleaning = context.getConfigurationManager().getPropertyAsIntegerValue(context, ResourceManager.configuration(context, "Session", "PercentageRateForCleaning"), false);
 
@@ -311,7 +311,7 @@ public abstract class ServerManager extends ApplicationManager
 			this.getContext().getNotificationManager().notifyError(this.getContext(), ResourceManager.notification(this.getContext(), "Application", "ErrorOnHandlingSessionList"), errorString, null);
 			return false;
 		}
-		
+
 		// Get percentage rate of sessions to clean
 		int numberOfSessions = this.sessions.size();
 		int numberOfSessionsToClean = 0;
@@ -389,13 +389,17 @@ public abstract class ServerManager extends ApplicationManager
 			this.getContext().getNotificationManager().notifyError(this.getContext(), ResourceManager.notification(this.getContext(), "Application", "ErrorOnHandlingSessionList"), errorString, null);
 			this.maxNuOfActiveSessions = 5000;
 		}
-		
+
 		// Validate data
 		String clientSessionIdentifierToAdd = clientSessionIdentifier.trim();
 
 		// Check if session already exists on the server
-		SessionContainer session = this.sessions.get(clientSessionIdentifierToAdd.trim());
-		if (session != null) return false;
+		SessionContainer session = this.sessions.get(clientSessionIdentifierToAdd);
+
+		if (session != null)
+		{
+			return false;
+		}
 
 		if (this.sessions.size() >= this.maxNuOfActiveSessions)
 		{

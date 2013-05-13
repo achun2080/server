@@ -31,11 +31,11 @@ abstract public class TestRunner
 	private final String testRunnerName;
 	private final String testSessionName;
 	private final TestSuite testSuite;
-	
+
 	// Error protocol
 	private final HashMap<String, String> assertionErrorProtocol = new HashMap<String, String>();
 	private int assertionNumberOfErrors = 0;
-	
+
 	// Currently used application server port numbers
 	private final static Set<Integer> usedServerPorts = new HashSet<Integer>();
 
@@ -43,8 +43,8 @@ abstract public class TestRunner
 	 * Constructor
 	 * 
 	 * @param testSuite
-	 *            The test suite that holds this test runner, or <TT>null</TT> if
-	 *            no test suite is available.
+	 *            The test suite that holds this test runner, or <TT>null</TT>
+	 *            if no test suite is available.
 	 * 
 	 * @param testRunnerName
 	 *            The name of the test runner.
@@ -52,7 +52,8 @@ abstract public class TestRunner
 	 * @param testSessionName
 	 *            The name of the test session.
 	 */
-	public TestRunner(TestSuite testSuite, String testRunnerName, String testSessionName)
+	public TestRunner(TestSuite testSuite, String testRunnerName,
+			String testSessionName)
 	{
 		this.testSuite = testSuite;
 		this.testRunnerName = testRunnerName;
@@ -151,8 +152,20 @@ abstract public class TestRunner
 			// Create instance
 			server = ServerReferenceApplication.getTestInstance(codeName, port, 1000000, this.getTestRunnerName(), this.getTestSessionName());
 
+			// Error
+			if (server == null)
+			{
+				String additionalText = "--> Test runner name: '" + this.getTestRunnerName() + "'";
+				additionalText += "\n--> Test session name: '" + this.getTestSessionName() + "'";
+				additionalText += "\n--> Code name of client: '" + codeName + "'";
+				TestManager.addErrorToErrorProtocolLists(this, "Error on creating appplication server", additionalText);
+				return null;
+			}
+			
 			// Start application server
-			if (server != null) server.startApplication();
+
+			// Start application server
+			server.startApplication();
 		}
 		catch (Exception e)
 		{
@@ -181,8 +194,19 @@ abstract public class TestRunner
 			// Create instance
 			client = ClientReferenceApplication.getTestInstance(codeName, this.getTestRunnerName(), this.getTestSessionName());
 
-			// Start application server
-			if (client != null) client.startApplication();
+			// Error
+			if (client == null)
+			{
+				String additionalText = "--> Test runner name: '" + this.getTestRunnerName() + "'";
+				additionalText += "\n--> Test session name: '" + this.getTestSessionName() + "'";
+				additionalText += "\n--> Code name of client: '" + codeName + "'";
+				TestManager.addErrorToErrorProtocolLists(this, "Error on creating client appplication", additionalText);
+				return null;
+			}
+			
+			// Start client application
+			client.startApplication();
+
 		}
 		catch (Exception e)
 		{
@@ -310,7 +334,7 @@ abstract public class TestRunner
 				if (this.isSocketUsed(port)) continue;
 
 				TestRunner.usedServerPorts.add(port);
-				
+
 				return port;
 			}
 		}
@@ -387,6 +411,6 @@ abstract public class TestRunner
 	 */
 	public String printAssertionErrorProtocol()
 	{
-		return TestManager.printAssertionErrorProtocol(this.assertionNumberOfErrors, this.assertionErrorProtocol);		
+		return TestManager.printAssertionErrorProtocol(this.assertionNumberOfErrors, this.assertionErrorProtocol);
 	}
 }
