@@ -19,7 +19,7 @@ import fmagic.test.runner.TestRunner;
 
 /**
  * This class implements testing functionality regarding the
- * <TT>Media Manager</TT> using a media pool.
+ * <TT>Media Manager</TT> using a media commands.
  * 
  * @author frank.wuensche (FW)
  * 

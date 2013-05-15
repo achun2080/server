@@ -136,11 +136,12 @@ public abstract class MediaManager implements ManagerInterface
 		/*
 		 *  Read client/server specific configuration parameter
 		 */
-		if (readConfigurationLocalMediaFilePathRoot(context) == true) isError = true;
+		if (readConfigurationLocalMediaRepository(context) == true) isError = true;
 		if (readConfigurationEncodingKeyList(context) == true) isError = true;
 		if (readConfigurationEncodingKeyNumber(context) == true) isError = true;
 		if (readConfigurationEncodingEnabled(context) == true) isError = true;
 		if (readConfigurationSpecificParameter(context) == true) isError = true;
+		if (readConfigurationMediaPoolParameter(context) == true) isError = true;
 
 		/*
 		 *  Read common configuration parameter
@@ -191,7 +192,7 @@ public abstract class MediaManager implements ManagerInterface
 	 * @return Returns <TT>true</TT> if an error was found, otherwise
 	 *         <TT>false</TT>.
 	 */
-	protected abstract boolean readConfigurationLocalMediaFilePathRoot(Context context);
+	protected abstract boolean readConfigurationLocalMediaRepository(Context context);
 
 	/**
 	 * Read the current 'EncodingKeyList' value of server or client.
@@ -225,6 +226,17 @@ public abstract class MediaManager implements ManagerInterface
 	 *         <TT>false</TT>.
 	 */
 	protected abstract boolean readConfigurationEncodingEnabled(Context context);
+
+	/**
+	 * Read the all properties regarding the media pool on server side.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @return Returns <TT>true</TT> if an error was found, otherwise
+	 *         <TT>false</TT>.
+	 */
+	protected abstract boolean readConfigurationMediaPoolParameter(Context context);
 
 	@Override
 	public boolean validateResources(Context context)

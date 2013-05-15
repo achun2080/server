@@ -21,7 +21,7 @@ import fmagic.test.suite.TestSuite;
  */
 public class TestRunnerMediaServer extends TestRunner
 {
-	private static final String TESTCASE_NAME = "mediatestlocal";
+	private static final String TEST_RUNNER_NAME = "medialocal";
 
 	private ServerManager serverAp1 = null;
 	private ServerManager serverAp2 = null;
@@ -40,7 +40,7 @@ public class TestRunnerMediaServer extends TestRunner
 	public TestRunnerMediaServer(TestSuite testSuite, String testSessionName)
 	{
 		// Call super class
-		super(testSuite, TESTCASE_NAME, testSessionName);
+		super(testSuite, TEST_RUNNER_NAME, testSessionName);
 
 		// Clear test session directory
 		TestManager.cleanTestSessionDirectory(this);

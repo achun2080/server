@@ -53,9 +53,9 @@ public abstract class ClientManager extends ApplicationManager
 	 *            is running in productive mode.
 	 * 
 	 * @param testSessionName
-	 *            Is to be set to the name of the test session, if the application
-	 *            is running in test mode, or <TT>null</TT> if the application
-	 *            is running in productive mode.
+	 *            Is to be set to the name of the test session, if the
+	 *            application is running in test mode, or <TT>null</TT> if the
+	 *            application is running in productive mode.
 	 */
 	protected ClientManager(
 			ApplicationManager.ApplicationIdentifierEnum applicationIdentifier,
@@ -64,6 +64,24 @@ public abstract class ClientManager extends ApplicationManager
 	{
 		// Instantiate super class
 		super(applicationIdentifier, applicationVersion, codeName, OriginEnum.Client, runningInTestMode, testCaseName, testSessionName);
+	}
+
+
+	@Override
+	protected void initialize()
+	{
+		boolean isError = false;
+
+		if (this.initializeCriticalPath() == true) isError = true;
+
+		// Initiate shutdown if an error occurred
+		if (isError == true)
+		{
+			this.shutdown();
+		}
+
+		// Go back to the tracking context after initializing application server
+		this.context = this.getContext().createTrackingContext(ResourceManager.context(this.getContext(), "Overall", "Tracking"));
 	}
 
 	@Override
@@ -179,9 +197,6 @@ public abstract class ClientManager extends ApplicationManager
 
 		// Fire Event
 		this.getContext().getNotificationManager().notifyEvent(this.getContext(), ResourceManager.notification(this.getContext(), "Application", "ClientStopped"), null, null);
-
-		// Release all WATCHDOG
-		this.releaseWatchdog();
 
 		// Return
 		return;

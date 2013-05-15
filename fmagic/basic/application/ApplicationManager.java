@@ -13,6 +13,8 @@ import fmagic.basic.watchdog.WatchdogServer;
 import fmagic.client.context.ClientContext;
 import fmagic.server.application.ServerManager;
 import fmagic.server.context.ServerContext;
+import fmagic.server.media.ServerMediaManager;
+import fmagic.server.media.ServerMediaPoolServer;
 import fmagic.test.application.TestManager;
 import fmagic.client.application.ClientManager;
 
@@ -36,7 +38,7 @@ public abstract class ApplicationManager implements ManagerInterface
 	final private boolean clientApplication;
 
 	// Sets context of server
-	private Context context;
+	protected Context context;
 
 	// Flag if processing is to be continued
 	private boolean stopRunning = false;
@@ -47,8 +49,9 @@ public abstract class ApplicationManager implements ManagerInterface
 	private String secondaryLanguage = null;
 	private boolean notifyLabelEvents = true;
 
-	// WATCHDOG
+	// Integrated server
 	protected WatchdogServer watchdogServer;
+	protected ServerMediaPoolServer mediaServer;
 
 	// Shut down flag: If this flag is set, the server was not started because
 	// of severe errors during initialization
@@ -128,76 +131,73 @@ public abstract class ApplicationManager implements ManagerInterface
 	}
 
 	/**
-	 * Release all resources needed by the application server.
+	 * Creates all resources needed by an application.
+	 * 
+	 * @return Returns <TT>true</TT> if an error occurred, otherwise
+	 *         <TT>false</TT>.
 	 */
-	protected void initialize()
+	protected abstract void initialize();
+
+	/**
+	 * Creates all resources needed by an application.
+	 * 
+	 * @return Returns <TT>true</TT> if an error occurred, otherwise
+	 *         <TT>false</TT>.
+	 */
+	protected boolean initializeCriticalPath()
 	{
 		// Process critical path
 		boolean isError = false;
 
 		try
 		{
-			while (true)
-			{
-				// Instantiate WATCHDOG
-				WatchdogManager watchdogManager = new WatchdogManager(this.getContext());
-				this.getContext().setWatchdogManager(watchdogManager);
+			// Read configuration properties
+			if (this.getContext().getConfigurationManager().loadPropertiesFile(this.getContext()) == false) isError = true;
 
-				// Read configuration properties
-				if (this.getContext().getConfigurationManager().loadPropertiesFile(this.getContext()) == false) isError = true;
+			// Read resource files
+			if (this.readResourceFiles() == false) isError = true;
 
-				// Read resource files
-				if (this.readResourceFiles() == false) isError = true;
+			// Read language token from configuration
+			if (this.readLanguageSettings() == false) isError = true;
 
-				// Read language token from configuration
-				if (this.readLanguageSettings() == false) isError = true;
+			// Read label resource files
+			if (this.readLabelResourceFiles() == false) isError = true;
 
-				// Read label resource files
-				if (this.readLabelResourceFiles() == false) isError = true;
+			// Write configuration template files
+			if (this.getContext().getConfigurationManager().createTemplateConfigurationFile(this.getContext(), this.getApplicationIdentifier().toString(), this.getContext().getOriginName(), true) == false) isError = true;
 
-				// Write configuration template files
-				if (this.getContext().getConfigurationManager().createTemplateConfigurationFile(this.getContext(), this.getApplicationIdentifier().toString(), this.getContext().getOriginName(), true) == false) isError = true;
+			// Read configuration items of all interfaces
+			if (this.readConfigurationAll(this.getContext()) == true) isError = true;
 
-				// Read configuration items of all interfaces
-				if (this.readConfigurationAll(this.getContext()) == true) isError = true;
+			// Check integrity of all read resources
+			if (this.validateResourcesAll(this.getContext()) == true) isError = true;
 
-				// Check integrity of all read resources
-				if (this.validateResourcesAll(this.getContext()) == true) isError = true;
+			// Read security keys from configuration
+			if (this.readSecurityKeys() == false) isError = true;
 
-				// Read security keys from configuration
-				if (this.readSecurityKeys() == false) isError = true;
+			// Read translated label files
+			if (this.readTranslatedLabelFiles() == false) isError = true;
 
-				// Read translated label files
-				if (this.readTranslatedLabelFiles() == false) isError = true;
+			// Write label template files
+			if (this.getContext().getLabelManager().createTemplateLabelFiles(this.getContext(), this.getApplicationIdentifier().toString(), applicationVersion) == false) isError = true;
 
-				// Write label template files
-				if (this.getContext().getLabelManager().createTemplateLabelFiles(this.getContext(), this.getApplicationIdentifier().toString(), applicationVersion) == false) isError = true;
+			// Assign right groups
+			if (this.assignRightGroups(this.getContext()) == false) isError = true;
+			this.getContext().getRightManager().printDistributionConfiguration(this.getContext());
 
-				// Assign right groups
-				if (this.assignRightGroups(this.getContext()) == false) isError = true;
-				this.getContext().getRightManager().printDistributionConfiguration(this.getContext());
+			// Assign license models
+			if (this.assignLicenseModels(this.getContext()) == false) isError = true;
 
-				// Assign license models
-				if (this.assignLicenseModels(this.getContext()) == false) isError = true;
+			// Write license template files
+			if (this.getContext().getLicenseManager().createTemplateLicenseFiles(this.getContext(), this.getApplicationIdentifier().toString(), applicationVersion) == false) isError = true;
 
-				// Write license template files
-				if (this.getContext().getLicenseManager().createTemplateLicenseFiles(this.getContext(), this.getApplicationIdentifier().toString(), applicationVersion) == false) isError = true;
+			// Read real customer license files
+			if (this.getContext().getLicenseManager().loadLicenseFiles(this.getContext(), this.getApplicationIdentifier().toString(), applicationVersion) == false) isError = true;
 
-				// Read real customer license files
-				if (this.getContext().getLicenseManager().loadLicenseFiles(this.getContext(), this.getApplicationIdentifier().toString(), applicationVersion) == false) isError = true;
-
-				// Initialize application settings
-				if (this.readConfiguration(this.getContext()) == true) isError = true;
-				if (this.validateResources(this.getContext()) == true) isError = true;
-				if (this.cleanEnvironment(this.getContext()) == true) isError = true;
-
-				// Start WATCHDOG
-				this.watchdogServer = new WatchdogServer(this.getContext(), this.getContext().getWatchdogManager());
-				if (watchdogServer.startServer(this.getContext()) == false) isError = true;
-
-				// End of critical path
-				break;
-			}
+			// Initialize application settings
+			if (this.readConfiguration(this.getContext()) == true) isError = true;
+			if (this.validateResources(this.getContext()) == true) isError = true;
+			if (this.cleanEnvironment(this.getContext()) == true) isError = true;
 		}
 		catch (Exception e)
 		{
@@ -205,15 +205,8 @@ public abstract class ApplicationManager implements ManagerInterface
 			isError = true;
 		}
 
-		// Initiate shutdown if an error occurred
-		if (isError == true)
-		{
-			this.shutdown();
-			this.releaseWatchdog();
-		}
-
-		// Go back to the tracking context after initializing application server
-		this.context = this.context.createTrackingContext(ResourceManager.context(this.context, "Overall", "Tracking"));
+		// Return
+		return isError;
 	}
 
 	/**
@@ -279,7 +272,7 @@ public abstract class ApplicationManager implements ManagerInterface
 		{
 			// Read parameter: MaximumWaitingTimeForPendingThreadsInSeconds
 			this.maximumWaitingTimeForPendingThreadsInSeconds = context.getConfigurationManager().getPropertyAsIntegerValue(context, ResourceManager.configuration(context, "Shutdown", "MaximumWaitingTimeForPendingThreadsInSeconds"), false);
-			
+
 			// Return
 			return false;
 		}
@@ -309,7 +302,7 @@ public abstract class ApplicationManager implements ManagerInterface
 			if (this.getContext().getResourceManager().loadResourceFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Common.toString(), this.applicationVersion, null) == false) isSuccessful = false;
 			if (this.getContext().getResourceManager().loadResourceFile(this.getContext(), this.getApplicationIdentifier().toString(), this.applicationVersion, null) == false) isSuccessful = false;
 			if (this.getContext().getResourceManager().loadResourceFile(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Extension.toString(), this.applicationVersion, null) == false) isSuccessful = false;
-			
+
 			// Read sub resource files
 			if (this.getContext().getResourceManager().loadResourceSubFiles(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Basic.toString(), this.applicationVersion) == false) isSuccessful = false;
 			if (this.getContext().getResourceManager().loadResourceSubFiles(this.getContext(), ApplicationManager.ApplicationIdentifierEnum.Common.toString(), this.applicationVersion) == false) isSuccessful = false;
@@ -469,7 +462,7 @@ public abstract class ApplicationManager implements ManagerInterface
 	/**
 	 * Shut down the application.
 	 */
-	private void shutdown()
+	protected void shutdown()
 	{
 		try
 		{
@@ -514,27 +507,6 @@ public abstract class ApplicationManager implements ManagerInterface
 		catch (Exception e)
 		{
 			// Be silent
-		}
-	}
-
-	/**
-	 * Release WATCHDOG separately because of it should be notified even the
-	 * last messages of the application.
-	 */
-	protected void releaseWatchdog()
-	{
-		// Stop WATCHDOG
-		try
-		{
-			if (this.watchdogServer != null)
-			{
-				this.watchdogServer.stopServer(this.context);
-			}
-		}
-		catch (Exception e)
-		{
-			String errorText = "->> On WATCHDOG server";
-			this.context.getNotificationManager().notifyError(this.context, ResourceManager.notification(this.context, "Watchdog", "ErrorOnStoppingServer"), errorText, e);
 		}
 	}
 

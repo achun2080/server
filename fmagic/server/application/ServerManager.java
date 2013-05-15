@@ -17,6 +17,10 @@ import fmagic.basic.file.FileUtilFunctions;
 import fmagic.basic.notification.NotificationManager;
 import fmagic.basic.resource.ResourceContainer.OriginEnum;
 import fmagic.basic.resource.ResourceManager;
+import fmagic.basic.watchdog.WatchdogManager;
+import fmagic.basic.watchdog.WatchdogServer;
+import fmagic.server.media.ServerMediaManager;
+import fmagic.server.media.ServerMediaPoolServer;
 
 /**
  * This class implements common functions of the application servers of the
@@ -91,6 +95,100 @@ public abstract class ServerManager extends ApplicationManager
 		// Adopt constructor data
 		this.serverSocketPort = serverSocketPort;
 		this.timeoutTimeInMilliseconds = timeoutTimeInMilliseconds;
+	}
+
+	@Override
+	protected void initialize()
+	{
+		boolean isError = false;
+
+		if (this.initializeWatchdogManager() == true) isError = true;
+		if (this.initializeCriticalPath() == true) isError = true;
+		if (this.initializeIntegratedServer() == true) isError = true;
+
+		// Initiate shutdown if an error occurred
+		if (isError == true)
+		{
+			this.shutdown();
+			this.releaseWatchdog();
+		}
+
+		// Go back to the tracking context after initializing application server
+		this.context = this.getContext().createTrackingContext(ResourceManager.context(this.getContext(), "Overall", "Tracking"));
+	}
+
+	/**
+	 * Creates and initialize the WATCHDOG Manager.
+	 * 
+	 * @return Returns <TT>true</TT> if an error occurred, otherwise
+	 *         <TT>false</TT>.
+	 */
+	private boolean initializeWatchdogManager()
+	{
+		try
+		{
+			WatchdogManager watchdogManager = new WatchdogManager(this.getContext());
+			this.getContext().setWatchdogManager(watchdogManager);
+
+			return false;
+		}
+		catch (Exception e)
+		{
+			this.getContext().getNotificationManager().notifyError(this.getContext(), ResourceManager.notification(this.getContext(), "Application", "ErrorOnStartingServer"), null, e);
+			return true;
+		}
+	}
+
+	/**
+	 * Creates and initialize all integrated servers.
+	 * 
+	 * @return Returns <TT>true</TT> if an error occurred, otherwise
+	 *         <TT>false</TT>.
+	 */
+	private boolean initializeIntegratedServer()
+	{
+		boolean isError = false;
+
+		try
+		{
+			// Start WATCHDOG
+			this.watchdogServer = new WatchdogServer(this.getContext(), this.getContext().getWatchdogManager());
+			if (watchdogServer.startServer(this.getContext()) == false) isError = true;
+
+			// Start media server
+			this.mediaServer = new ServerMediaPoolServer(this.getContext(), (ServerMediaManager) this.getContext().getMediaManager());
+			if (this.mediaServer.startServer(this.getContext()) == false) isError = true;
+		}
+		catch (Exception e)
+		{
+			this.getContext().getNotificationManager().notifyError(this.getContext(), ResourceManager.notification(this.getContext(), "Application", "ErrorOnStartingServer"), null, e);
+			isError = true;
+		}
+		
+		// Return
+		return isError;
+	}
+
+	/**
+	 * Release all integrated server.
+	 * 
+	 * @return Returns <TT>true</TT> if an error occurred, otherwise
+	 *         <TT>false</TT>.
+	 */
+	private void releaseIntegratedServer()
+	{
+		// Stop media server
+		try
+		{
+			if (this.mediaServer != null)
+			{
+				this.mediaServer.stopServer(this.getContext());
+			}
+		}
+		catch (Exception e)
+		{
+			this.getContext().getNotificationManager().notifyError(this.getContext(), ResourceManager.notification(this.getContext(), "MediaServer", "ErrorOnStoppingServer"), null, e);
+		}
 	}
 
 	@Override
@@ -214,6 +312,26 @@ public abstract class ServerManager extends ApplicationManager
 
 		// Release WATCHDOG
 		this.releaseWatchdog();
+	}
+
+	/**
+	 * Release WATCHDOG separately because of it should be notified even the
+	 * last messages of the application.
+	 */
+	private void releaseWatchdog()
+	{
+		// Stop WATCHDOG
+		try
+		{
+			if (this.watchdogServer != null)
+			{
+				this.watchdogServer.stopServer(this.getContext());
+			}
+		}
+		catch (Exception e)
+		{
+			this.getContext().getNotificationManager().notifyError(this.getContext(), ResourceManager.notification(this.getContext(), "Watchdog", "ErrorOnStoppingServer"), null, e);
+		}
 	}
 
 	@Override
@@ -396,10 +514,7 @@ public abstract class ServerManager extends ApplicationManager
 		// Check if session already exists on the server
 		SessionContainer session = this.sessions.get(clientSessionIdentifierToAdd);
 
-		if (session != null)
-		{
-			return false;
-		}
+		if (session != null) { return false; }
 
 		if (this.sessions.size() >= this.maxNuOfActiveSessions)
 		{
@@ -434,6 +549,9 @@ public abstract class ServerManager extends ApplicationManager
 		{
 			this.getContext().getNotificationManager().notifyError(this.getContext(), ResourceManager.notification(this.getContext(), "Application", "ErrorOnServerSocket"), "--> on closing server socket port: '" + String.valueOf(this.getServerSocketPort()) + "'", e);
 		}
+		
+		// Release integrated server
+		this.releaseIntegratedServer();
 	}
 
 	/**

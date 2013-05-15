@@ -6,7 +6,9 @@ import org.apache.commons.codec.binary.Base64;
 
 import fmagic.basic.command.EncodingHandler;
 import fmagic.test.container.TestContainerMediaLocal;
+import fmagic.test.container.TestContainerMediaPool;
 import fmagic.test.runner.TestRunnerMediaCommand;
+import fmagic.test.runner.TestRunnerMediaPool;
 import fmagic.test.runner.TestRunnerMediaServer;
 import fmagic.test.suite.TestSuite;
 import fmagic.test.suite.TestSuiteMedia;
@@ -22,18 +24,18 @@ public class ApplicationMain
 		try
 		{
 //			TestSuite testSuite = new TestSuiteComplete();
-			TestSuite testSuite = new TestSuiteMedia();
-			testSuite.execute();
+//			TestSuite testSuite = new TestSuiteMedia();
+//			testSuite.execute();
 //			String errorProtocol = testSuite.printAssertionErrorProtocol();
 //			if (errorProtocol != null) System.err.println(errorProtocol);
 			
 			
-//			TestRunnerMediaCommand testRunner = new TestRunnerMediaCommand(null, "testMaximumMediaSize");
-//			TestContainerMediaLocal testContainer = new TestContainerMediaLocal(testRunner);
-//			
-//			testRunner.setup();
-//			testRunner.executeSingleFunctionTest(testContainer, "testMaximumMediaSize");
-//			testRunner.cleanup();
+			TestRunnerMediaPool testRunner = new TestRunnerMediaPool(null, "xxxxxxxxxx");
+			TestContainerMediaPool testContainer = new TestContainerMediaPool(testRunner);
+			
+			testRunner.setup();
+			testRunner.executeSingleFunctionTest(testContainer, "xxxxxxxxxx");
+			testRunner.cleanup();
 		}
 		catch (Exception e)
 		{

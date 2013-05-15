@@ -2,6 +2,7 @@ package fmagic.test.suite;
 
 import fmagic.test.runner.TestRunnerMediaClient;
 import fmagic.test.runner.TestRunnerMediaCommand;
+import fmagic.test.runner.TestRunnerMediaPool;
 import fmagic.test.runner.TestRunnerMediaServer;
 
 /**
@@ -30,6 +31,7 @@ public class TestSuiteMedia extends TestSuite
 			this.addTestRunner(new TestRunnerMediaServer(this, "server"));
 			this.addTestRunner(new TestRunnerMediaClient(this, "client"));
 			this.addTestRunner(new TestRunnerMediaCommand(this, "command"));
+			this.addTestRunner(new TestRunnerMediaPool(this, "pool"));
 			
 			this.executeComponentTests();
 			this.executeConcurrentTests();

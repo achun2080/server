@@ -206,7 +206,6 @@ abstract public class TestRunner
 			
 			// Start client application
 			client.startApplication();
-
 		}
 		catch (Exception e)
 		{

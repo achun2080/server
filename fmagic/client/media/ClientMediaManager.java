@@ -25,7 +25,7 @@ public class ClientMediaManager extends MediaManager
 	}
 
 	@Override
-	protected boolean readConfigurationLocalMediaFilePathRoot(Context context)
+	protected boolean readConfigurationLocalMediaRepository(Context context)
 	{
 		ResourceContainer resourceContainer = ResourceManager.configuration(context, "Media", "ClientLocalMediaFilePathRoot");
 		this.mediaRootFilePath = context.getConfigurationManager().getProperty(context, resourceContainer, true);
@@ -190,6 +190,12 @@ public class ClientMediaManager extends MediaManager
 
 	@Override
 	protected boolean readConfigurationSpecificParameter(Context context)
+	{
+		return false;
+	}
+
+	@Override
+	protected boolean readConfigurationMediaPoolParameter(Context context)
 	{
 		return false;
 	}

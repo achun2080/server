@@ -21,7 +21,7 @@ import fmagic.test.suite.TestSuite;
  */
 public class TestRunnerMediaCommand extends TestRunner
 {
-	private static final String TESTCASE_NAME = "mediatestcommand";
+	private static final String TEST_RUNNER_NAME = "mediacommand";
 
 	private ServerManager serverAp1 = null;
 	private ServerManager serverAp2 = null;
@@ -50,7 +50,7 @@ public class TestRunnerMediaCommand extends TestRunner
 	public TestRunnerMediaCommand(TestSuite testSuite, String testSessionName)
 	{
 		// Call super class
-		super(testSuite, TESTCASE_NAME, testSessionName);
+		super(testSuite, TEST_RUNNER_NAME, testSessionName);
 
 		// Clear test session directory
 		TestManager.cleanTestSessionDirectory(this);
