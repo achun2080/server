@@ -127,7 +127,7 @@ public class ServerMediaPoolServer extends Thread
 		// Logging
 		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "Starting media server [" + context.getCodeName() + "]: " + this.toString());
 
-		// Start server
+		// Start media server
 		try
 		{
 			this.start();
@@ -181,7 +181,7 @@ public class ServerMediaPoolServer extends Thread
 		// Stop media server
 		try
 		{
-			this.mediaManager.waitForCompletingMediaServerCommandQueue(60);
+			this.mediaManager.waitForCompletingMediaServerCommandQueue(context.getApplicationManager().getMaximumWaitingTimeForPendingThreadsInSeconds());
 			context.getNotificationManager().notifyEvent(context, ResourceManager.notification(context, "MediaServer", "MediaServerInterrupted"), null, null);
 			this.interrupt();
 		}
@@ -208,49 +208,100 @@ public class ServerMediaPoolServer extends Thread
 		 * Start of processing
 		 */
 
+		// Check if media pool is active
+		if (this.mediaManager.isEnableMediaPool() == false) return true;
+
 		// Something to do?
-		if (this.mediaManager.getNumberOfMediaServerCommandElements() <= 0) return true;
+		if (this.mediaManager.getNumberOfCommandsInMainQueue() <= 0 && this.mediaManager.getNumberOfCommandsInSecondaryQueue() <= 0 && this.mediaManager.getNumberOfCommandsInSynchronizingQueue() <= 0) return true;
 
 		// Check if media server processing context is already set
 		if (this.processingContext == null) return false;
 
-		// Logging
-		this.processingContext.getNotificationManager().notifyLogMessage(this.processingContext, NotificationManager.SystemLogLevelEnum.NOTICE, "Media server processing has started next cycle");
-
 		// Check if the thread is forced to end
 		if (this.isInterrupted()) return true;
+
+		// Logging
+		this.processingContext.getNotificationManager().notifyLogMessage(this.processingContext, NotificationManager.SystemLogLevelEnum.NOTICE, "Media server processing has started next cycle");
 
 		/*
 		 * Get through the media server command list
 		 */
 		try
 		{
-			while (this.mediaManager.getNumberOfMediaServerCommandElements() > 0)
+			// Process main queue
+			if (this.mediaManager.getNumberOfCommandsInMainQueue() > 0)
 			{
-				// Check if the thread is forced to end
-				if (this.isInterrupted()) break;
+				// Logging
+				this.processingContext.getNotificationManager().notifyLogMessage(this.processingContext, NotificationManager.SystemLogLevelEnum.NOTICE, "Media server process MAIN queue");
 
-				// Read media server command from queue
-				ServerMediaPoolCommand mediaServerCommand = this.mediaManager.getMediaServerCommand();
-				if (mediaServerCommand == null) break;
+				// Process all commands in main queue
+				while (this.mediaManager.getNumberOfCommandsInMainQueue() > 0)
+				{
+					// Read media server command from queue
+					ServerMediaPoolCommand mediaServerCommand = this.mediaManager.getNextCommandFromMainQueue();
+					if (mediaServerCommand == null) break;
+				}
 
-				// Check if media pool is active
-				if (this.mediaManager.isEnableMediaPool() == false) continue;
+				// Logging
+				this.processingContext.getNotificationManager().notifyLogMessage(this.processingContext, NotificationManager.SystemLogLevelEnum.NOTICE, "Media server processing has ended actual cycle");
+
+				// Return
+				return true;
 			}
+
+			// Process secondary queue
+			if (this.mediaManager.getNumberOfCommandsInSecondaryQueue() > 0)
+			{
+				// Logging
+				this.processingContext.getNotificationManager().notifyLogMessage(this.processingContext, NotificationManager.SystemLogLevelEnum.NOTICE, "Media server process SECONDARY queue");
+
+				// Process all commands in secondary queue
+				while (this.mediaManager.getNumberOfCommandsInSecondaryQueue() > 0)
+				{
+					// Read media server command from queue
+					ServerMediaPoolCommand mediaServerCommand = this.mediaManager.getNextCommandFromSecondaryQueue();
+					if (mediaServerCommand == null) break;
+				}
+
+				// Logging
+				this.processingContext.getNotificationManager().notifyLogMessage(this.processingContext, NotificationManager.SystemLogLevelEnum.NOTICE, "Media server processing has ended actual cycle");
+
+				// Return
+				return true;
+			}
+
+			// Process synchronizing queue
+			if (this.mediaManager.getNumberOfCommandsInSynchronizingQueue() > 0)
+			{
+				// Logging
+				this.processingContext.getNotificationManager().notifyLogMessage(this.processingContext, NotificationManager.SystemLogLevelEnum.NOTICE, "Media server process SYNCHRONIZING queue");
+
+				// Process all commands in synchronizing queue
+				while (this.mediaManager.getNumberOfCommandsInSynchronizingQueue() > 0)
+				{
+					// Check if the thread is forced to end
+					if (this.isInterrupted()) break;
+
+					// Read media server command from queue
+					ServerMediaPoolCommand mediaServerCommand = this.mediaManager.getNextCommandFromSynchronizingQueue();
+					if (mediaServerCommand == null) break;
+				}
+
+				// Logging
+				this.processingContext.getNotificationManager().notifyLogMessage(this.processingContext, NotificationManager.SystemLogLevelEnum.NOTICE, "Media server processing has ended actual cycle");
+
+				// Return
+				return true;
+			}
+
+			// Return
+			return true;
+
 		}
 		catch (Exception e)
 		{
 			this.processingContext.getNotificationManager().notifyError(this.processingContext, ResourceManager.notification(this.processingContext, "MediaServer", "ErrorOnProcessingServer"), null, e);
+			return false;
 		}
-
-		/*
-		 * Stop of processing
-		 */
-
-		// Logging
-		this.processingContext.getNotificationManager().notifyLogMessage(this.processingContext, NotificationManager.SystemLogLevelEnum.NOTICE, "Media server processing has ended actual cycle");
-
-		// Return
-		return true;
 	}
 }

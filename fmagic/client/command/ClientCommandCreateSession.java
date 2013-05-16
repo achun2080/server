@@ -1,9 +1,10 @@
 package fmagic.client.command;
 
+import fmagic.basic.application.ApplicationManager;
+import fmagic.basic.command.ConnectionContainer;
 import fmagic.basic.context.Context;
 import fmagic.basic.resource.ResourceContainer;
 import fmagic.basic.resource.ResourceManager;
-import fmagic.client.application.ClientManager;
 
 /**
  * COMMAND: Force the server to create a new session using the session
@@ -31,12 +32,12 @@ public class ClientCommandCreateSession extends ClientCommand
 	 * @param context
 	 *            Current context.
 	 * 
-	 * @param client
+	 * @param application
 	 *            Application client.
 	 */
-	public ClientCommandCreateSession(Context context, ClientManager client)
+	public ClientCommandCreateSession(Context context, ApplicationManager application, ConnectionContainer connectionContainer)
 	{
-		super(context, client, ResourceManager.command(context, "CreateSession").getRecourceIdentifier());
+		super(context, application, ResourceManager.command(context, "CreateSession").getRecourceIdentifier(), connectionContainer);
 	}
 
 	@Override

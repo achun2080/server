@@ -1,11 +1,15 @@
 package fmagic.client.command;
 
+import fmagic.basic.application.ApplicationManager;
 import fmagic.basic.command.Command;
+import fmagic.basic.command.CommandHandler;
+import fmagic.basic.command.ConnectionContainer;
 import fmagic.basic.command.RequestContainer;
 import fmagic.basic.command.ResponseContainer;
 import fmagic.basic.context.Context;
 import fmagic.basic.resource.ResourceManager;
 import fmagic.client.application.ClientManager;
+import fmagic.server.application.ServerManager;
 
 /**
  * This class defines common functions needed by all client applications.
@@ -17,13 +21,14 @@ import fmagic.client.application.ClientManager;
 public abstract class ClientCommand extends Command
 {
 	// Current client application
-	final protected ClientManager client;
+	final protected ApplicationManager application;
+	final protected ConnectionContainer connectionContainer;
 
 	/**
 	 * Constructor
 	 */
-	public ClientCommand(Context context, ClientManager client,
-			String commandIdentifier)
+	public ClientCommand(Context context, ApplicationManager application,
+			String commandIdentifier, ConnectionContainer connectionContainer)
 	{
 		// Call super class
 		super(context, commandIdentifier);
@@ -31,13 +36,26 @@ public abstract class ClientCommand extends Command
 		// Create a SILENT dump context regarding the executing of a command on
 		// a client
 		this.context = context.createSilentDumpContext(ResourceManager.context(context, "Processing", "ClientRequestToServer"));
-
-		// Save client object
-		this.client = client;
+		
+		// Get data
+		this.application = application;
+		this.connectionContainer = connectionContainer;
 
 		// Create a request container
-		this.requestContainer = new RequestContainer(client.getApplicationIdentifier().toString(), client.getApplicationVersion(), context.getCodeName(), commandIdentifier);
-		this.setClientSessionIdentifier();
+		this.requestContainer = new RequestContainer(application.getApplicationIdentifier().toString(), application.getApplicationVersion(), context.getCodeName(), commandIdentifier);
+		
+		// Set session identifier
+		if (application instanceof ClientManager) 
+		{
+			ClientManager client = (ClientManager) application;
+			client.setClientSessionIdentifier(this.requestContainer);
+			connectionContainer.setSessionIdentifier(this.requestContainer.getClientSessionIdentifier());
+		}
+		
+		if (application instanceof ServerManager) 
+		{
+			this.requestContainer.setClientSessionIdentifier(connectionContainer.getSessionIdentifier());
+		}
 
 		// Create a response container with a default error message
 		this.responseContainer = new ResponseContainer(null, 0, null);
@@ -61,64 +79,6 @@ public abstract class ClientCommand extends Command
 	 */
 	abstract protected boolean processResults();
 
-	/**
-	 * Get the last known client session identifier from local data and set it
-	 * as the current session identifier.
-	 * <p>
-	 * If no valid client session identifier was found, a new one will be
-	 * created.
-	 */
-	private void setClientSessionIdentifier()
-	{
-		// Validate parameter
-		if (this.requestContainer == null) return;
-
-		try
-		{
-			// Get last known client session identifier from local data
-			String clientSessionIdentifier = client.readLastKnownClientSessionIdentifier();
-
-			// Create a new identifier and save it to the local data
-			if (clientSessionIdentifier == null || clientSessionIdentifier.equals(""))
-			{
-				clientSessionIdentifier = this.requestContainer.createClientSessionIdentifier();
-				client.saveLastKnownClientSessionIdentifier(clientSessionIdentifier);
-				return;
-			}
-
-			// Set known the known identifier
-			this.requestContainer.setClientSessionIdentifier(clientSessionIdentifier);
-		}
-		catch (Exception e)
-		{
-			this.notifyError("Command", "ErrorOnProcessingCommand", null, e);
-		}
-	}
-
-	/**
-	 * Create a new client session identifier and save it to local data.
-	 */
-	public void resetClientSessionIdentifier()
-	{
-		// Validate parameter
-		if (this.requestContainer == null) return;
-
-		try
-		{
-			// Create a new identifier
-			String clientSessionIdentifier = this.requestContainer.createClientSessionIdentifier();
-
-			// Save the identifier to the persistence manager
-			client.saveLastKnownClientSessionIdentifier(clientSessionIdentifier);
-
-			// Set the known identifier on the request container
-			this.requestContainer.setClientSessionIdentifier(clientSessionIdentifier);
-		}
-		catch (Exception e)
-		{
-			this.notifyError("Command", "ErrorOnProcessingCommand", null, e);
-		}
-	}
 
 	/**
 	 * Prepare, execute and validate the command.
@@ -185,10 +145,15 @@ public abstract class ClientCommand extends Command
 
 	/**
 	 * Process the command on application server.
+	 * 
+	 * @return Returns <TT>true</TT> if the command was processed successfully,
+	 *         otherwise <TT>false</TT>.
 	 */
 	protected boolean processOnServer()
 	{
-		ResponseContainer serverResponse = this.client.execute(this.context, this.requestContainer);
+		// Execute command on server
+		CommandHandler commandHandler = new CommandHandler(connectionContainer);
+		ResponseContainer serverResponse = commandHandler.execute(this.context, this.requestContainer);
 
 		if (serverResponse != null)
 		{

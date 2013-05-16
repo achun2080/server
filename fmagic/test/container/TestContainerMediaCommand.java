@@ -2,7 +2,7 @@ package fmagic.test.container;
 
 import java.util.List;
 
-import fmagic.basic.command.ResponseContainer;
+import fmagic.basic.command.ConnectionContainer;
 import fmagic.basic.context.Context;
 import fmagic.basic.file.FileUtilFunctions;
 import fmagic.basic.media.MediaContainer;
@@ -10,9 +10,6 @@ import fmagic.basic.media.ResourceContainerMedia;
 import fmagic.basic.resource.ResourceContainer;
 import fmagic.basic.resource.ResourceManager;
 import fmagic.client.application.ClientManager;
-import fmagic.client.command.ClientCommand;
-import fmagic.client.command.ClientCommandCreateSession;
-import fmagic.client.command.ClientCommandHandshake;
 import fmagic.server.application.ServerManager;
 import fmagic.test.application.TestManager;
 import fmagic.test.runner.TestRunner;
@@ -43,6 +40,7 @@ public class TestContainerMediaCommand extends TestContainer
 	// Command properties
 	private ClientManager parameterClient = null;
 	private ServerManager parameterServer = null;
+	private ConnectionContainer connectionContainer = null;
 
 	/**
 	 * Constructor 1
@@ -124,7 +122,7 @@ public class TestContainerMediaCommand extends TestContainer
 		// Setup
 		try
 		{
-			this.doInitializeConnection();
+			this.doInitializeConnectionContainer();
 		}
 		catch (Exception e)
 		{
@@ -527,48 +525,20 @@ public class TestContainerMediaCommand extends TestContainer
 	}
 
 	/**
-	 * Start connection to the application server
+	 * Define and establish connection to the application server.
 	 */
-	private void doInitializeConnection()
+	private void doInitializeConnectionContainer()
 	{
 		try
 		{
-			// General variables
-			ClientCommand command;
-			ResponseContainer responseContainer;
-
-			// Delete old session
 			this.doCleanClientSession();
-
-			// COMMAND Create Session
-			command = new ClientCommandCreateSession(parameterClient.getContext(), parameterClient);
-			responseContainer = command.execute();
-
-			String additionalText = "--> Tried to create a session on application server";
-			TestManager.assertNotNull(this.getContext(), this, additionalText, responseContainer);
-
-			if (responseContainer != null)
-			{
-				additionalText = "--> Tried to create a session on application server";
-				additionalText += "\n--> Application server replied an error code" + "\n";
-				additionalText += responseContainer.toString();
-				TestManager.assertFalse(this.getContext(), this, additionalText, responseContainer.isError());
-			}
-
-			// COMMAND Handshake
-			command = new ClientCommandHandshake(parameterClient.getContext(), parameterClient);
-			responseContainer = command.execute();
-
-			additionalText = "--> Tried to handshake the application server";
-			TestManager.assertNotNull(this.getContext(), this, additionalText, responseContainer);
-
-			if (responseContainer != null)
-			{
-				additionalText = "--> Tried to handshake the application server";
-				additionalText += "\n--> Application server replied an error code" + "\n";
-				additionalText += responseContainer.toString();
-				TestManager.assertFalse(this.getContext(), this, additionalText, responseContainer.isError());
-			}
+			
+			this.connectionContainer = new ConnectionContainer(0, this.getContext().getClientManager().getServerSocketHost(), this.getContext().getClientManager().getServerSocketPort(), this.getContext().getClientManager().getTimeoutTimeInMilliseconds(), this.getContext().getClientManager().getClientPrivateKey());
+			boolean resultBoolean = connectionContainer.establishConnection(this.getContext());
+			
+			String additionalText = "--> Tried to establish a connection to the application server";
+			additionalText += "\n" + connectionContainer.toString();
+			TestManager.assertTrue(this.getContext(), this, additionalText, resultBoolean);
 		}
 		catch (Exception e)
 		{

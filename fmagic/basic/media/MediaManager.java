@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Set;
 
 import fmagic.basic.application.ManagerInterface;
+import fmagic.basic.command.ConnectionContainer;
 import fmagic.basic.command.ResponseContainer;
 import fmagic.basic.context.Context;
 import fmagic.basic.file.FileLocationFunctions;
@@ -134,7 +135,7 @@ public abstract class MediaManager implements ManagerInterface
 		boolean isError = false;
 
 		/*
-		 *  Read client/server specific configuration parameter
+		 * Read client/server specific configuration parameter
 		 */
 		if (readConfigurationLocalMediaRepository(context) == true) isError = true;
 		if (readConfigurationEncodingKeyList(context) == true) isError = true;
@@ -144,7 +145,7 @@ public abstract class MediaManager implements ManagerInterface
 		if (readConfigurationMediaPoolParameter(context) == true) isError = true;
 
 		/*
-		 *  Read common configuration parameter
+		 * Read common configuration parameter
 		 */
 		try
 		{
@@ -156,7 +157,7 @@ public abstract class MediaManager implements ManagerInterface
 
 			// Read parameter: CleanObsoleteDaysToKeep
 			this.cleanObsoleteDaysToKeep = context.getConfigurationManager().getPropertyAsIntegerValue(context, ResourceManager.configuration(context, "Media", "CleanObsoleteDaysToKeep"), false);
-			
+
 			// Read parameter: MaximumMediaSize
 			this.maximumMediaSize = context.getConfigurationManager().getPropertyAsIntegerValue(context, ResourceManager.configuration(context, "Media", "MaximumMediaSize"), false);
 		}
@@ -870,7 +871,7 @@ public abstract class MediaManager implements ManagerInterface
 	 * @return Returns the full path of the encoded pending file that was
 	 *         created, or <TT>null</TT> if an error occurred.
 	 */
-	public String operationEncrypt(Context context, ResourceContainerMedia mediaResourceContainer, String sourceFilePath, String destinationFilePath)
+	public String localEncryptMediaFile(Context context, ResourceContainerMedia mediaResourceContainer, String sourceFilePath, String destinationFilePath)
 	{
 		// Check if server encoding is enabled
 		if (this.isEncodingEnabled(context, mediaResourceContainer) == false) return sourceFilePath;
@@ -913,7 +914,7 @@ public abstract class MediaManager implements ManagerInterface
 	 * @return Returns the full path of the decoded pending file that was
 	 *         created, or <TT>null</TT> if an error occurred.
 	 */
-	public String operationDecrypt(Context context, ResourceContainerMedia mediaResourceContainer, String sourceFilePath)
+	public String localDecryptMediaFile(Context context, ResourceContainerMedia mediaResourceContainer, String sourceFilePath)
 	{
 		/*
 		 * Validate parameter
@@ -1111,7 +1112,7 @@ public abstract class MediaManager implements ManagerInterface
 	 * @return Returns <TT>true</TT> if the file could be stored, otherwise
 	 *         <TT>false</TT>.
 	 */
-	public boolean operationStoreLocal(Context context, ResourceContainerMedia mediaResourceContainer, String uploadFileNamePath, String dataIdentifier)
+	public boolean localStoreMediaFile(Context context, ResourceContainerMedia mediaResourceContainer, String uploadFileNamePath, String dataIdentifier)
 	{
 		/*
 		 * Check variables and conditions
@@ -1301,7 +1302,7 @@ public abstract class MediaManager implements ManagerInterface
 		{
 			String encryptedPendingFileName = FileLocationFunctions.compileFilePath(mediaResourceContainer.mediaFileGetPendingFilePath(context), mediaResourceContainer.mediaFileGetPendingFileName(context, fileType));
 
-			encryptedPendingFileName = this.operationEncrypt(context, mediaResourceContainer, pendingFilePath, encryptedPendingFileName);
+			encryptedPendingFileName = this.localEncryptMediaFile(context, mediaResourceContainer, pendingFilePath, encryptedPendingFileName);
 
 			if (encryptedPendingFileName == null)
 			{
@@ -1567,72 +1568,83 @@ public abstract class MediaManager implements ManagerInterface
 		/*
 		 * Copy original file to the pending file directory
 		 */
-		String pendingFileName = FileLocationFunctions.compileFilePath(mediaResourceContainer.mediaFileGetPendingFilePath(context), mediaResourceContainer.mediaFileGetPendingFileName(context, fileType));
-
-		if (FileUtilFunctions.fileCopy(uploadFileNamePath, pendingFileName) == false)
+		try
 		{
-			String errorString = "--> UPLOAD FROM CLIENT TO SERVER: Error on copying media file (to pending directory).";
+			String pendingFileName = FileLocationFunctions.compileFilePath(mediaResourceContainer.mediaFileGetPendingFilePath(context), mediaResourceContainer.mediaFileGetPendingFileName(context, fileType));
+
+			if (FileUtilFunctions.fileCopy(uploadFileNamePath, pendingFileName) == false)
+			{
+				String errorString = "--> UPLOAD FROM CLIENT TO SERVER: Error on copying media file (to pending directory).";
+				errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+				errorString += "\n--> Source file: '" + uploadFileNamePath + "'";
+				errorString += "\n--> Destination file: '" + pendingFileName + "'";
+				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
+				return false;
+			}
+
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "\n--> UPLOAD FROM CLIENT TO SERVER: Media file copied: '" + uploadFileNamePath + "' --> '" + pendingFileName + "'");
+
+			/*
+			 * Get hash value of the original file
+			 */
+			String hashValue = FileUtilFunctions.fileGetHashValue(pendingFileName);
+
+			if (hashValue == null)
+			{
+				String errorString = "--> UPLOAD FROM CLIENT TO SERVER: Error on computing hash code of the media file.";
+				errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+				errorString += "\n--> File to be hashed: '" + pendingFileName + "'";
+				errorString += "\n--> Original file to be uploaded: '" + uploadFileNamePath + "'";
+
+				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
+				return false;
+			}
+
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "\n--> UPLOAD FROM CLIENT TO SERVERL: Media file hash value [" + hashValue + "] computed for: '" + pendingFileName + "'");
+
+			/*
+			 * COMMAND Media File Upload
+			 */
+			ConnectionContainer connectionContainer = new ConnectionContainer(0, context.getClientManager().getServerSocketHost(), context.getClientManager().getServerSocketPort(), context.getClientManager().getTimeoutTimeInMilliseconds(), context.getClientManager().getClientPrivateKey());
+			ClientCommand command = new ClientCommandMediaFileUpload(context, context.getApplicationManager(), connectionContainer, pendingFileName, mediaResourceContainer.getRecourceIdentifier(), fileType, dataIdentifier, hashValue);
+			ResponseContainer responseContainer = command.execute();
+
+			if (responseContainer == null)
+			{
+				String errorString = "--> UPLOAD FROM CLIENT TO SERVER: Error on executing command 'ClientCommandMediaFileUpload' on server.";
+				errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+				errorString += "\n--> File name of file to be uploaded: '" + uploadFileNamePath + "'";
+				errorString += "\n--> Data identifier of media: '" + dataIdentifier + "'";
+				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
+				return false;
+			}
+
+			if (responseContainer.isError())
+			{
+				String errorString = "--> UPLOAD FROM CLIENT TO SERVER: Error on executing command 'ClientCommandMediaFileUpload' on server.";
+				errorString += "\n--> Application server replied an error code: '" + responseContainer.getErrorCode() + "'";
+				errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+				errorString += "\n--> File name of file to be uploaded: '" + uploadFileNamePath + "'";
+				errorString += "\n--> Data identifier of media: '" + dataIdentifier + "'";
+				errorString += responseContainer.toString();
+				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
+				return false;
+			}
+
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "\n--> UPLOAD FROM CLIENT TO SERVER: Media file uploaded on server: '" + pendingFileName + "'");
+
+			/*
+			 * Delete pending file
+			 */
+			FileUtilFunctions.fileDelete(pendingFileName);
+		}
+		catch (Exception e)
+		{
+			String errorString = "--> UPLOAD FROM CLIENT TO SERVER: Error on executing command.";
 			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
-			errorString += "\n--> Source file: '" + uploadFileNamePath + "'";
-			errorString += "\n--> Destination file: '" + pendingFileName + "'";
-			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, e);
 			return false;
 		}
-
-		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "\n--> UPLOAD FROM CLIENT TO SERVER: Media file copied: '" + uploadFileNamePath + "' --> '" + pendingFileName + "'");
-
-		/*
-		 * Get hash value of the original file
-		 */
-		String hashValue = FileUtilFunctions.fileGetHashValue(pendingFileName);
-
-		if (hashValue == null)
-		{
-			String errorString = "--> UPLOAD FROM CLIENT TO SERVER: Error on computing hash code of the media file.";
-			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
-			errorString += "\n--> File to be hashed: '" + pendingFileName + "'";
-			errorString += "\n--> Original file to be uploaded: '" + uploadFileNamePath + "'";
-
-			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
-			return false;
-		}
-
-		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "\n--> UPLOAD FROM CLIENT TO SERVERL: Media file hash value [" + hashValue + "] computed for: '" + pendingFileName + "'");
-
-		/*
-		 * COMMAND Media File Upload
-		 */
-		ClientCommand command = new ClientCommandMediaFileUpload(context, context.getApplicationManager(), pendingFileName, mediaResourceContainer.getRecourceIdentifier(), fileType, dataIdentifier, hashValue);
-		ResponseContainer responseContainer = command.execute();
-
-		if (responseContainer == null)
-		{
-			String errorString = "--> UPLOAD FROM CLIENT TO SERVER: Error on executing command 'ClientCommandMediaFileUpload' on server.";
-			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
-			errorString += "\n--> File name of file to be uploaded: '" + uploadFileNamePath + "'";
-			errorString += "\n--> Data identifier of media: '" + dataIdentifier + "'";
-			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
-			return false;
-		}
-
-		if (responseContainer.isError())
-		{
-			String errorString = "--> UPLOAD FROM CLIENT TO SERVER: Error on executing command 'ClientCommandMediaFileUpload' on server.";
-			errorString += "\n--> Application server replied an error code: '" + responseContainer.getErrorCode() + "'";
-			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
-			errorString += "\n--> File name of file to be uploaded: '" + uploadFileNamePath + "'";
-			errorString += "\n--> Data identifier of media: '" + dataIdentifier + "'";
-			errorString += responseContainer.toString();
-			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
-			return false;
-		}
-
-		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "\n--> UPLOAD FROM CLIENT TO SERVER: Media file uploaded on server: '" + pendingFileName + "'");
-
-		/*
-		 * Delete pending file
-		 */
-		FileUtilFunctions.fileDelete(pendingFileName);
 
 		/*
 		 * Return
@@ -1728,7 +1740,8 @@ public abstract class MediaManager implements ManagerInterface
 		/*
 		 * COMMAND Media File Check
 		 */
-		ClientCommandMediaFileCheck command = new ClientCommandMediaFileCheck(context, context.getApplicationManager(), mediaResourceContainer.getRecourceIdentifier(), fileType, dataIdentifier, hashValue);
+		ConnectionContainer connectionContainer = new ConnectionContainer(0, context.getClientManager().getServerSocketHost(), context.getClientManager().getServerSocketPort(), context.getClientManager().getTimeoutTimeInMilliseconds(), context.getClientManager().getClientPrivateKey());
+		ClientCommandMediaFileCheck command = new ClientCommandMediaFileCheck(context, context.getApplicationManager(), connectionContainer, mediaResourceContainer.getRecourceIdentifier(), fileType, dataIdentifier, hashValue);
 		ResponseContainer responseContainer = command.execute();
 
 		if (responseContainer == null)
@@ -1808,7 +1821,8 @@ public abstract class MediaManager implements ManagerInterface
 		/*
 		 * COMMAND Media File Check
 		 */
-		ClientCommandMediaFileRead command = new ClientCommandMediaFileRead(context, context.getApplicationManager(), mediaResourceContainer.getRecourceIdentifier(), dataIdentifier);
+		ConnectionContainer connectionContainer = new ConnectionContainer(0, context.getClientManager().getServerSocketHost(), context.getClientManager().getServerSocketPort(), context.getClientManager().getTimeoutTimeInMilliseconds(), context.getClientManager().getClientPrivateKey());
+		ClientCommandMediaFileRead command = new ClientCommandMediaFileRead(context, context.getApplicationManager(), connectionContainer, mediaResourceContainer.getRecourceIdentifier(), dataIdentifier);
 		ResponseContainer responseContainer = command.execute();
 
 		if (responseContainer == null)
@@ -1882,7 +1896,7 @@ public abstract class MediaManager implements ManagerInterface
 		/*
 		 * Store media file in local media repository
 		 */
-		if (this.operationStoreLocal(context, mediaResourceContainer, pendingFileName, dataIdentifier) == false)
+		if (this.localStoreMediaFile(context, mediaResourceContainer, pendingFileName, dataIdentifier) == false)
 		{
 			String errorString = "--> READ FROM SERVER: Error on storing media content in local media repository";
 			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
@@ -2421,8 +2435,8 @@ public abstract class MediaManager implements ManagerInterface
 	 * @param mediaFileName
 	 *            The media file to analyze.
 	 * 
-	 * @return Returns <TT>true</TT> if the maximum size is exceeded or an error occurred, otherwise
-	 *         <TT>false</TT>.
+	 * @return Returns <TT>true</TT> if the maximum size is exceeded or an error
+	 *         occurred, otherwise <TT>false</TT>.
 	 */
 	private boolean doCheckIfMaximumFileSizeExceeded(Context context, String mediaFileName)
 	{
@@ -2432,7 +2446,7 @@ public abstract class MediaManager implements ManagerInterface
 		// No constraint set
 		Integer maximumMediaSizeInKilobyte = this.getMaximumMediaSize();
 		if (maximumMediaSizeInKilobyte == null) return false;
-		
+
 		// Check file size
 		try
 		{
@@ -2601,7 +2615,7 @@ public abstract class MediaManager implements ManagerInterface
 			/*
 			 * Upload pending file into the system as a regular media file
 			 */
-			if (context.getMediaManager().operationStoreLocal(context, mediaResourceContainer, pendingFileName, dataIdentifier) == false)
+			if (context.getMediaManager().localStoreMediaFile(context, mediaResourceContainer, pendingFileName, dataIdentifier) == false)
 			{
 				String errorString = "--> PUSH MEDIA CONTENT: Error on storing pending file as regular media file";
 				errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";

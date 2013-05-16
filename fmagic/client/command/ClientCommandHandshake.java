@@ -1,9 +1,10 @@
 package fmagic.client.command;
 
+import fmagic.basic.application.ApplicationManager;
+import fmagic.basic.command.ConnectionContainer;
 import fmagic.basic.context.Context;
 import fmagic.basic.resource.ResourceContainer;
 import fmagic.basic.resource.ResourceManager;
-import fmagic.client.application.ClientManager;
 
 /**
  * COMMAND: Check if the connection to a server is available and works fine.
@@ -34,9 +35,9 @@ public class ClientCommandHandshake extends ClientCommand
 	 * @param client
 	 *            Application client.
 	 */
-	public ClientCommandHandshake(Context context, ClientManager client)
+	public ClientCommandHandshake(Context context, ApplicationManager client, ConnectionContainer connectionContainer)
 	{
-		super(context, client, ResourceManager.command(context, "Handshake").getRecourceIdentifier());
+		super(context, client, ResourceManager.command(context, "Handshake").getRecourceIdentifier(), connectionContainer);
 	}
 
 	@Override

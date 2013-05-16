@@ -174,9 +174,6 @@ public class RequestContainer
 		return clientCodeName;
 	}
 
-	/**
-	 * To string
-	 */
 	@Override
 	public String toString()
 	{

@@ -1,4 +1,4 @@
-package fmagic.basic.watchdog;
+package fmagic.server.watchdog;
 
 import java.util.Set;
 
@@ -181,7 +181,7 @@ public class WatchdogServer extends Thread
 		// Stop WATCHDOG server
 		try
 		{
-			context.getWatchdogManager().waitForCompletingWatchdogQueue(60);
+			context.getWatchdogManager().waitForCompletingWatchdogQueue(context.getApplicationManager().getMaximumWaitingTimeForPendingThreadsInSeconds());
 			context.getNotificationManager().notifyEvent(context, ResourceManager.notification(context, "Watchdog", "WatchdogServerInterrupted"), null, null);
 			this.interrupt();
 		}

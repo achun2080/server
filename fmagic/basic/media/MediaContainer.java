@@ -72,7 +72,7 @@ public class MediaContainer
 		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "\n--> MEDIA CONTAINER: Media was bound to original media file path: '" + this.originalMediaFilePath + "'");
 
 		// Copy or decrypt media file to a pending (temporary) file
-		this.workingMediaFilePath = this.context.getMediaManager().operationDecrypt(this.context, this.resourceContainerMedia, this.originalMediaFilePath);
+		this.workingMediaFilePath = this.context.getMediaManager().localDecryptMediaFile(this.context, this.resourceContainerMedia, this.originalMediaFilePath);
 		if (this.workingMediaFilePath == null || this.workingMediaFilePath.length() == 0) return false;
 
 		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "\n--> MEDIA CONTAINER: Bounded media was copied/decrypted the the 'pending' directory: '" + this.workingMediaFilePath + "'");

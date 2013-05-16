@@ -1,6 +1,7 @@
 package fmagic.client.command;
 
 import fmagic.basic.application.ApplicationManager;
+import fmagic.basic.command.ConnectionContainer;
 import fmagic.basic.context.Context;
 import fmagic.basic.resource.ResourceContainer;
 import fmagic.basic.resource.ResourceManager;
@@ -32,10 +33,10 @@ public class ClientCommandMediaFileCheck extends ClientCommand
 	 *            Application client.
 	 */
 	public ClientCommandMediaFileCheck(Context context,
-			ApplicationManager client, String  mediaResourceIdentifier, String fileType, String dataIdentifier,
+			ApplicationManager client, ConnectionContainer connectionContainer, String  mediaResourceIdentifier, String fileType, String dataIdentifier,
 			String hashValue)
 	{
-		super(context, (ClientManager) client, ResourceManager.command(context, "MediaFileCheck").getRecourceIdentifier());
+		super(context, (ClientManager) client, ResourceManager.command(context, "MediaFileCheck").getRecourceIdentifier(), connectionContainer);
 
 		this.mediaResourceIdentifier = mediaResourceIdentifier;
 		this.fileType = fileType;

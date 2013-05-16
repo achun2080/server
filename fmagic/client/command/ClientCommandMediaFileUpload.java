@@ -1,6 +1,7 @@
 package fmagic.client.command;
 
 import fmagic.basic.application.ApplicationManager;
+import fmagic.basic.command.ConnectionContainer;
 import fmagic.basic.context.Context;
 import fmagic.basic.file.FileUtilFunctions;
 import fmagic.basic.resource.ResourceManager;
@@ -34,10 +35,10 @@ public class ClientCommandMediaFileUpload extends ClientCommand
 	 *            Application client.
 	 */
 	public ClientCommandMediaFileUpload(Context context,
-			ApplicationManager client, String fileToBeUploaded, String  mediaResourceIdentifier, String fileType, String dataIdentifier,
+			ApplicationManager client, ConnectionContainer connectionContainer, String fileToBeUploaded, String  mediaResourceIdentifier, String fileType, String dataIdentifier,
 			String hashValue)
 	{
-		super(context, (ClientManager) client, ResourceManager.command(context, "MediaFileUpload").getRecourceIdentifier());
+		super(context, (ClientManager) client, ResourceManager.command(context, "MediaFileUpload").getRecourceIdentifier(), connectionContainer);
 
 		this.mediaResourceIdentifier = mediaResourceIdentifier;
 		this.fileType = fileType;

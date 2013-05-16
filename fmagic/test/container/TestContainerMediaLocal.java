@@ -652,7 +652,7 @@ public class TestContainerMediaLocal extends TestContainer
 			additionalText += "\n--> Upload file? '" + uploadFileName + "'";
 			additionalText += "\n--> Data identifier? '" + dataIdentifierString + "'";
 
-			boolean booleanResult = this.getContext().getMediaManager().operationStoreLocal(this.getContext(), mediaResource, uploadFileName, dataIdentifierString);
+			boolean booleanResult = this.getContext().getMediaManager().localStoreMediaFile(this.getContext(), mediaResource, uploadFileName, dataIdentifierString);
 			TestManager.assertTrue(this.getContext(), this, additionalText, booleanResult);
 
 			/*
@@ -1395,14 +1395,14 @@ public class TestContainerMediaLocal extends TestContainer
 					{
 						String errorIdentifier = ResourceManager.notification(this.getContext(), "Media", "MaximumMediaSizeExceeded").getRecourceIdentifier();
 						TestManager.errorSuppressErrorMessageOnce(this.getContext(), errorIdentifier);
-						boolean booleanResult = this.getContext().getMediaManager().operationStoreLocal(this.getContext(), media, fileList.get(i), name);
+						boolean booleanResult = this.getContext().getMediaManager().localStoreMediaFile(this.getContext(), media, fileList.get(i), name);
 						TestManager.assertRuntimeErrorCode(this.getContext(), this, null, errorIdentifier);
 						TestManager.assertFalse(this.getContext(), this, null, booleanResult);
 					}
 					// Upload regularly
 					else
 					{
-						boolean booleanResult = this.getContext().getMediaManager().operationStoreLocal(this.getContext(), media, fileList.get(i), name);
+						boolean booleanResult = this.getContext().getMediaManager().localStoreMediaFile(this.getContext(), media, fileList.get(i), name);
 						TestManager.assertTrue(this.getContext(), this, null, booleanResult);
 					}
 				}
@@ -1446,14 +1446,14 @@ public class TestContainerMediaLocal extends TestContainer
 					{
 						String errorIdentifier = ResourceManager.notification(this.getContext(), "Media", "MaximumMediaSizeExceeded").getRecourceIdentifier();
 						TestManager.errorSuppressErrorMessageOnce(this.getContext(), errorIdentifier);
-						boolean booleanResult = this.getContext().getMediaManager().operationStoreLocal(this.getContext(), media, fileList.get(i), name);
+						boolean booleanResult = this.getContext().getMediaManager().localStoreMediaFile(this.getContext(), media, fileList.get(i), name);
 						TestManager.assertRuntimeErrorCode(this.getContext(), this, null, errorIdentifier);
 						TestManager.assertFalse(this.getContext(), this, null, booleanResult);
 					}
 					// Upload regularly
 					else
 					{
-						boolean booleanResult = this.getContext().getMediaManager().operationStoreLocal(this.getContext(), media, fileList.get(i), name);
+						boolean booleanResult = this.getContext().getMediaManager().localStoreMediaFile(this.getContext(), media, fileList.get(i), name);
 						TestManager.assertTrue(this.getContext(), this, null, booleanResult);
 					}
 				}

@@ -1,4 +1,4 @@
-package fmagic.basic.watchdog;
+package fmagic.server.watchdog;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;

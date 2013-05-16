@@ -8,15 +8,13 @@ import fmagic.basic.file.FileUtilFunctions;
 import fmagic.basic.resource.ResourceContainer;
 import fmagic.basic.resource.ResourceContainer.OriginEnum;
 import fmagic.basic.resource.ResourceManager;
-import fmagic.basic.watchdog.WatchdogManager;
-import fmagic.basic.watchdog.WatchdogServer;
+import fmagic.client.application.ClientManager;
 import fmagic.client.context.ClientContext;
 import fmagic.server.application.ServerManager;
 import fmagic.server.context.ServerContext;
-import fmagic.server.media.ServerMediaManager;
 import fmagic.server.media.ServerMediaPoolServer;
+import fmagic.server.watchdog.WatchdogServer;
 import fmagic.test.application.TestManager;
-import fmagic.client.application.ClientManager;
 
 /**
  * This class implements common data needed to organize client/server FMAGIC
@@ -739,5 +737,13 @@ public abstract class ApplicationManager implements ManagerInterface
 	public boolean isClientApplication()
 	{
 		return clientApplication;
+	}
+
+	/**
+	 * Getter
+	 */
+	public Integer getMaximumWaitingTimeForPendingThreadsInSeconds()
+	{
+		return maximumWaitingTimeForPendingThreadsInSeconds;
 	}
 }

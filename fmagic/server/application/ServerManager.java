@@ -17,10 +17,10 @@ import fmagic.basic.file.FileUtilFunctions;
 import fmagic.basic.notification.NotificationManager;
 import fmagic.basic.resource.ResourceContainer.OriginEnum;
 import fmagic.basic.resource.ResourceManager;
-import fmagic.basic.watchdog.WatchdogManager;
-import fmagic.basic.watchdog.WatchdogServer;
 import fmagic.server.media.ServerMediaManager;
 import fmagic.server.media.ServerMediaPoolServer;
+import fmagic.server.watchdog.WatchdogManager;
+import fmagic.server.watchdog.WatchdogServer;
 
 /**
  * This class implements common functions of the application servers of the
@@ -560,7 +560,7 @@ public abstract class ServerManager extends ApplicationManager
 	public void threadPoolShutDown()
 	{
 		// Validate parameter
-		if (this.maximumWaitingTimeForPendingThreadsInSeconds == null)
+		if (this.getMaximumWaitingTimeForPendingThreadsInSeconds() == null)
 		{
 			String errorString = "--> Configuration parameter 'Shutdown/MaximumWaitingTimeForPendingThreadsInSeconds' is not defined";
 			this.getContext().getNotificationManager().notifyError(this.getContext(), ResourceManager.notification(this.getContext(), "Application", "ErrorOnShutdownThreadPool"), errorString, null);
@@ -575,7 +575,7 @@ public abstract class ServerManager extends ApplicationManager
 		{
 			try
 			{
-				FileUtilFunctions.generalWaitForThreadTerminating(thread, this.maximumWaitingTimeForPendingThreadsInSeconds);
+				FileUtilFunctions.generalWaitForThreadTerminating(thread, this.getMaximumWaitingTimeForPendingThreadsInSeconds());
 			}
 			catch (Exception exception)
 			{
@@ -649,7 +649,7 @@ public abstract class ServerManager extends ApplicationManager
 	}
 
 	/**
-	 * Getter
+	 * Get server public key.
 	 */
 	public String getServerPublicKey()
 	{
@@ -657,7 +657,7 @@ public abstract class ServerManager extends ApplicationManager
 	}
 
 	/**
-	 * Getter
+	 * Get server private key.
 	 */
 	public String getServerPrivateKey()
 	{

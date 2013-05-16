@@ -4,12 +4,20 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import fmagic.basic.command.ConnectionContainer;
+import fmagic.basic.command.ResponseContainer;
 import fmagic.basic.context.Context;
 import fmagic.basic.media.MediaManager;
 import fmagic.basic.media.ResourceContainerMedia;
+import fmagic.basic.notification.NotificationManager;
 import fmagic.basic.resource.ResourceContainer;
 import fmagic.basic.resource.ResourceManager;
-import fmagic.basic.watchdog.WatchdogCommand;
+import fmagic.client.command.ClientCommand;
+import fmagic.client.command.ClientCommandCreateSession;
+import fmagic.client.command.ClientCommandHandshake;
+import fmagic.client.command.ClientCommandMediaFileCheck;
+import fmagic.server.watchdog.WatchdogCommand;
+import fmagic.test.application.TestManager;
 
 /**
  * This class implements the management of media of server applications.
@@ -22,15 +30,20 @@ import fmagic.basic.watchdog.WatchdogCommand;
 public class ServerMediaManager extends MediaManager
 {
 	// Settings for Media Server Pool
-	private final HashMap<Integer, ServerMediaPoolHostContainer> mediaPoolList = new HashMap<Integer, ServerMediaPoolHostContainer>();
+	private final HashMap<Integer, ConnectionContainer> mediaPoolList = new HashMap<Integer, ConnectionContainer>();
 	private int poolMainServerNumber = 0;
 	private boolean enableLocalRepository = true;
 	private boolean enableMediaPool = false;
 	private int maximumNuOfItemsInCommandQueue = 0;
 	private int secondsToWaitBetweenCommandProcessing = 0;
+	private int socketTimeoutForCheckingMediaFilesInSeconds = 0;
+	private int socketTimeoutForReadingMediaFilesInSeconds = 0;
+	private int socketTimeoutForUploadingMediaFilesInSeconds = 0;
 
 	// List of media server commands (requests) to process
-	private Queue<ServerMediaPoolCommand> commandQueue = new LinkedList<ServerMediaPoolCommand>();
+	private Queue<ServerMediaPoolCommand> commandMainQueue = new LinkedList<ServerMediaPoolCommand>();
+	private Queue<ServerMediaPoolCommand> commandSecondaryQueue = new LinkedList<ServerMediaPoolCommand>();
+	private Queue<ServerMediaPoolCommand> commandSynchronizingQueue = new LinkedList<ServerMediaPoolCommand>();
 
 	/**
 	 * Constructor
@@ -252,7 +265,23 @@ public class ServerMediaManager extends MediaManager
 			resourceContainer = ResourceManager.configuration(context, "MediaPool", "MaximumNuOfItemsInCommandQueue");
 			this.maximumNuOfItemsInCommandQueue = context.getConfigurationManager().getPropertyAsIntegerValue(context, resourceContainer, false);
 
-			// Read configuration parameter: SecondsToWaitBetweenCommandProcessing
+			// Read configuration parameter:
+			// SocketTimeoutForCheckingMediaFilesInSeconds
+			resourceContainer = ResourceManager.configuration(context, "MediaPool", "SocketTimeoutForCheckingMediaFilesInSeconds");
+			this.socketTimeoutForCheckingMediaFilesInSeconds = context.getConfigurationManager().getPropertyAsIntegerValue(context, resourceContainer, false);
+
+			// Read configuration parameter:
+			// SocketTimeoutForReadingMediaFilesInSeconds
+			resourceContainer = ResourceManager.configuration(context, "MediaPool", "SocketTimeoutForReadingMediaFilesInSeconds");
+			this.socketTimeoutForReadingMediaFilesInSeconds = context.getConfigurationManager().getPropertyAsIntegerValue(context, resourceContainer, false);
+
+			// Read configuration parameter:
+			// SocketTimeoutForUploadingMediaFilesInSeconds
+			resourceContainer = ResourceManager.configuration(context, "MediaPool", "SocketTimeoutForUploadingMediaFilesInSeconds");
+			this.socketTimeoutForUploadingMediaFilesInSeconds = context.getConfigurationManager().getPropertyAsIntegerValue(context, resourceContainer, false);
+
+			// Read configuration parameter:
+			// SecondsToWaitBetweenCommandProcessing
 			resourceContainer = ResourceManager.configuration(context, "MediaPool", "SecondsToWaitBetweenCommandProcessing");
 			this.secondsToWaitBetweenCommandProcessing = context.getConfigurationManager().getPropertyAsIntegerValue(context, resourceContainer, false);
 
@@ -401,7 +430,7 @@ public class ServerMediaManager extends MediaManager
 							}
 
 							// Save to media pool list
-							ServerMediaPoolHostContainer container = new ServerMediaPoolHostContainer(number, host, port);
+							ConnectionContainer container = new ConnectionContainer(number, host, port);
 							this.mediaPoolList.put(number, container);
 						}
 					}
@@ -486,8 +515,8 @@ public class ServerMediaManager extends MediaManager
 	}
 
 	/**
-	 * Wait for the end of processing of all commands of the media server, but after
-	 * maximum of x seconds the method always returns.
+	 * Wait for the end of processing of all commands of the media server, but
+	 * after maximum of x seconds the method always returns.
 	 * 
 	 * @param maxTimeToWaitInSeconds
 	 *            Maximum number of seconds to wait.
@@ -498,7 +527,7 @@ public class ServerMediaManager extends MediaManager
 
 		while (counter-- > 0)
 		{
-			if (this.getNumberOfMediaServerCommandElements() <= 0) break;
+			if (this.getNumberOfCommandsInMainQueue() <= 0 && this.getNumberOfCommandsInSecondaryQueue() <= 0) break;
 
 			try
 			{
@@ -513,49 +542,365 @@ public class ServerMediaManager extends MediaManager
 	}
 
 	/**
-	 * Get number of elements in media server command queue.
+	 * Get number of elements in media server <TT>main</TT> command queue.
 	 * <p>
 	 * Please pay attention to the tread safety of this class, because there are
 	 * many threads using one and the same instance.
 	 * 
-	 * @return Returns the number of elements in media server command queue.
+	 * @return Returns the number of elements in media server <TT>main</TT>
+	 *         command queue.
 	 */
-	int getNumberOfMediaServerCommandElements()
+	int getNumberOfCommandsInMainQueue()
 	{
 		int size = 0;
 
-		synchronized (this.commandQueue)
+		synchronized (this.commandMainQueue)
 		{
-			size = this.commandQueue.size();
+			size = this.commandMainQueue.size();
 		}
 
 		return size;
 	}
 
 	/**
-	 * Get the next element of media server command queue.
+	 * Get number of elements in media server <TT>secondary</TT> command queue.
 	 * <p>
 	 * Please pay attention to the tread safety of this class, because there are
 	 * many threads using one and the same instance.
 	 * 
-	 * @return Returns the next media server command to process or <TT>null</TT>.
+	 * @return Returns the number of elements in media server <TT>secondary</TT>
+	 *         command queue.
 	 */
-	ServerMediaPoolCommand getMediaServerCommand()
+	int getNumberOfCommandsInSecondaryQueue()
+	{
+		int size = 0;
+
+		synchronized (this.commandSecondaryQueue)
+		{
+			size = this.commandSecondaryQueue.size();
+		}
+
+		return size;
+	}
+
+	/**
+	 * Get number of elements in media server <TT>synchronizing</TT> command
+	 * queue.
+	 * <p>
+	 * Please pay attention to the tread safety of this class, because there are
+	 * many threads using one and the same instance.
+	 * 
+	 * @return Returns the number of elements in media server
+	 *         <TT>synchronizing</TT> command queue.
+	 */
+	int getNumberOfCommandsInSynchronizingQueue()
+	{
+		int size = 0;
+
+		synchronized (this.commandSynchronizingQueue)
+		{
+			size = this.commandSynchronizingQueue.size();
+		}
+
+		return size;
+	}
+
+	/**
+	 * Get the next element of media server <TT>main</TT> command queue.
+	 * <p>
+	 * Please pay attention to the tread safety of this class, because there are
+	 * many threads using one and the same instance.
+	 * 
+	 * @return Returns the next media server <TT>main</TT> command to process,
+	 *         or <TT>null</TT>
+	 */
+	ServerMediaPoolCommand getNextCommandFromMainQueue()
 	{
 		ServerMediaPoolCommand command = null;
 
-		synchronized (this.commandQueue)
+		synchronized (this.commandMainQueue)
 		{
-			command = this.commandQueue.poll();
+			command = this.commandMainQueue.poll();
 		}
 
 		return command;
 	}
 
 	/**
+	 * Get the next element of media server <TT>secondary</TT> command queue.
+	 * <p>
+	 * Please pay attention to the tread safety of this class, because there are
+	 * many threads using one and the same instance.
+	 * 
+	 * @return Returns the next media server <TT>secondary</TT> command to
+	 *         process, or <TT>null</TT>
+	 */
+	ServerMediaPoolCommand getNextCommandFromSecondaryQueue()
+	{
+		ServerMediaPoolCommand command = null;
+
+		synchronized (this.commandSecondaryQueue)
+		{
+			command = this.commandSecondaryQueue.poll();
+		}
+
+		return command;
+	}
+
+	/**
+	 * Get the next element of media server <TT>synchronizing</TT> command
+	 * queue.
+	 * <p>
+	 * Please pay attention to the tread safety of this class, because there are
+	 * many threads using one and the same instance.
+	 * 
+	 * @return Returns the next media server <TT>synchronizing</TT> command to
+	 *         process, or <TT>null</TT>
+	 */
+	ServerMediaPoolCommand getNextCommandFromSynchronizingQueue()
+	{
+		ServerMediaPoolCommand command = null;
+
+		synchronized (this.commandSynchronizingQueue)
+		{
+			command = this.commandSynchronizingQueue.poll();
+		}
+
+		return command;
+	}
+
+	/**
+	 * Check if a media file already exists on a media server pool. Only the
+	 * most recent media file is searched for on server, not any obsolete files.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param mediaResourceContainer
+	 *            The media resource container to consider.
+	 * 
+	 * @param fileType
+	 *            File type of the file to check.
+	 * 
+	 * @param hashValue
+	 *            Hash value of the file to check.
+	 * 
+	 * @param dataIdentifier
+	 *            The identifier of the concrete media item to check.
+	 * 
+	 * @return Returns <TT>true</TT> if the media file exists, otherwise
+	 *         <TT>false</TT>.
+	 */
+	public boolean poolCheckMediaFileOnPool(Context context, ResourceContainerMedia mediaResourceContainer, String fileType, String dataIdentifier, String hashValue)
+	{
+		/*
+		 * Check variables and conditions
+		 */
+
+		// Check if media pool is enabled
+		if (!this.isEnableMediaPool()) { return false; }
+
+		// Check media resource container
+		if (mediaResourceContainer == null)
+		{
+			String errorString = "--> CHECK ON POOL: Media resource container not set (NULL value).";
+			if (fileType != null) errorString += "\n--> File type of media: '" + fileType + "'";
+			if (dataIdentifier != null) errorString += "\n--> Data identifier of media: '" + dataIdentifier + "'";
+			if (hashValue != null) errorString += "\n--> Hash value of media: '" + hashValue + "'";
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnCheckingFile"), errorString, null);
+			return false;
+		}
+
+		// Check file type
+		if (fileType == null || fileType.length() == 0)
+		{
+			String errorString = "--> CHECK ON POOL: Missing file type of the file to be checked (NULL value or EMPTY).";
+			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+			if (fileType != null) errorString += "\n--> File type of media: '" + fileType + "'";
+			if (dataIdentifier != null) errorString += "\n--> Data identifier of media: '" + dataIdentifier + "'";
+			if (hashValue != null) errorString += "\n--> Hash value of media: '" + hashValue + "'";
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnCheckingFile"), errorString, null);
+			return false;
+		}
+
+		// Check data identifier
+		if (dataIdentifier == null || dataIdentifier.length() == 0)
+		{
+			String errorString = "--> CHECK ON POOL: Missing data identifier of media (NULL value or EMPTY).";
+			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+			if (fileType != null) errorString += "\n--> File type of media: '" + fileType + "'";
+			if (dataIdentifier != null) errorString += "\n--> Data identifier of media: '" + dataIdentifier + "'";
+			if (hashValue != null) errorString += "\n--> Hash value of media: '" + hashValue + "'";
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnCheckingFile"), errorString, null);
+			return false;
+		}
+
+		// Check hash value
+		if (hashValue == null || hashValue.length() == 0)
+		{
+			String errorString = "--> CHECK ON POOL: Missing hash value of media (NULL value or EMPTY).";
+			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+			if (fileType != null) errorString += "\n--> File type of media: '" + fileType + "'";
+			if (dataIdentifier != null) errorString += "\n--> Data identifier of media: '" + dataIdentifier + "'";
+			if (hashValue != null) errorString += "\n--> Hash value of media: '" + hashValue + "'";
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnCheckingFile"), errorString, null);
+			return false;
+		}
+
+		// Checks if file type allowed for the given media resource item
+		if (mediaResourceContainer.attributeIsFileTypeSupported(context, fileType) == false)
+		{
+			String errorString = "--> CHECK ON POOL: File type '" + fileType + "' is not supported by the current media resource item.";
+			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+			if (fileType != null) errorString += "\n--> File type of media: '" + fileType + "'";
+			if (dataIdentifier != null) errorString += "\n--> Data identifier of media: '" + dataIdentifier + "'";
+			if (hashValue != null) errorString += "\n--> Hash value of media: '" + hashValue + "'";
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnCheckingFile"), errorString, null);
+			return false;
+		}
+
+		/*
+		 * Check media file on media pool
+		 */
+
+		// Initialize
+		boolean mediaFileExists = false;
+
+		try
+		{
+
+			while (true)
+			{
+				// Ask main server of media pool
+				int mainServerNumber = this.getPoolMainServerNumber();
+
+				if (mainServerNumber > 0)
+				{
+					ConnectionContainer connectionContainer = this.mediaPoolList.get(mainServerNumber);
+
+					if (connectionContainer != null)
+					{
+						if (this.doMediaFileCheckOnMediaPool(context, connectionContainer, mediaResourceContainer, fileType, dataIdentifier, hashValue))
+						{
+							mediaFileExists = true;
+							break;
+						}
+					}
+				}
+
+				// Ask secondary servers of media pool
+				int numberOfserverInPool = this.mediaPoolList.size();
+
+				if (numberOfserverInPool > 0)
+				{
+					for (ConnectionContainer connectionContainer : this.mediaPoolList.values())
+					{
+						if (connectionContainer.getNumber() == mainServerNumber) continue;
+
+						if (this.doMediaFileCheckOnMediaPool(context, connectionContainer, mediaResourceContainer, fileType, dataIdentifier, hashValue))
+						{
+							mediaFileExists = true;
+							break;
+						}
+					}
+				}
+
+				// End of processing
+				break;
+			}
+		}
+		catch (Exception e)
+		{
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnCheckingFile"), null, e);
+			mediaFileExists = false;
+		}
+
+		// Logging
+		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "\n--> CHECK ON POOL: Result of checking media file on pool: '" + String.valueOf(mediaFileExists) + "'");
+
+		/*
+		 * Return
+		 */
+		return mediaFileExists;
+	}
+
+	/**
+	 * Check if a media file already exists on a media server pool. Only the
+	 * most recent media file is searched for on server, not any obsolete files.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param connectionContainer
+	 *            Connection container that holds all information of the connection to use.
+	 * 
+	 * @param mediaResourceContainer
+	 *            The media resource container to consider.
+	 * 
+	 * @param fileType
+	 *            File type of the file to check.
+	 * 
+	 * @param hashValue
+	 *            Hash value of the file to check.
+	 * 
+	 * @param dataIdentifier
+	 *            The identifier of the concrete media item to check.
+	 * 
+	 * @return Returns <TT>true</TT> if the media file exists, otherwise
+	 *         <TT>false</TT>.
+	 */
+	private boolean doMediaFileCheckOnMediaPool(Context context, ConnectionContainer connectionContainer, ResourceContainerMedia mediaResourceContainer, String fileType, String dataIdentifier, String hashValue)
+	{
+		/*
+		 * COMMAND Media File Check
+		 */
+		
+		// Prepare connection
+		connectionContainer.setPrivateKey(context.getServerManager().getServerPrivateKey());
+		connectionContainer.setTimeoutTimeInMilliseconds(this.socketTimeoutForCheckingMediaFilesInSeconds * 1000);
+		if (connectionContainer.establishConnection(context) == false) return false;
+		
+		// Create and execute command
+		ClientCommandMediaFileCheck command = new ClientCommandMediaFileCheck(context, context.getApplicationManager(), connectionContainer, mediaResourceContainer.getRecourceIdentifier(), fileType, dataIdentifier, hashValue);
+		ResponseContainer responseContainer = command.execute();
+
+		if (responseContainer == null)
+		{
+			String errorString = "--> CHECK ON POOL: Error on executing command 'ClientCommandMediaFileCheck' on server.";
+			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+			if (fileType != null) errorString += "\n--> File type of media: '" + fileType + "'";
+			if (dataIdentifier != null) errorString += "\n--> Data identifier of media: '" + dataIdentifier + "'";
+			if (hashValue != null) errorString += "\n--> Hash value of media: '" + hashValue + "'";
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
+			return false;
+		}
+
+		if (responseContainer.isError())
+		{
+			String errorString = "--> CHECK ON POOL: Error on executing command 'ClientCommandMediaFileCheck' on server.";
+			errorString += "\n--> Application server replied with error code: '" + responseContainer.getErrorCode() + "'";
+			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+			if (fileType != null) errorString += "\n--> File type of media: '" + fileType + "'";
+			if (dataIdentifier != null) errorString += "\n--> Data identifier of media: '" + dataIdentifier + "'";
+			if (hashValue != null) errorString += "\n--> Hash value of media: '" + hashValue + "'";
+			errorString += responseContainer.toString();
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
+			return false;
+		}
+
+		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "\n--> CHECK ON POOL: Result of checking media file on server: '" + command.isMediaFileExisting() + "'");
+
+		/*
+		 * Return
+		 */
+		if (command.isMediaFileExisting() == null || command.isMediaFileExisting() == false) return false;
+		return true;
+	}
+
+	/**
 	 * Getter
 	 */
-	public HashMap<Integer, ServerMediaPoolHostContainer> getMediaPoolList()
+	public HashMap<Integer, ConnectionContainer> getMediaPoolList()
 	{
 		return mediaPoolList;
 	}
@@ -598,13 +943,5 @@ public class ServerMediaManager extends MediaManager
 	public int getSecondsToWaitBetweenCommandProcessing()
 	{
 		return secondsToWaitBetweenCommandProcessing;
-	}
-
-	/**
-	 * Getter
-	 */
-	public Queue<ServerMediaPoolCommand> getCommandQueue()
-	{
-		return commandQueue;
 	}
 }

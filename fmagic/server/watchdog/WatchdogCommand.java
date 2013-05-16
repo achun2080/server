@@ -1,4 +1,4 @@
-package fmagic.basic.watchdog;
+package fmagic.server.watchdog;
 
 import java.util.Date;
 

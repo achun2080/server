@@ -1,6 +1,7 @@
 package fmagic.client.command;
 
 import fmagic.basic.application.ApplicationManager;
+import fmagic.basic.command.ConnectionContainer;
 import fmagic.basic.context.Context;
 import fmagic.basic.resource.ResourceContainer;
 import fmagic.basic.resource.ResourceManager;
@@ -33,10 +34,10 @@ public class ClientCommandMediaFileRead extends ClientCommand
 	 *            Application client.
 	 */
 	public ClientCommandMediaFileRead(Context context,
-			ApplicationManager client, String mediaResourceIdentifier,
+			ApplicationManager client, ConnectionContainer connectionContainer, String mediaResourceIdentifier,
 			String dataIdentifier)
 	{
-		super(context, (ClientManager) client, ResourceManager.command(context, "MediaFileRead").getRecourceIdentifier());
+		super(context, (ClientManager) client, ResourceManager.command(context, "MediaFileRead").getRecourceIdentifier(), connectionContainer);
 
 		this.mediaResourceIdentifier = mediaResourceIdentifier;
 		this.dataIdentifier = dataIdentifier;
