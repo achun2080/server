@@ -109,7 +109,7 @@ public class ServerCommandMediaFileRead extends ServerCommand
 		try
 		{
 			// Check if media file exists
-			if (this.getContext().getMediaManager().doCheckIfMediaFileExists(this.getContext(), this.mediaResourceContainer, this.dataIdentifier) == false)
+			if (this.getContext().getMediaManager().getMediaUtil().isMediaFileExists(this.getContext(), this.mediaResourceContainer, this.dataIdentifier) == false)
 			{
 				this.isExisting = false;
 				this.isRead = false;
@@ -121,7 +121,7 @@ public class ServerCommandMediaFileRead extends ServerCommand
 			}
 
 			// Get file type of media file
-			this.fileType = this.getContext().getMediaManager().doGetFileTypeOfMediaFile(this.getContext(), this.mediaResourceContainer, this. dataIdentifier);
+			this.fileType = this.getContext().getMediaManager().getMediaUtil().getMediaFileType(this.getContext(), this.mediaResourceContainer, this. dataIdentifier);
 
 			if (this.fileType == null || this.fileType.length() == 0)
 			{
@@ -130,7 +130,7 @@ public class ServerCommandMediaFileRead extends ServerCommand
 			}
 
 			// Read content from media file
-			this.mediaContent = this.getContext().getMediaManager().doReadMediaContent(this.context, this.mediaResourceContainer, this.dataIdentifier);
+			this.mediaContent = this.getContext().getMediaManager().getMediaUtil().readMediaContentFromMediaFile(this.context, this.mediaResourceContainer, this.dataIdentifier);
 
 			if (this.mediaContent == null)
 			{

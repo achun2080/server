@@ -2,12 +2,9 @@ package fmagic.basic.command;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-
-import fmagic.basic.file.FileUtilFunctions;
 
 /**
  * This class contains all data needed for a client request to a server via
@@ -129,17 +126,6 @@ public class RequestContainer
 		{
 			this.clientSessionIdentifier = clientSessionIdentifier.trim();
 		}
-	}
-
-	/**
-	 * Create new client session identifier.
-	 * 
-	 * @return Returns the client session identifier that was created.
-	 */
-	public String createClientSessionIdentifier()
-	{
-		this.clientSessionIdentifier = String.valueOf(new Date().getTime()).trim() + String.valueOf(FileUtilFunctions.generalGetRandomValue(0, 100000));
-		return this.clientSessionIdentifier;
 	}
 
 	/**

@@ -180,7 +180,6 @@ public class TestRunnerMediaCommand extends TestRunner
 	{
 		TestContainerMediaCommand testContainer;
 
-		int timeoutTimeInMilliseconds = 100000;
 		int plainNumberOfMediaToBeUploaded = 100;
 		int cycleNumberOfFilesToBeUploaded = 100;
 
@@ -190,7 +189,7 @@ public class TestRunnerMediaCommand extends TestRunner
 			ClientManager client = this.clientAp1;
 			ServerManager server = this.serverAp1;
 
-			client.setSocketConnectionParameter("localhost", server.getServerSocketPort(), timeoutTimeInMilliseconds);
+			client.setSocketConnectionParameter("localhost", server.getServerSocketPort());
 
 			// Execute test 1 (Doorway)
 			testContainer = new TestContainerMediaCommand(client.getContext(), this, false);
@@ -270,7 +269,6 @@ public class TestRunnerMediaCommand extends TestRunner
 		TestContainerMediaCommand testContainer;
 		List<Thread> threadList = new ArrayList<Thread>();
 
-		int timeoutTimeInMilliseconds = 100000;
 		int plainNumberOfMediaToBeUploaded = 100;
 		int cycleNumberOfFilesToBeUploaded = 100;
 
@@ -285,7 +283,7 @@ public class TestRunnerMediaCommand extends TestRunner
 
 			// Client 1
 			ClientManager client1 = this.clientAp1;
-			client1.setSocketConnectionParameter("localhost", server1.getServerSocketPort(), timeoutTimeInMilliseconds);
+			client1.setSocketConnectionParameter("localhost", server1.getServerSocketPort());
 
 			testContainer = new TestContainerMediaCommand(client1.getContext(), this, true);
 			testContainer.setParameterClientServer(client1, server1);
@@ -305,7 +303,7 @@ public class TestRunnerMediaCommand extends TestRunner
 
 			// Client 2
 			ClientManager client2 = this.clientAp2;
-			client2.setSocketConnectionParameter("localhost", server1.getServerSocketPort(), timeoutTimeInMilliseconds);
+			client2.setSocketConnectionParameter("localhost", server1.getServerSocketPort());
 
 			testContainer = new TestContainerMediaCommand(client2.getContext(), this, true);
 			testContainer.setParameterClientServer(client2, server1);
@@ -325,7 +323,7 @@ public class TestRunnerMediaCommand extends TestRunner
 
 			// Client 3
 			ClientManager client3 = this.clientAp3;
-			client3.setSocketConnectionParameter("localhost", server1.getServerSocketPort(), timeoutTimeInMilliseconds);
+			client3.setSocketConnectionParameter("localhost", server1.getServerSocketPort());
 
 			testContainer = new TestContainerMediaCommand(client3.getContext(), this, true);
 			testContainer.setParameterClientServer(client3, server1);
@@ -352,7 +350,7 @@ public class TestRunnerMediaCommand extends TestRunner
 
 			// Client 4
 			ClientManager client4 = this.clientAp4;
-			client4.setSocketConnectionParameter("localhost", server2.getServerSocketPort(), timeoutTimeInMilliseconds);
+			client4.setSocketConnectionParameter("localhost", server2.getServerSocketPort());
 
 			testContainer = new TestContainerMediaCommand(client4.getContext(), this, true);
 			testContainer.setParameterClientServer(client4, server2);
@@ -372,7 +370,7 @@ public class TestRunnerMediaCommand extends TestRunner
 
 			// Client 5
 			ClientManager client5 = this.clientAp5;
-			client5.setSocketConnectionParameter("localhost", server2.getServerSocketPort(), timeoutTimeInMilliseconds);
+			client5.setSocketConnectionParameter("localhost", server2.getServerSocketPort());
 
 			testContainer = new TestContainerMediaCommand(client5.getContext(), this, true);
 			testContainer.setParameterClientServer(client5, server2);
@@ -392,7 +390,7 @@ public class TestRunnerMediaCommand extends TestRunner
 
 			// Client 6
 			ClientManager client6 = this.clientAp6;
-			client6.setSocketConnectionParameter("localhost", server2.getServerSocketPort(), timeoutTimeInMilliseconds);
+			client6.setSocketConnectionParameter("localhost", server2.getServerSocketPort());
 
 			testContainer = new TestContainerMediaCommand(client6.getContext(), this, true);
 			testContainer.setParameterClientServer(client6, server2);
@@ -412,7 +410,7 @@ public class TestRunnerMediaCommand extends TestRunner
 
 			// Client 7
 			ClientManager client7 = this.clientAp7;
-			client7.setSocketConnectionParameter("localhost", server2.getServerSocketPort(), timeoutTimeInMilliseconds);
+			client7.setSocketConnectionParameter("localhost", server2.getServerSocketPort());
 
 			testContainer = new TestContainerMediaCommand(client7.getContext(), this, true);
 			testContainer.setParameterClientServer(client7, server2);
@@ -432,7 +430,7 @@ public class TestRunnerMediaCommand extends TestRunner
 
 			// Client 8
 			ClientManager client8 = this.clientAp8;
-			client8.setSocketConnectionParameter("localhost", server2.getServerSocketPort(), timeoutTimeInMilliseconds);
+			client8.setSocketConnectionParameter("localhost", server2.getServerSocketPort());
 
 			testContainer = new TestContainerMediaCommand(client8.getContext(), this, true);
 			testContainer.setParameterClientServer(client8, server2);
@@ -452,7 +450,7 @@ public class TestRunnerMediaCommand extends TestRunner
 
 			// Client 9
 			ClientManager client9 = this.clientAp9;
-			client9.setSocketConnectionParameter("localhost", server2.getServerSocketPort(), timeoutTimeInMilliseconds);
+			client9.setSocketConnectionParameter("localhost", server2.getServerSocketPort());
 
 			testContainer = new TestContainerMediaCommand(client9.getContext(), this, true);
 			testContainer.setParameterClientServer(client9, server2);
@@ -494,7 +492,6 @@ public class TestRunnerMediaCommand extends TestRunner
 		TestContainerMediaCommand testContainer;
 		List<Thread> threadList = new ArrayList<Thread>();
 
-		int timeoutTimeInMilliseconds = 100000;
 		int plainNumberOfMediaToBeUploaded = 100;
 		int cycleNumberOfFilesToBeUploaded = 100;
 		int commonDataIdentifier = 9999;
@@ -528,7 +525,7 @@ public class TestRunnerMediaCommand extends TestRunner
 				if (i == 8) client = this.clientAp8;
 				if (i == 9) client = this.clientAp9;
 
-				client.setSocketConnectionParameter("localhost", server3.getServerSocketPort(), timeoutTimeInMilliseconds);
+				client.setSocketConnectionParameter("localhost", server3.getServerSocketPort());
 
 				testContainer = new TestContainerMediaCommand(client.getContext(), this, true);
 				testContainer.setParameterClientServer(client, server3);

@@ -37,7 +37,7 @@ public class ClientCommandMediaFileRead extends ClientCommand
 			ApplicationManager client, ConnectionContainer connectionContainer, String mediaResourceIdentifier,
 			String dataIdentifier)
 	{
-		super(context, (ClientManager) client, ResourceManager.command(context, "MediaFileRead").getRecourceIdentifier(), connectionContainer);
+		super(context, (ClientManager) client, ResourceManager.command(context, "MediaFileRead").getRecourceIdentifier(), connectionContainer, context.getConfigurationManager().getPropertyAsIntegerValue(context, ResourceManager.configuration(context, "CommandMediaFileRead", "SocketTimeoutInMilliseconds"), false));
 
 		this.mediaResourceIdentifier = mediaResourceIdentifier;
 		this.dataIdentifier = dataIdentifier;

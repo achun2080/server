@@ -26,9 +26,6 @@ public class ServerReferenceApplication extends ServerManager
 	 * @param serverSocketPort
 	 *            Port number of server socket to use by the server application.
 	 * 
-	 * @param timeoutTimeInMilliseconds
-	 *            Timeout to use as a socket connection timeout.
-	 * 
 	 * @param runningInTestMode
 	 *            Set to TRUE if the application is running in test mode.
 	 * 
@@ -42,12 +39,11 @@ public class ServerReferenceApplication extends ServerManager
 	 *            is running in test mode, or <TT>null</TT> if the application
 	 *            is running in productive mode.
 	 */
-	private ServerReferenceApplication(String codeName, int serverSocketPort,
-			int timeoutTimeInMilliseconds, boolean runningInTestMode,
+	private ServerReferenceApplication(String codeName, int serverSocketPort, boolean runningInTestMode,
 			String testCaseName, String testSessionName)
 	{
 		// Invoke super class
-		super(ApplicationManager.ApplicationIdentifierEnum.ReferenceApplication, ServerReferenceApplication.serverVersion, codeName, serverSocketPort, timeoutTimeInMilliseconds, runningInTestMode, testCaseName, testSessionName);
+		super(ApplicationManager.ApplicationIdentifierEnum.ReferenceApplication, ServerReferenceApplication.serverVersion, codeName, serverSocketPort, runningInTestMode, testCaseName, testSessionName);
 	}
 
 	@Override
@@ -231,10 +227,10 @@ public class ServerReferenceApplication extends ServerManager
 	 *         couldn't be created. In this case please see the log files or the
 	 *         console for further information.
 	 */
-	public static ServerReferenceApplication getTestInstance(String codeName, int serverSocketPort, int timeoutTimeInMilliseconds, String testCaseName, String testSessionName)
+	public static ServerReferenceApplication getTestInstance(String codeName, int serverSocketPort, String testCaseName, String testSessionName)
 	{
 		// Instance will always be build because it is a regular constructor
-		ServerReferenceApplication instance = new ServerReferenceApplication(codeName, serverSocketPort, serverSocketPort, true, testCaseName, testSessionName);
+		ServerReferenceApplication instance = new ServerReferenceApplication(codeName, serverSocketPort, true, testCaseName, testSessionName);
 		
 		// Initialize application
 		instance.initialize();
@@ -270,7 +266,7 @@ public class ServerReferenceApplication extends ServerManager
 	public static ServerReferenceApplication getProductiveInstance(String codeName, int serverSocketPort, int timeoutTimeInMilliseconds)
 	{
 		// Instance will always be build because it is a regular constructor
-		ServerReferenceApplication instance = new ServerReferenceApplication(codeName, serverSocketPort, serverSocketPort, false, null, null);
+		ServerReferenceApplication instance = new ServerReferenceApplication(codeName, serverSocketPort, false, null, null);
 		
 		// Initialize application
 		instance.initialize();

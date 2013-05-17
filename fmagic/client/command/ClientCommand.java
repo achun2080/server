@@ -8,8 +8,6 @@ import fmagic.basic.command.RequestContainer;
 import fmagic.basic.command.ResponseContainer;
 import fmagic.basic.context.Context;
 import fmagic.basic.resource.ResourceManager;
-import fmagic.client.application.ClientManager;
-import fmagic.server.application.ServerManager;
 
 /**
  * This class defines common functions needed by all client applications.
@@ -23,12 +21,13 @@ public abstract class ClientCommand extends Command
 	// Current client application
 	final protected ApplicationManager application;
 	final protected ConnectionContainer connectionContainer;
+	final protected int socketTimeoutInMilliseconds;
 
 	/**
 	 * Constructor
 	 */
 	public ClientCommand(Context context, ApplicationManager application,
-			String commandIdentifier, ConnectionContainer connectionContainer)
+			String commandIdentifier, ConnectionContainer connectionContainer, int socketTimeoutInMilliseconds)
 	{
 		// Call super class
 		super(context, commandIdentifier);
@@ -36,26 +35,17 @@ public abstract class ClientCommand extends Command
 		// Create a SILENT dump context regarding the executing of a command on
 		// a client
 		this.context = context.createSilentDumpContext(ResourceManager.context(context, "Processing", "ClientRequestToServer"));
-		
+
 		// Get data
 		this.application = application;
 		this.connectionContainer = connectionContainer;
+		this.socketTimeoutInMilliseconds = socketTimeoutInMilliseconds;
 
 		// Create a request container
 		this.requestContainer = new RequestContainer(application.getApplicationIdentifier().toString(), application.getApplicationVersion(), context.getCodeName(), commandIdentifier);
-		
+
 		// Set session identifier
-		if (application instanceof ClientManager) 
-		{
-			ClientManager client = (ClientManager) application;
-			client.setClientSessionIdentifier(this.requestContainer);
-			connectionContainer.setSessionIdentifier(this.requestContainer.getClientSessionIdentifier());
-		}
-		
-		if (application instanceof ServerManager) 
-		{
-			this.requestContainer.setClientSessionIdentifier(connectionContainer.getSessionIdentifier());
-		}
+		this.requestContainer.setClientSessionIdentifier(connectionContainer.getSessionIdentifier());
 
 		// Create a response container with a default error message
 		this.responseContainer = new ResponseContainer(null, 0, null);
@@ -78,7 +68,6 @@ public abstract class ClientCommand extends Command
 	 * Process results of the remote call on the client.
 	 */
 	abstract protected boolean processResults();
-
 
 	/**
 	 * Prepare, execute and validate the command.
@@ -152,7 +141,7 @@ public abstract class ClientCommand extends Command
 	protected boolean processOnServer()
 	{
 		// Execute command on server
-		CommandHandler commandHandler = new CommandHandler(connectionContainer);
+		CommandHandler commandHandler = new CommandHandler(connectionContainer, this.socketTimeoutInMilliseconds);
 		ResponseContainer serverResponse = commandHandler.execute(this.context, this.requestContainer);
 
 		if (serverResponse != null)

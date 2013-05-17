@@ -36,7 +36,7 @@ public class ClientCommandMediaFileCheck extends ClientCommand
 			ApplicationManager client, ConnectionContainer connectionContainer, String  mediaResourceIdentifier, String fileType, String dataIdentifier,
 			String hashValue)
 	{
-		super(context, (ClientManager) client, ResourceManager.command(context, "MediaFileCheck").getRecourceIdentifier(), connectionContainer);
+		super(context, (ClientManager) client, ResourceManager.command(context, "MediaFileCheck").getRecourceIdentifier(), connectionContainer, context.getConfigurationManager().getPropertyAsIntegerValue(context, ResourceManager.configuration(context, "CommandMediaFileCheck", "SocketTimeoutInMilliseconds"), false));
 
 		this.mediaResourceIdentifier = mediaResourceIdentifier;
 		this.fileType = fileType;

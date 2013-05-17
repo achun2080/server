@@ -38,7 +38,7 @@ public abstract class ServerManager extends ApplicationManager
 
 	// Socket data
 	private ServerSocket serverSocket = null;
-	private int timeoutTimeInMilliseconds = 10000;
+	private int socketTimeoutInMilliseconds = 120000;
 
 	// Encoding data
 	private String serverPublicKey = null;
@@ -85,8 +85,7 @@ public abstract class ServerManager extends ApplicationManager
 	 */
 	protected ServerManager(
 			ApplicationManager.ApplicationIdentifierEnum applicationIdentifier,
-			int applicationVersion, String codeName, int serverSocketPort,
-			int timeoutTimeInMilliseconds, boolean runningInTestMode,
+			int applicationVersion, String codeName, int serverSocketPort, boolean runningInTestMode,
 			String testCaseName, String testSessionName)
 	{
 		// Instantiate super class
@@ -94,7 +93,6 @@ public abstract class ServerManager extends ApplicationManager
 
 		// Adopt constructor data
 		this.serverSocketPort = serverSocketPort;
-		this.timeoutTimeInMilliseconds = timeoutTimeInMilliseconds;
 	}
 
 	@Override
@@ -203,6 +201,9 @@ public abstract class ServerManager extends ApplicationManager
 
 			// Read parameter: PercentageRateForCleaning
 			this.percentageRateForCleaning = context.getConfigurationManager().getPropertyAsIntegerValue(context, ResourceManager.configuration(context, "Session", "PercentageRateForCleaning"), false);
+			
+			// Read parameter: SocketTimeoutInMilliseconds
+			this.socketTimeoutInMilliseconds = context.getConfigurationManager().getPropertyAsIntegerValue(context, ResourceManager.configuration(context, "Application", "SocketTimeoutInMilliseconds"), false);
 
 			// Return
 			return false;
@@ -643,9 +644,9 @@ public abstract class ServerManager extends ApplicationManager
 	/**
 	 * Getter
 	 */
-	public int getTimeoutTimeInMilliseconds()
+	public int getSocketTimeoutInMilliseconds()
 	{
-		return timeoutTimeInMilliseconds;
+		return socketTimeoutInMilliseconds;
 	}
 
 	/**

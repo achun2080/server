@@ -23,7 +23,7 @@ import fmagic.basic.resource.ResourceManager;
  */
 public class ClientCommandCreateSession extends ClientCommand
 {
-	private String serverPublicKey = null;
+	private String publicKey = null;
 	private Boolean isSuccessful = null;
 
 	/**
@@ -37,7 +37,7 @@ public class ClientCommandCreateSession extends ClientCommand
 	 */
 	public ClientCommandCreateSession(Context context, ApplicationManager application, ConnectionContainer connectionContainer)
 	{
-		super(context, application, ResourceManager.command(context, "CreateSession").getRecourceIdentifier(), connectionContainer);
+		super(context, application, ResourceManager.command(context, "CreateSession").getRecourceIdentifier(), connectionContainer, context.getConfigurationManager().getPropertyAsIntegerValue(context, ResourceManager.configuration(context, "CommandCreateSession", "SocketTimeoutInMilliseconds"), false));
 	}
 
 	@Override
@@ -83,9 +83,9 @@ public class ClientCommandCreateSession extends ClientCommand
 			if (result != null && result.equalsIgnoreCase("false")) this.isSuccessful = false;
 
 			// Get result: ServerPublicKey
-			this.serverPublicKey = this.responseContainer.getProperty(ResourceManager.commandParameter(this.getContext(), "CreateSession", "ServerPublicKey").getAliasName(), null);
+			this.publicKey = this.responseContainer.getProperty(ResourceManager.commandParameter(this.getContext(), "CreateSession", "ServerPublicKey").getAliasName(), null);
 
-			if (this.serverPublicKey == null || this.serverPublicKey.length() == 0)
+			if (this.publicKey == null || this.publicKey.length() == 0)
 			{
 				ResourceContainer errorCode = ResourceManager.notification(this.context, "Application", "PublicKeyOnServerNotSet");
 				this.context.getNotificationManager().notifyError(this.context, errorCode, null, null);
@@ -96,7 +96,7 @@ public class ClientCommandCreateSession extends ClientCommand
 			{
 				if (!this.context.getApplicationManager().isServerApplication())
 				{
-					this.getContext().getLocaldataManager().writeProperty(this.getContext(), ResourceManager.localdata(this.getContext(), "LastValidServerConnection", "ServerPublicKey"), this.serverPublicKey);
+					this.getContext().getLocaldataManager().writeProperty(this.getContext(), ResourceManager.localdata(this.getContext(), "LastValidServerConnection", "ServerPublicKey"), this.publicKey);
 				}
 			}
 		}
@@ -150,6 +150,6 @@ public class ClientCommandCreateSession extends ClientCommand
 	 */
 	public String getServerPublicKey()
 	{
-		return this.serverPublicKey;
+		return this.publicKey;
 	}
 }

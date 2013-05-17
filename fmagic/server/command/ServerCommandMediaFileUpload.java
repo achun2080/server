@@ -137,10 +137,10 @@ public class ServerCommandMediaFileUpload extends ServerCommand
 		try
 		{
 			// Check if file already exists
-			this.isExisting = this.context.getMediaManager().doCheckIfMediaFileExists(this.context, this.mediaResourceContainer, this.dataIdentifier, this.fileType, this.hashValue);
+			this.isExisting = this.context.getMediaManager().getMediaUtil().isMediaFileExists(this.context, this.mediaResourceContainer, this.dataIdentifier, this.fileType, this.hashValue);
 			
 			// Get media content
-			this.isUploaded = this.getContext().getMediaManager().doPushMediaContentToMediaFile(this.getContext(), this.mediaResourceContainer, this.dataIdentifier, this.fileType, this.mediaContent);
+			this.isUploaded = this.getContext().getMediaManager().getMediaUtil().writeMediaContentToMediaFile(this.getContext(), this.mediaResourceContainer, this.dataIdentifier, this.fileType, this.mediaContent);
 		
 			// Return
 			return true;

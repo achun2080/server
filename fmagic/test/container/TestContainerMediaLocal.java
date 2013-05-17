@@ -838,12 +838,12 @@ public class TestContainerMediaLocal extends TestContainer
 
 			if (cleaningFunction == CleaningFunctionEnum.PENDING)
 			{
-				daysToKeep = this.getContext().getMediaManager().getCleanPendingDaysToKeep();
+				daysToKeep = this.getContext().getMediaManager().getMediaUtil().getCleanPendingDaysToKeep();
 				dayRange = daysToKeep * 2;
 			}
 			else if (cleaningFunction == CleaningFunctionEnum.DELETED)
 			{
-				daysToKeep = this.getContext().getMediaManager().getCleanDeletedDaysToKeep();
+				daysToKeep = this.getContext().getMediaManager().getMediaUtil().getCleanDeletedDaysToKeep();
 				dayRange = daysToKeep * 2;
 			}
 			else
@@ -947,12 +947,12 @@ public class TestContainerMediaLocal extends TestContainer
 			if (cleaningFunction == CleaningFunctionEnum.PENDING)
 			{
 				remainingFilePath = mediaResource.mediaFileGetPendingFilePath(this.getContext());
-				nuOfDeletedFiles = this.getContext().getMediaManager().cleanPendingDirectory(this.getContext(), mediaResource, daysToKeep);
+				nuOfDeletedFiles = this.getContext().getMediaManager().getMediaUtil().cleanPendingDirectory(this.getContext(), mediaResource, daysToKeep);
 			}
 			else if (cleaningFunction == CleaningFunctionEnum.DELETED)
 			{
 				remainingFilePath = mediaResource.mediaFileGetDeletedFilePath(this.getContext());
-				nuOfDeletedFiles = this.getContext().getMediaManager().cleanDeletedDirectory(this.getContext(), mediaResource, daysToKeep);
+				nuOfDeletedFiles = this.getContext().getMediaManager().getMediaUtil().cleanDeletedDirectory(this.getContext(), mediaResource, daysToKeep);
 			}
 			else
 			{
@@ -1015,7 +1015,7 @@ public class TestContainerMediaLocal extends TestContainer
 			// Initialize variables
 			ResourceContainerMedia mediaResource = ResourceManager.media(this.getContext(), group, name);
 
-			int daysToKeep = this.getContext().getMediaManager().getCleanObsoleteDaysToKeep();
+			int daysToKeep = this.getContext().getMediaManager().getMediaUtil().getCleanObsoleteDaysToKeep();
 			int dayRange = daysToKeep * 2;
 
 			Date currentDate = new Date();
@@ -1121,7 +1121,7 @@ public class TestContainerMediaLocal extends TestContainer
 			TestManager.assertGreaterThan(this.getContext(), this, null, daysToKeep, 1);
 
 			String remainingFilePath = mediaResource.mediaFileGetRegularFilePath(this.getContext());
-			int nuOfDeletedFiles = this.getContext().getMediaManager().cleanRegularDirectory(this.getContext(), mediaResource, daysToKeep);
+			int nuOfDeletedFiles = this.getContext().getMediaManager().getMediaUtil().cleanRegularDirectory(this.getContext(), mediaResource, daysToKeep);
 			TestManager.assertGreaterThan(this.getContext(), this, null, nuOfDeletedFiles, 0);
 			TestManager.assertLowerThan(this.getContext(), this, null, nuOfDeletedFiles, nuOfFilesCreated);
 
@@ -1201,7 +1201,7 @@ public class TestContainerMediaLocal extends TestContainer
 			}
 
 			// Initialize day range
-			int daysToKeep = this.getContext().getMediaManager().getCleanObsoleteDaysToKeep();
+			int daysToKeep = this.getContext().getMediaManager().getMediaUtil().getCleanObsoleteDaysToKeep();
 			int dayRange = daysToKeep * 2;
 
 			Date currentDate = new Date();
@@ -1318,11 +1318,11 @@ public class TestContainerMediaLocal extends TestContainer
 
 			// Modify this parameter to ensure that no 'deleted' files were
 			// removed in this test case.
-			int currentCleanDeletedDaysToKeep = this.getContext().getMediaManager().getCleanDeletedDaysToKeep();
-			this.getContext().getMediaManager().testSetCleanDeletedDaysToKeep(this.getContext(), daysToKeep * 3);
+			int currentCleanDeletedDaysToKeep = this.getContext().getMediaManager().getMediaUtil().getCleanDeletedDaysToKeep();
+			this.getContext().getMediaManager().getMediaUtil().testSetCleanDeletedDaysToKeep(this.getContext(), daysToKeep * 3);
 
 			// Invoke regular clean function of the media manager
-			int nuOfDeletedFiles = this.getContext().getMediaManager().cleanAll(this.getContext());
+			int nuOfDeletedFiles = this.getContext().getMediaManager().getMediaUtil().cleanAll(this.getContext());
 
 			TestManager.assertGreaterThan(this.getContext(), this, null, nuOfDeletedFiles, 0);
 			TestManager.assertLowerThan(this.getContext(), this, null, nuOfDeletedFiles, nuOfFilesCreated);
@@ -1332,7 +1332,7 @@ public class TestContainerMediaLocal extends TestContainer
 
 			// Undo modifying this parameter to ensure that no 'deleted' files
 			// were removed in this test case.
-			this.getContext().getMediaManager().testSetCleanDeletedDaysToKeep(this.getContext(), currentCleanDeletedDaysToKeep);
+			this.getContext().getMediaManager().getMediaUtil().testSetCleanDeletedDaysToKeep(this.getContext(), currentCleanDeletedDaysToKeep);
 
 			// Count the real number of remaining files in the 'regular'
 			// directories

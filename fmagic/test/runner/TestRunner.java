@@ -150,7 +150,7 @@ abstract public class TestRunner
 			int port = this.allocatePortNumber();
 
 			// Create instance
-			server = ServerReferenceApplication.getTestInstance(codeName, port, 1000000, this.getTestRunnerName(), this.getTestSessionName());
+			server = ServerReferenceApplication.getTestInstance(codeName, port, this.getTestRunnerName(), this.getTestSessionName());
 
 			// Error
 			if (server == null)

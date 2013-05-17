@@ -1,7 +1,6 @@
 package fmagic.test.container;
 
 import fmagic.basic.context.Context;
-import fmagic.basic.media.MediaManager;
 import fmagic.server.media.ServerMediaManager;
 import fmagic.test.application.TestManager;
 import fmagic.test.runner.TestRunner;

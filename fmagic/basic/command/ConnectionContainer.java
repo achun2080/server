@@ -1,6 +1,9 @@
 package fmagic.basic.command;
 
+import java.util.Date;
+
 import fmagic.basic.context.Context;
+import fmagic.basic.file.FileUtilFunctions;
 import fmagic.basic.notification.NotificationManager;
 import fmagic.basic.resource.ResourceManager;
 import fmagic.client.command.ClientCommand;
@@ -21,8 +24,8 @@ public class ConnectionContainer
 	final private int number;
 	final private String host;
 	final private int port;
-	private int timeoutTimeInMilliseconds = 0;
-	private String privateKey;
+	private String clientPrivateKey;
+	private String serverPublicKey;
 	private String sessionIdentifier = null;
 
 	// Processing
@@ -44,17 +47,19 @@ public class ConnectionContainer
 	 * @param timeoutTimeInMilliseconds
 	 *            Socket timeout in Milliseconds.
 	 * 
-	 * @param privateKey
+	 * @param clientPrivateKey
 	 *            Private key of the caller.
+	 * 
+	 * @param serverPublicKey
+	 *            Private key of the server called for.
 	 */
-	public ConnectionContainer(int number, String host, int port,
-			int timeoutTimeInMilliseconds, String privateKey)
+	public ConnectionContainer(int number, String host, int port, String clientPrivateKey, String serverPublicKey)
 	{
 		this.number = number;
 		this.host = host;
 		this.port = port;
-		this.timeoutTimeInMilliseconds = timeoutTimeInMilliseconds;
-		this.privateKey = privateKey;
+		this.clientPrivateKey = clientPrivateKey;
+		this.serverPublicKey = serverPublicKey;
 	}
 
 	/**
@@ -77,10 +82,22 @@ public class ConnectionContainer
 	}
 
 	/**
+	 * Create new client session identifier.
+	 * 
+	 * @return Returns the client session identifier that was created.
+	 */
+	public static String createClientSessionIdentifier()
+	{
+		return String.valueOf(new Date().getTime()).trim() + String.valueOf(FileUtilFunctions.generalGetRandomValue(0, 100000));
+	}
+
+	/**
 	 * Establish a connection by executing the commands 'CreateSession' and
 	 * 'Handshake', if not done yet for the current connection container.
+	 * <p>
+	 * If the connection already is established nothing is executed.
 	 * 
-	 * @return Returns <TT>true</TT> if the connection could be established,
+	 * @return Returns <TT>true</TT> if the connection could be established resp. is already established,
 	 *         otherwise <TT>false</TT>.
 	 */
 	public boolean establishConnection(Context context)
@@ -102,37 +119,64 @@ public class ConnectionContainer
 		// Process
 		try
 		{
-			// COMMAND Create Session
-			ClientCommand command = new ClientCommandCreateSession(context, context.getApplicationManager(), this);
+			// First try a handshake to see if the last known connection works
+			// yet
+			if (this.commandHandshake(context) == true)
+			{
+				this.initialized = true;
+				this.error = false;
+				return true;
+			}
+
+			// If handshake didn't work create a new session on server and
+			// handshake again
+			if (this.commandCreateSession(context) == true)
+			{
+				if (this.commandHandshake(context) == true)
+				{
+					this.initialized = true;
+					this.error = false;
+					return true;
+				}
+			}
+
+			// Return
+			this.initialized = false;
+			this.error = true;
+			return false;
+		}
+		catch (Exception e)
+		{
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Application", "ErrorOnProcessingCommandOnClient"), null, e);
+			this.initialized = false;
+			this.error = true;
+			return false;
+		}
+	}
+
+	/**
+	 * Execute command 'Handshake'.
+	 * 
+	 * @return Returns <TT>true</TT> if the command was executed successful,
+	 *         otherwise <TT>false</TT>.
+	 */
+	private boolean commandHandshake(Context context)
+	{
+		// Check if a session identifier is already available
+		if (!isSessionIdentifier()) return false;
+
+		// Logging
+		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.CODE, this.toString());
+
+		// Process
+		try
+		{
+			// COMMAND Handshake
+			ClientCommand command = new ClientCommandHandshake(context, context.getApplicationManager(), this);
 			ResponseContainer responseContainer = command.execute();
 
-			if (responseContainer == null || responseContainer.isError())
-			{
-				this.initialized = false;
-				this.error = true;
-				return false;
-			}
-
-			// COMMAND Handshake
-			command = new ClientCommandHandshake(context, context.getApplicationManager(), this);
-			responseContainer = command.execute();
-
-			if (responseContainer == null || responseContainer.isError())
-			{
-				this.initialized = false;
-				this.error = true;
-				return false;
-			}
-			
-			// Set last used session identifier
-			this.setSessionIdentifier(responseContainer.getClientSessionIdentifier());
-
-			// Set status
-			this.initialized = true;
-			this.error = false;
-
-			// Logging
-			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.CODE, this.toString());
+			// Error occurred
+			if (responseContainer == null || responseContainer.isError()) { return false; }
 
 			// Return
 			return true;
@@ -140,8 +184,58 @@ public class ConnectionContainer
 		catch (Exception e)
 		{
 			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Application", "ErrorOnProcessingCommandOnClient"), null, e);
-			this.initialized = false;
-			this.error = true;
+			return false;
+		}
+	}
+
+	/**
+	 * Execute command 'CreateSession'.
+	 * 
+	 * @return Returns <TT>true</TT> if the command was executed successful,
+	 *         otherwise <TT>false</TT>.
+	 */
+	private boolean commandCreateSession(Context context)
+	{
+		// Check if a session identifier is already available
+		if (!isSessionIdentifier()) this.setSessionIdentifier(ConnectionContainer.createClientSessionIdentifier());
+
+		// Logging
+		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.CODE, this.toString());
+
+		// Process
+		try
+		{
+			// COMMAND Create Session
+			ClientCommand command = new ClientCommandCreateSession(context, context.getApplicationManager(), this);
+			ResponseContainer responseContainer = command.execute();
+
+			// Try again with a new session identifier if the session already
+			// exists on server
+			if (responseContainer != null && responseContainer.isError() && responseContainer.getErrorCode().equals(ResourceManager.notification(context, "Application", "ClientSessionAlreadyExistsOnServer").getRecourceIdentifier()))
+			{
+				this.setSessionIdentifier(ConnectionContainer.createClientSessionIdentifier());
+				command = new ClientCommandCreateSession(context, context.getApplicationManager(), this);
+				responseContainer = command.execute();
+
+				// Try again with a new session identifier if the session
+				// already exists on server
+				if (responseContainer != null && responseContainer.isError() && responseContainer.getErrorCode().equals(ResourceManager.notification(context, "Application", "ClientSessionAlreadyExistsOnServer").getRecourceIdentifier()))
+				{
+					this.setSessionIdentifier(ConnectionContainer.createClientSessionIdentifier());
+					command = new ClientCommandCreateSession(context, context.getApplicationManager(), this);
+					responseContainer = command.execute();
+				}
+			}
+
+			// Error
+			if (responseContainer == null || responseContainer.isError()) { return false; }
+
+			// Return
+			return true;
+		}
+		catch (Exception e)
+		{
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Application", "ErrorOnProcessingCommandOnClient"), null, e);
 			return false;
 		}
 	}
@@ -172,13 +266,7 @@ public class ConnectionContainer
 				isSuccessful = false;
 			}
 
-			if (this.timeoutTimeInMilliseconds <= 0)
-			{
-				errorText += "\n--> Parameter 'TimeoutTimeInMilliseconds' not set";
-				isSuccessful = false;
-			}
-
-			if (this.privateKey == null || this.privateKey.length() == 0)
+			if (this.clientPrivateKey == null || this.clientPrivateKey.length() == 0)
 			{
 				errorText += "\n--> Parameter 'ClientPrivateKey' not set";
 				isSuccessful = false;
@@ -241,37 +329,37 @@ public class ConnectionContainer
 	/**
 	 * Getter
 	 */
-	public int getTimeoutTimeInMilliseconds()
+	public String getClientPrivateKey()
 	{
-		return timeoutTimeInMilliseconds;
-	}
-
-	/**
-	 * Getter
-	 */
-	public void setTimeoutTimeInMilliseconds(int timeoutTimeInMilliseconds)
-	{
-		this.timeoutTimeInMilliseconds = timeoutTimeInMilliseconds;
-	}
-
-	/**
-	 * Getter
-	 */
-	public String getPrivateKey()
-	{
-		return privateKey;
+		return clientPrivateKey;
 	}
 
 	/**
 	 * Setter
 	 */
-	public void setPrivateKey(String privateKey)
+	public void setPrivateKey(String clientPrivateKey)
 	{
-		this.privateKey = privateKey;
+		this.clientPrivateKey = clientPrivateKey;
+	}
+
+	/**
+	 * Getter
+	 */
+	public String getServerPublicKey()
+	{
+		return serverPublicKey;
 	}
 
 	/**
 	 * Setter
+	 */
+	public void setServerPublicKey(String serverPublicKey)
+	{
+		this.serverPublicKey = serverPublicKey;
+	}
+
+	/**
+	 * Getter
 	 */
 	public boolean isInitialized()
 	{
@@ -279,11 +367,19 @@ public class ConnectionContainer
 	}
 
 	/**
-	 * Setter
+	 * Getter
 	 */
 	public boolean isError()
 	{
 		return error;
+	}
+
+	/**
+	 * Getter
+	 */
+	public boolean isSessionIdentifier()
+	{
+		return !(this.getSessionIdentifier() == null || this.getSessionIdentifier().length() == 0);
 	}
 
 	@Override
@@ -297,11 +393,11 @@ public class ConnectionContainer
 		// Common value
 		outputString += "----------" + "\n";
 		outputString += "Number: '" + String.valueOf(this.getNumber()) + "'\n";
-		outputString += "Host: '" + this.getHost() + "'\n";
-		outputString += "Port: '" + String.valueOf(this.getPort()) + "'\n";
-		outputString += "Socket timeout in Milliseconds: '" + String.valueOf(this.getTimeoutTimeInMilliseconds()) + "'\n";
-		outputString += "Private key: '" + this.getPrivateKey().substring(0, Math.min(10, this.getPrivateKey().length())) + "'\n";
-		outputString += "Session identifier: '" + this.getSessionIdentifier() + "'\n";
+		if (this.getHost() != null) outputString += "Host: '" + this.getHost() + "'\n";
+		if (this.getHost() != null) outputString += "Port: '" + String.valueOf(this.getPort()) + "'\n";
+		if (this.getClientPrivateKey() != null) outputString += "Private key of client: '" + this.getClientPrivateKey().substring(0, Math.min(10, this.getClientPrivateKey().length())) + "'\n";
+		if (this.getServerPublicKey() != null) outputString += "Public key of server: '" + this.getServerPublicKey().substring(0, Math.min(10, this.getServerPublicKey().length())) + "'\n";
+		if (this.getSessionIdentifier() != null) outputString += "Session identifier: '" + this.getSessionIdentifier() + "'\n";
 		outputString += "Is initialized: '" + String.valueOf(this.isInitialized()) + "'\n";
 		outputString += "Is error: '" + String.valueOf(this.isError()) + "'\n";
 		outputString += "----------" + "\n";

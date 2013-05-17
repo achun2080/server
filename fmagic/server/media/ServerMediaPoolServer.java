@@ -62,7 +62,7 @@ public class ServerMediaPoolServer extends Thread
 			// Sleep x seconds
 			try
 			{
-				Thread.sleep(this.mediaManager.getSecondsToWaitBetweenCommandProcessing() * 1000);
+				Thread.sleep(this.mediaManager.getMediaPoolUtil().getSecondsToWaitBetweenCommandProcessing() * 1000);
 			}
 			catch (InterruptedException e)
 			{
@@ -181,7 +181,7 @@ public class ServerMediaPoolServer extends Thread
 		// Stop media server
 		try
 		{
-			this.mediaManager.waitForCompletingMediaServerCommandQueue(context.getApplicationManager().getMaximumWaitingTimeForPendingThreadsInSeconds());
+			this.mediaManager.getMediaPoolUtil().waitForCompletingMediaServerCommandQueue(context.getApplicationManager().getMaximumWaitingTimeForPendingThreadsInSeconds());
 			context.getNotificationManager().notifyEvent(context, ResourceManager.notification(context, "MediaServer", "MediaServerInterrupted"), null, null);
 			this.interrupt();
 		}
@@ -209,10 +209,10 @@ public class ServerMediaPoolServer extends Thread
 		 */
 
 		// Check if media pool is active
-		if (this.mediaManager.isEnableMediaPool() == false) return true;
+		if (this.mediaManager.getMediaPoolUtil().isEnableMediaPool() == false) return true;
 
 		// Something to do?
-		if (this.mediaManager.getNumberOfCommandsInMainQueue() <= 0 && this.mediaManager.getNumberOfCommandsInSecondaryQueue() <= 0 && this.mediaManager.getNumberOfCommandsInSynchronizingQueue() <= 0) return true;
+		if (this.mediaManager.getMediaPoolUtil().getNumberOfCommandsInMainQueue() <= 0 && this.mediaManager.getMediaPoolUtil().getNumberOfCommandsInSecondaryQueue() <= 0 && this.mediaManager.getMediaPoolUtil().getNumberOfCommandsInSynchronizingQueue() <= 0) return true;
 
 		// Check if media server processing context is already set
 		if (this.processingContext == null) return false;
@@ -229,16 +229,16 @@ public class ServerMediaPoolServer extends Thread
 		try
 		{
 			// Process main queue
-			if (this.mediaManager.getNumberOfCommandsInMainQueue() > 0)
+			if (this.mediaManager.getMediaPoolUtil().getNumberOfCommandsInMainQueue() > 0)
 			{
 				// Logging
 				this.processingContext.getNotificationManager().notifyLogMessage(this.processingContext, NotificationManager.SystemLogLevelEnum.NOTICE, "Media server process MAIN queue");
 
 				// Process all commands in main queue
-				while (this.mediaManager.getNumberOfCommandsInMainQueue() > 0)
+				while (this.mediaManager.getMediaPoolUtil().getNumberOfCommandsInMainQueue() > 0)
 				{
 					// Read media server command from queue
-					ServerMediaPoolCommand mediaServerCommand = this.mediaManager.getNextCommandFromMainQueue();
+					ServerMediaPoolCommand mediaServerCommand = this.mediaManager.getMediaPoolUtil().getNextCommandFromMainQueue();
 					if (mediaServerCommand == null) break;
 				}
 
@@ -250,16 +250,16 @@ public class ServerMediaPoolServer extends Thread
 			}
 
 			// Process secondary queue
-			if (this.mediaManager.getNumberOfCommandsInSecondaryQueue() > 0)
+			if (this.mediaManager.getMediaPoolUtil().getNumberOfCommandsInSecondaryQueue() > 0)
 			{
 				// Logging
 				this.processingContext.getNotificationManager().notifyLogMessage(this.processingContext, NotificationManager.SystemLogLevelEnum.NOTICE, "Media server process SECONDARY queue");
 
 				// Process all commands in secondary queue
-				while (this.mediaManager.getNumberOfCommandsInSecondaryQueue() > 0)
+				while (this.mediaManager.getMediaPoolUtil().getNumberOfCommandsInSecondaryQueue() > 0)
 				{
 					// Read media server command from queue
-					ServerMediaPoolCommand mediaServerCommand = this.mediaManager.getNextCommandFromSecondaryQueue();
+					ServerMediaPoolCommand mediaServerCommand = this.mediaManager.getMediaPoolUtil().getNextCommandFromSecondaryQueue();
 					if (mediaServerCommand == null) break;
 				}
 
@@ -271,19 +271,19 @@ public class ServerMediaPoolServer extends Thread
 			}
 
 			// Process synchronizing queue
-			if (this.mediaManager.getNumberOfCommandsInSynchronizingQueue() > 0)
+			if (this.mediaManager.getMediaPoolUtil().getNumberOfCommandsInSynchronizingQueue() > 0)
 			{
 				// Logging
 				this.processingContext.getNotificationManager().notifyLogMessage(this.processingContext, NotificationManager.SystemLogLevelEnum.NOTICE, "Media server process SYNCHRONIZING queue");
 
 				// Process all commands in synchronizing queue
-				while (this.mediaManager.getNumberOfCommandsInSynchronizingQueue() > 0)
+				while (this.mediaManager.getMediaPoolUtil().getNumberOfCommandsInSynchronizingQueue() > 0)
 				{
 					// Check if the thread is forced to end
 					if (this.isInterrupted()) break;
 
 					// Read media server command from queue
-					ServerMediaPoolCommand mediaServerCommand = this.mediaManager.getNextCommandFromSynchronizingQueue();
+					ServerMediaPoolCommand mediaServerCommand = this.mediaManager.getMediaPoolUtil().getNextCommandFromSynchronizingQueue();
 					if (mediaServerCommand == null) break;
 				}
 

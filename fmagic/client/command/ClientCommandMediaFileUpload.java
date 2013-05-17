@@ -38,7 +38,7 @@ public class ClientCommandMediaFileUpload extends ClientCommand
 			ApplicationManager client, ConnectionContainer connectionContainer, String fileToBeUploaded, String  mediaResourceIdentifier, String fileType, String dataIdentifier,
 			String hashValue)
 	{
-		super(context, (ClientManager) client, ResourceManager.command(context, "MediaFileUpload").getRecourceIdentifier(), connectionContainer);
+		super(context, (ClientManager) client, ResourceManager.command(context, "MediaFileUpload").getRecourceIdentifier(), connectionContainer, context.getConfigurationManager().getPropertyAsIntegerValue(context, ResourceManager.configuration(context, "CommandMediaFileUpload", "SocketTimeoutInMilliseconds"), false));
 
 		this.mediaResourceIdentifier = mediaResourceIdentifier;
 		this.fileType = fileType;

@@ -92,7 +92,7 @@ public class ApplicationServer extends Thread
 					Context newContext = this.context.createSilentDumpContext(ResourceManager.context(this.context, "Processing", "ProcessingClientCommand"));
 
 					SocketHandler socketConnector = new SocketHandler(newContext);
-					socketConnector.adoptSocket(clientSocket, this.getServerManager().getTimeoutTimeInMilliseconds());
+					socketConnector.adoptSocket(clientSocket, this.getServerManager().getSocketTimeoutInMilliseconds());
 
 					ServerWorkerThread worker = new ServerWorkerThread(newContext, this.getServerManager(), socketConnector, this.getServerManager().getServerPrivateKey());
 

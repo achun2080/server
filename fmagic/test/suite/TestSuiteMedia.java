@@ -30,8 +30,8 @@ public class TestSuiteMedia extends TestSuite
 		{
 //			this.addTestRunner(new TestRunnerMediaServer(this, "server"));
 //			this.addTestRunner(new TestRunnerMediaClient(this, "client"));
-			this.addTestRunner(new TestRunnerMediaCommand(this, "command"));
-//			this.addTestRunner(new TestRunnerMediaPool(this, "pool"));
+//			this.addTestRunner(new TestRunnerMediaCommand(this, "command"));
+			this.addTestRunner(new TestRunnerMediaPool(this, "pool"));
 			
 			this.executeComponentTests();
 //			this.executeConcurrentTests();

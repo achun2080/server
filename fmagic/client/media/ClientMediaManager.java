@@ -23,9 +23,30 @@ public class ClientMediaManager extends MediaManager
 	{
 		super();
 	}
-
+	
 	@Override
-	protected boolean readConfigurationLocalMediaRepository(Context context)
+	public boolean readConfiguration(Context context)
+	{
+		boolean isError = super.readConfiguration(context);
+
+		if (readConfigurationLocalMediaRepository(context) == true) isError = true;
+		if (readConfigurationEncodingKeyList(context) == true) isError = true;
+		if (readConfigurationEncodingKeyNumber(context) == true) isError = true;
+		if (readConfigurationEncodingEnabled(context) == true) isError = true;
+		
+		return isError;
+	}
+
+	/**
+	 * Read the current 'LocalMediaFilePathRoot' value of server or client.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @return Returns <TT>true</TT> if an error was found, otherwise
+	 *         <TT>false</TT>.
+	 */
+	private boolean readConfigurationLocalMediaRepository(Context context)
 	{
 		ResourceContainer resourceContainer = ResourceManager.configuration(context, "Media", "ClientLocalMediaFilePathRoot");
 		this.mediaRootFilePath = context.getConfigurationManager().getProperty(context, resourceContainer, true);
@@ -42,8 +63,16 @@ public class ClientMediaManager extends MediaManager
 		return false;
 	}
 
-	@Override
-	protected boolean readConfigurationEncodingKeyList(Context context)
+	/**
+	 * Read the current 'EncodingKeyList' value of server or client.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @return Returns <TT>true</TT> if an error was found, otherwise
+	 *         <TT>false</TT>.
+	 */
+	private boolean readConfigurationEncodingKeyList(Context context)
 	{
 		// Initialize variables
 		boolean isError = false;
@@ -123,8 +152,16 @@ public class ClientMediaManager extends MediaManager
 		return isError;
 	}
 
-	@Override
-	protected boolean readConfigurationEncodingKeyNumber(Context context)
+	/**
+	 * Read the current 'EncodingKeyNumber' value of server or client.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @return Returns <TT>true</TT> if an error was found, otherwise
+	 *         <TT>false</TT>.
+	 */
+	private boolean readConfigurationEncodingKeyNumber(Context context)
 	{
 		// Read parameter value
 		ResourceContainer resourceContainer = ResourceManager.localdata(context, "Media", "ClientEncodingKeyNumber");
@@ -168,8 +205,16 @@ public class ClientMediaManager extends MediaManager
 		return false;
 	}
 
-	@Override
-	protected boolean readConfigurationEncodingEnabled(Context context)
+	/**
+	 * Read the current 'EncodingEnabled' value of server or client.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @return Returns <TT>true</TT> if an error was found, otherwise
+	 *         <TT>false</TT>.
+	 */
+	private boolean readConfigurationEncodingEnabled(Context context)
 	{
 		ResourceContainer resourceContainer = ResourceManager.configuration(context, "Media", "ClientEncodingEnabled");
 		this.encodingEnabled = context.getConfigurationManager().getPropertyAsBooleanValue(context, resourceContainer, false);
@@ -185,18 +230,6 @@ public class ClientMediaManager extends MediaManager
 			return true;
 		}
 
-		return false;
-	}
-
-	@Override
-	protected boolean readConfigurationSpecificParameter(Context context)
-	{
-		return false;
-	}
-
-	@Override
-	protected boolean readConfigurationMediaPoolParameter(Context context)
-	{
 		return false;
 	}
 

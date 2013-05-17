@@ -1,7 +1,7 @@
 package fmagic.client.application;
 
 import fmagic.basic.application.ApplicationManager;
-import fmagic.basic.command.RequestContainer;
+import fmagic.basic.command.ConnectionContainer;
 import fmagic.basic.notification.NotificationManager;
 import fmagic.basic.resource.ResourceContainer.OriginEnum;
 import fmagic.basic.resource.ResourceManager;
@@ -17,15 +17,14 @@ import fmagic.basic.resource.ResourceManager;
  */
 public abstract class ClientManager extends ApplicationManager
 {
-	// Encoding data
+	// Security data
 	private String clientPublicKey = null;
 	private String clientPrivateKey = null;
 
-	// Socket data
-	private String serverSocketHost = null;
-	private int serverSocketPort = 0;
-	private int timeoutTimeInMilliseconds = 0;
-	
+	// Connection container with actual connection settings to the application
+	// server the client deals with
+	private ConnectionContainer connectionContainer = null;
+
 	/**
 	 * Constructor
 	 * 
@@ -59,7 +58,6 @@ public abstract class ClientManager extends ApplicationManager
 		// Instantiate super class
 		super(applicationIdentifier, applicationVersion, codeName, OriginEnum.Client, runningInTestMode, testCaseName, testSessionName);
 	}
-
 
 	@Override
 	protected void initialize()
@@ -115,27 +113,15 @@ public abstract class ClientManager extends ApplicationManager
 	 *            Time out time for waiting for server response in milliseconds.
 	 * 
 	 */
-	public void setSocketConnectionParameter(String serverSocketHost, int serverSocketPort, int timeoutTimeInMilliseconds)
+	public void setSocketConnectionParameter(String serverSocketHost, int serverSocketPort)
 	{
-		this.serverSocketHost = serverSocketHost;
-		this.serverSocketPort = serverSocketPort;
-		this.timeoutTimeInMilliseconds = timeoutTimeInMilliseconds;
-	}
-
-	/**
-	 * Getter
-	 */
-	public int getServerSocketPort()
-	{
-		return serverSocketPort;
-	}
-
-	/**
-	 * Getter
-	 */
-	public String getServerSocketHost()
-	{
-		return serverSocketHost;
+		this.connectionContainer = new ConnectionContainer(0, serverSocketHost, serverSocketPort);
+		this.connectionContainer.setPrivateKey(this.getClientPrivateKey());
+		this.connectionContainer.setSessionIdentifier(this.getClientSessionIdentifier());
+		
+		this.saveLastKnownConnectionData();
+		
+		this.connectionContainer.establishConnection(this.getContext());
 	}
 
 	@Override
@@ -164,6 +150,9 @@ public abstract class ClientManager extends ApplicationManager
 		// Bind all resources
 		if (this.bindResources() == false) return false;
 
+		// Read last known connection data
+		this.readLastKnownConnectionData();
+
 		// Logging
 		this.getContext().getNotificationManager().notifyLogMessage(this.getContext(), NotificationManager.SystemLogLevelEnum.NOTICE, "Starting client application [" + this.getCodeName() + "]: " + this.toString());
 
@@ -186,6 +175,9 @@ public abstract class ClientManager extends ApplicationManager
 		// Logging
 		this.getContext().getNotificationManager().notifyLogMessage(this.getContext(), NotificationManager.SystemLogLevelEnum.NOTICE, "Stopping client application [" + this.getCodeName() + "]: " + this.toString());
 
+		// Save last known connection data
+		this.saveLastKnownConnectionData();
+
 		// Release all resources
 		this.releaseResources();
 
@@ -195,64 +187,101 @@ public abstract class ClientManager extends ApplicationManager
 		// Return
 		return;
 	}
+
+	/**
+	 * Read all connection data that were used during the last known connection
+	 * of this client to an application server.
+	 * <p>
+	 * The data directly are stored into the client <TT>connection container</TT>.
+	 */
+	private void readLastKnownConnectionData()
+	{
+		try
+		{
+			// Read data from local data
+			String host = this.getContext().getLocaldataManager().readProperty(this.getContext(), ResourceManager.localdata(this.getContext(), "LastValidServerConnection", "Host"), "");
+			int port = this.getContext().getLocaldataManager().readPropertyAsIntegerValue(this.getContext(), ResourceManager.localdata(this.getContext(), "LastValidServerConnection", "Port"), 0);
+			String serverPublicKey = this.getContext().getLocaldataManager().readProperty(this.getContext(), ResourceManager.localdata(this.getContext(), "LastValidServerConnection", "ServerPublicKey"), "");
+			String clientSessionIdentifier = this.getContext().getLocaldataManager().readProperty(this.getContext(), ResourceManager.localdata(this.getContext(), "LastValidServerConnection", "ClientSessionIdentifier"), "");
+
+			// Create a new client session identifier if not available yet
+			if (clientSessionIdentifier == null || clientSessionIdentifier.length() == 0) clientSessionIdentifier = ConnectionContainer.createClientSessionIdentifier();
+
+			// Create a new connection container with the read data
+			this.connectionContainer = new ConnectionContainer(0, host, port, this.getClientPrivateKey(), serverPublicKey);
+			this.connectionContainer.setSessionIdentifier(clientSessionIdentifier);
+			
+			// Try to establish the connection automatically, if all settings are available
+			while(true)
+			{
+				if (host == null || host.length() == 0) break;
+				if (port <= 0) break;
+				if (serverPublicKey == null || serverPublicKey.length() == 0) break;
+				
+				this.connectionContainer.establishConnection(this.getContext());
+				
+				break;
+			}
+		}
+		catch (Exception e)
+		{
+			// Be silent
+		}
+	}
+
+	/**
+	 * Save all connection data that were used during the last known connection
+	 * of this client to an application server.
+	 * <p>
+	 * The data directly are read from the client <TT>connection container</TT>.
+	 */
+	private void saveLastKnownConnectionData()
+	{
+		try
+		{
+			// Save data to local data
+			this.getContext().getLocaldataManager().writeProperty(this.getContext(), ResourceManager.localdata(this.getContext(), "LastValidServerConnection", "Host"), this.connectionContainer.getHost());
+			this.getContext().getLocaldataManager().writeProperty(this.getContext(), ResourceManager.localdata(this.getContext(), "LastValidServerConnection", "Port"), String.valueOf(this.connectionContainer.getPort()));
+			this.getContext().getLocaldataManager().writeProperty(this.getContext(), ResourceManager.localdata(this.getContext(), "LastValidServerConnection", "ServerPublicKey"), this.connectionContainer.getServerPublicKey());
+			this.getContext().getLocaldataManager().writeProperty(this.getContext(), ResourceManager.localdata(this.getContext(), "LastValidServerConnection", "ClientSessionIdentifier"), this.connectionContainer.getSessionIdentifier());
+		}
+		catch (Exception e)
+		{
+			// Be silent
+		}
+	}
+
 	/**
 	 * Get the last known client session identifier from local data and set it
 	 * as the current session identifier.
 	 * <p>
 	 * If no valid client session identifier was found, a new one will be
 	 * created.
+	 * 
+	 * @return Returns the client session identifier read resp. created, or
+	 *         <TT>null</TT> if an error occurred..
 	 */
-	public void setClientSessionIdentifier(RequestContainer requestContainer)
+	private String getClientSessionIdentifier()
 	{
-		// Validate parameter
-		if (requestContainer == null) return;
-
-		// Process
 		try
 		{
 			// Get last known client session identifier from local data
-			String clientSessionIdentifier = this.readLastKnownClientSessionIdentifier();
+			String clientSessionIdentifier = this.getContext().getLocaldataManager().readProperty(this.getContext(), ResourceManager.localdata(this.getContext(), "LastValidServerConnection", "ClientSessionIdentifier"), "");
 
 			// Create a new identifier and save it to the local data
 			if (clientSessionIdentifier == null || clientSessionIdentifier.equals(""))
 			{
-				clientSessionIdentifier = requestContainer.createClientSessionIdentifier();
-				this.saveLastKnownClientSessionIdentifier(clientSessionIdentifier);
-				return;
+				clientSessionIdentifier = ConnectionContainer.createClientSessionIdentifier();
+				this.getContext().getLocaldataManager().writeProperty(this.getContext(), ResourceManager.localdata(this.getContext(), "LastValidServerConnection", "ClientSessionIdentifier"), clientSessionIdentifier);
 			}
 
-			// Set known the known identifier
-			requestContainer.setClientSessionIdentifier(clientSessionIdentifier);
+			// Return
+			return clientSessionIdentifier;
 		}
 		catch (Exception e)
 		{
 			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Application", "ErrorOnProcessingCommandOnClient"), null, e);
-		}
-	}
-
-	/**
-	 * Create a new client session identifier and save it to local data.
-	 */
-	public void resetClientSessionIdentifier(RequestContainer requestContainer)
-	{
-		// Validate parameter
-		if (requestContainer == null) return;
-
-		// Process
-		try
-		{
-			// Create a new identifier
-			String clientSessionIdentifier = requestContainer.createClientSessionIdentifier();
-
-			// Save the identifier to the persistence manager
-			this.saveLastKnownClientSessionIdentifier(clientSessionIdentifier);
-
-			// Set the known identifier on the request container
-			requestContainer.setClientSessionIdentifier(clientSessionIdentifier);
-		}
-		catch (Exception e)
-		{
-			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Application", "ErrorOnProcessingCommandOnClient"), null, e);
+			return null;
 		}
 	}
 
@@ -275,77 +304,8 @@ public abstract class ClientManager extends ApplicationManager
 	/**
 	 * Getter
 	 */
-	public int getTimeoutTimeInMilliseconds()
+	public ConnectionContainer getConnectionContainer()
 	{
-		return timeoutTimeInMilliseconds;
-	}
-
-	/**
-	 * Read the last used session identifier from the persistence manager.
-	 */
-	public String readLastKnownClientSessionIdentifier()
-	{
-		return this.getContext().getLocaldataManager().readProperty(this.getContext(), ResourceManager.localdata(this.getContext(), "LastValidServerConnection", "ClientSessionIdentifier"), "");
-	}
-
-	/**
-	 * Save the currently used session identifier to the persistence manager.
-	 */
-	public void saveLastKnownClientSessionIdentifier(String clientSessionIdentifier)
-	{
-		this.getContext().getLocaldataManager().writeProperty(this.getContext(), ResourceManager.localdata(this.getContext(), "LastValidServerConnection", "ClientSessionIdentifier"), clientSessionIdentifier);
-	}
-
-	/**
-	 * Read the last known "Host" the client was connected to from the
-	 * persistance manager.
-	 */
-	public String readLastKnownHost()
-	{
-		return this.getContext().getLocaldataManager().readProperty(this.getContext(), ResourceManager.localdata(this.getContext(), "LastValidServerConnection", "Host"), "");
-	}
-
-	/**
-	 * Save the last known "Host" the client was connected to to the persistence
-	 * manager.
-	 */
-	public void saveLastKnownHost(String host)
-	{
-		this.getContext().getLocaldataManager().writeProperty(this.getContext(), ResourceManager.localdata(this.getContext(), "LastValidServerConnection", "Host"), host);
-	}
-
-	/**
-	 * Read the last known "Port" the client was connected to from the
-	 * persistence manager.
-	 */
-	public int readLastKnownPort()
-	{
-		return this.getContext().getLocaldataManager().readPropertyAsIntegerValue(this.getContext(), ResourceManager.localdata(this.getContext(), "LastValidServerConnection", "Port"), 0);
-	}
-
-	/**
-	 * Save the last known "Port" the client was connected to to the persistence
-	 * manager.
-	 */
-	public void saveLastKnownPort(int port)
-	{
-		this.getContext().getLocaldataManager().writeProperty(this.getContext(), ResourceManager.localdata(this.getContext(), "LastValidServerConnection", "Port"), String.valueOf(port));
-	}
-
-	/**
-	 * Read the last used public key of the server from the persistence manager.
-	 */
-	public String readLastKnownServerPublicKey()
-	{
-		return this.getContext().getLocaldataManager().readProperty(this.getContext(), ResourceManager.localdata(this.getContext(), "LastValidServerConnection", "ServerPublicKey"), "");
-	}
-
-	/**
-	 * Save the currently used public key of the server to the persistance
-	 * manager.
-	 */
-	public void saveLastKnownServerPublicKey(String ServerPublicKey)
-	{
-		this.getContext().getLocaldataManager().writeProperty(this.getContext(), ResourceManager.localdata(this.getContext(), "LastValidServerConnection", "ServerPublicKey"), ServerPublicKey);
+		return connectionContainer;
 	}
 }

@@ -126,7 +126,7 @@ public class ServerCommandMediaFileCheck extends ServerCommand
 		try
 		{
 			// File already exists
-			this.isExisting = this.context.getMediaManager().doCheckIfMediaFileExists(this.context, this.mediaResourceContainer, this.dataIdentifier, this.fileType, this.hashValue);
+			this.isExisting = this.context.getMediaManager().getMediaUtil().isMediaFileExists(this.context, this.mediaResourceContainer, this.dataIdentifier, this.fileType, this.hashValue);
 		
 			// Return
 			return true;

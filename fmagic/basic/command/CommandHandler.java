@@ -16,13 +16,15 @@ import fmagic.basic.notification.NotificationManager;
 public class CommandHandler
 {
 	private final ConnectionContainer connectionContainer;
+	private final int socketTimeoutInMilliseconds;
 	
 	/**
 	 * Constructor
 	 */
-	public CommandHandler(ConnectionContainer connectionContainer)
+	public CommandHandler(ConnectionContainer connectionContainer, int socketTimeoutInMilliseconds)
 	{
 		this.connectionContainer = connectionContainer;
+		this.socketTimeoutInMilliseconds = socketTimeoutInMilliseconds;
 	}
 
 	/**
@@ -164,7 +166,7 @@ public class CommandHandler
 
 		try
 		{
-			socketHandler = new SocketHandler(executingContext, connectionContainer.getHost(), connectionContainer.getPort(), connectionContainer.getTimeoutTimeInMilliseconds());
+			socketHandler = new SocketHandler(executingContext, connectionContainer.getHost(), connectionContainer.getPort(), this.socketTimeoutInMilliseconds);
 
 			if (socketHandler.openSocket() == false)
 			{
@@ -218,7 +220,7 @@ public class CommandHandler
 		try
 		{
 			EncodingHandler encodingUitility = new EncodingHandler();
-			newResponseContainer = encodingUitility.decodeResponseContainer(executingContext, responseData, connectionContainer.getPrivateKey());
+			newResponseContainer = encodingUitility.decodeResponseContainer(executingContext, responseData, connectionContainer.getClientPrivateKey());
 		}
 		catch (Exception exception)
 		{
