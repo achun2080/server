@@ -1074,7 +1074,7 @@ public class FileUtilFunctions
 	 * 
 	 * @return Returns the number of deleted files.
 	 */
-	public static int fileDeleteFilesOfList(List<String> files)
+	public static int fileDeleteFilesOfListButNewestOne(List<String> files)
 	{
 		// Check parameters
 		if (files == null || files.size() == 0) return 0;
@@ -1497,6 +1497,37 @@ public class FileUtilFunctions
 			{
 				return false;
 			}
+		}
+		catch (Exception e)
+		{
+			return false;
+		}
+	}
+
+	/**
+	 * Delete a directory recursively.
+	 * 
+	 * @param directoryPath
+	 *            The path of the directory to be considered.
+	 * 
+	 * @return Returns <TT>true</TT> if the directory could be deleted, otherwise
+	 *         <TT>false</TT>.
+	 */
+	public static boolean directoryDeleteRecursively(String directoryPath)
+	{
+		// Check parameters
+		if (directoryPath == null || directoryPath.length() == 0) return false;
+		if (FileUtilFunctions.directoryExists(directoryPath) == false) return false;
+
+		// Create FILE objects
+		File directory = new File(directoryPath);
+		if (directory.isDirectory() == false) return false;
+
+		// Search for files in the directory and delete them
+		try
+		{
+			FileUtils.deleteDirectory(directory);
+			return true;
 		}
 		catch (Exception e)
 		{

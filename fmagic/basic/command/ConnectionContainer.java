@@ -53,7 +53,8 @@ public class ConnectionContainer
 	 * @param serverPublicKey
 	 *            Private key of the server called for.
 	 */
-	public ConnectionContainer(int number, String host, int port, String clientPrivateKey, String serverPublicKey)
+	public ConnectionContainer(int number, String host, int port,
+			String clientPrivateKey, String serverPublicKey)
 	{
 		this.number = number;
 		this.host = host;
@@ -97,53 +98,69 @@ public class ConnectionContainer
 	 * <p>
 	 * If the connection already is established nothing is executed.
 	 * 
-	 * @return Returns <TT>true</TT> if the connection could be established resp. is already established,
-	 *         otherwise <TT>false</TT>.
+	 * @return Returns <TT>true</TT> if the connection could be established
+	 *         resp. is already established, otherwise <TT>false</TT>.
 	 */
 	public boolean establishConnection(Context context)
 	{
 		// Check if connection already is established
 		if (this.isInitialized() && !this.isError()) return true;
 
-		// Logging
-		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.CODE, this.toString());
+		// Initialize
+		boolean resultValue = false;
 
-		// Validate parameter of the connection
-		if (this.checkConnectionSettings(context) == false)
-		{
-			this.initialized = false;
-			this.error = true;
-			return false;
-		}
-
-		// Process
+		// Process connection
 		try
 		{
-			// First try a handshake to see if the last known connection works
-			// yet
-			if (this.commandHandshake(context) == true)
+			while (true)
 			{
-				this.initialized = true;
-				this.error = false;
-				return true;
-			}
+				// Validate parameter of the connection
+				if (this.checkConnectionSettings(context) == false)
+				{
+					this.initialized = false;
+					this.error = true;
+					resultValue = false;
+					break;
+				}
 
-			// If handshake didn't work create a new session on server and
-			// handshake again
-			if (this.commandCreateSession(context) == true)
-			{
+				// First try a handshake to see if the last known connection
+				// works
+				// yet
 				if (this.commandHandshake(context) == true)
 				{
 					this.initialized = true;
 					this.error = false;
-					return true;
+					resultValue = true;
+					break;
 				}
+
+				// If handshake didn't work create a new session on server and
+				// handshake again
+				if (this.commandCreateSession(context) == true)
+				{
+					if (this.commandHandshake(context) == true)
+					{
+						this.initialized = true;
+						this.error = false;
+						resultValue = true;
+						break;
+					}
+				}
+
+				// Set status of failed connection
+				this.initialized = false;
+				this.error = true;
+				resultValue = false;
+
+				// Break
+				break;
 			}
 
+			// Logging current connection data
+			context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.CODE, this.toString());
+
 			// Return
-			this.initialized = false;
-			this.error = true;
-			return false;
+			return resultValue;
 		}
 		catch (Exception e)
 		{
@@ -164,9 +181,6 @@ public class ConnectionContainer
 	{
 		// Check if a session identifier is already available
 		if (!isSessionIdentifier()) return false;
-
-		// Logging
-		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.CODE, this.toString());
 
 		// Process
 		try
@@ -198,9 +212,6 @@ public class ConnectionContainer
 	{
 		// Check if a session identifier is already available
 		if (!isSessionIdentifier()) this.setSessionIdentifier(ConnectionContainer.createClientSessionIdentifier());
-
-		// Logging
-		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.CODE, this.toString());
 
 		// Process
 		try

@@ -66,6 +66,7 @@ public class FileLocationFunctions
 	private static final String mediaPendingSubPath = "pending";
 	private static final String mediaDeletedFileName = "${originalname}-${timestamp}-[${thread}].${filetype}";
 	private static final String mediaDeletedSubPath = "deleted";
+	private static final String mediaTestDirectoryLiteral = "$media$";
 
 	private static final String testSubPath = "test";
 	private static final String testLoggingSubPath = "test/${testcasename}/fmagic.logging";
@@ -617,5 +618,10 @@ public class FileLocationFunctions
 	public static String getTestLocaldataSubPath()
 	{
 		return testLocaldataSubPath;
+	}
+
+	public static String getMediaTestDirectoryLiteral()
+	{
+		return mediaTestDirectoryLiteral;
 	}
 }

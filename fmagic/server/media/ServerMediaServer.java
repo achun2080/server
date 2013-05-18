@@ -17,7 +17,7 @@ import fmagic.basic.resource.ResourceManager;
  * @changed FW 15.05.2013 - Created
  * 
  */
-public class ServerMediaPoolServer extends Thread
+public class ServerMediaServer extends Thread
 {
 	final private ServerMediaManager mediaManager;
 	final private Context initializingContext;
@@ -35,7 +35,7 @@ public class ServerMediaPoolServer extends Thread
 	 * @param mediaManager
 	 *            The media manager that holds the media server.
 	 */
-	public ServerMediaPoolServer(Context initializingContext,
+	public ServerMediaServer(Context initializingContext,
 			ServerMediaManager mediaManager)
 	{
 		this.mediaManager = mediaManager;
@@ -232,7 +232,7 @@ public class ServerMediaPoolServer extends Thread
 			if (this.mediaManager.getMediaPoolUtil().getNumberOfCommandsInMainQueue() > 0)
 			{
 				// Logging
-				this.processingContext.getNotificationManager().notifyLogMessage(this.processingContext, NotificationManager.SystemLogLevelEnum.NOTICE, "Media server process MAIN queue");
+				this.processingContext.getNotificationManager().notifyLogMessage(this.processingContext, NotificationManager.SystemLogLevelEnum.NOTICE, "Media server processing MAIN queue");
 
 				// Process all commands in main queue
 				while (this.mediaManager.getMediaPoolUtil().getNumberOfCommandsInMainQueue() > 0)
@@ -240,6 +240,13 @@ public class ServerMediaPoolServer extends Thread
 					// Read media server command from queue
 					ServerMediaPoolCommand mediaServerCommand = this.mediaManager.getMediaPoolUtil().getNextCommandFromMainQueue();
 					if (mediaServerCommand == null) break;
+
+					// Logging
+					this.processingContext.getNotificationManager().notifyLogMessage(this.processingContext, NotificationManager.SystemLogLevelEnum.NOTICE, "Media pool command pulled from MAIN queue");
+					this.processingContext.getNotificationManager().notifyLogMessage(this.processingContext, NotificationManager.SystemLogLevelEnum.CODE, mediaServerCommand.toString());
+
+					// Execute command
+					this.mediaManager.getMediaPoolUtil().queueExecuteCommand(this.processingContext, mediaServerCommand, true);
 				}
 
 				// Logging
@@ -253,15 +260,20 @@ public class ServerMediaPoolServer extends Thread
 			if (this.mediaManager.getMediaPoolUtil().getNumberOfCommandsInSecondaryQueue() > 0)
 			{
 				// Logging
-				this.processingContext.getNotificationManager().notifyLogMessage(this.processingContext, NotificationManager.SystemLogLevelEnum.NOTICE, "Media server process SECONDARY queue");
+				this.processingContext.getNotificationManager().notifyLogMessage(this.processingContext, NotificationManager.SystemLogLevelEnum.NOTICE, "Media server processing SECONDARY queue");
 
-				// Process all commands in secondary queue
-				while (this.mediaManager.getMediaPoolUtil().getNumberOfCommandsInSecondaryQueue() > 0)
-				{
-					// Read media server command from queue
-					ServerMediaPoolCommand mediaServerCommand = this.mediaManager.getMediaPoolUtil().getNextCommandFromSecondaryQueue();
-					if (mediaServerCommand == null) break;
-				}
+				// Process one command in secondary queue
+
+				// Read media server command from queue
+				ServerMediaPoolCommand mediaServerCommand = this.mediaManager.getMediaPoolUtil().getNextCommandFromSecondaryQueue();
+				if (mediaServerCommand == null) return false;
+
+				// Logging
+				this.processingContext.getNotificationManager().notifyLogMessage(this.processingContext, NotificationManager.SystemLogLevelEnum.NOTICE, "Media pool command pulled from SECONDARY queue");
+				this.processingContext.getNotificationManager().notifyLogMessage(this.processingContext, NotificationManager.SystemLogLevelEnum.CODE, mediaServerCommand.toString());
+
+				// Execute command
+				this.mediaManager.getMediaPoolUtil().queueExecuteCommand(this.processingContext, mediaServerCommand, false);
 
 				// Logging
 				this.processingContext.getNotificationManager().notifyLogMessage(this.processingContext, NotificationManager.SystemLogLevelEnum.NOTICE, "Media server processing has ended actual cycle");

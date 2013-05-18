@@ -41,9 +41,6 @@ public class TestRunnerMediaServer extends TestRunner
 	{
 		// Call super class
 		super(testSuite, TEST_RUNNER_NAME, testSessionName);
-
-		// Clear test session directory
-		TestManager.cleanTestSessionDirectory(this);
 	}
 
 	@Override
@@ -60,6 +57,11 @@ public class TestRunnerMediaServer extends TestRunner
 			serverAp1 = this.createApplicationServer("ap1");
 			serverAp2 = this.createApplicationServer("ap2");
 			serverAp3 = this.createApplicationServer("ap3");
+			
+			// Cleanup media directories
+			TestManager.cleanTestMediaDirectory(serverAp1.getContext());
+			TestManager.cleanTestMediaDirectory(serverAp2.getContext());
+			TestManager.cleanTestMediaDirectory(serverAp3.getContext());
 		}
 		catch (Exception e)
 		{

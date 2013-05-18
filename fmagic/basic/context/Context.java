@@ -22,7 +22,9 @@ import fmagic.basic.resource.ResourceContainer;
 import fmagic.basic.resource.ResourceManager;
 import fmagic.basic.right.RightManager;
 import fmagic.client.application.ClientManager;
+import fmagic.client.media.ClientMediaManager;
 import fmagic.server.application.ServerManager;
+import fmagic.server.media.ServerMediaManager;
 import fmagic.server.watchdog.WatchdogManager;
 import fmagic.test.application.TestManager;
 
@@ -824,6 +826,24 @@ public abstract class Context implements Cloneable, ManagerInterface
 	public MediaManager getMediaManager()
 	{
 		return this.mediaManager;
+	}
+
+	/**
+	 * Getter
+	 */
+	public ServerMediaManager getServerMediaManager()
+	{
+		if (this.mediaManager instanceof ServerMediaManager) return (ServerMediaManager) mediaManager;
+		return null;
+	}
+
+	/**
+	 * Getter
+	 */
+	public ClientMediaManager getClientMediaManager()
+	{
+		if (this.mediaManager instanceof ClientMediaManager) return (ClientMediaManager) mediaManager;
+		return null;
 	}
 
 	/**

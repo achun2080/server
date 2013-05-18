@@ -99,7 +99,7 @@ public class SocketHandler
 		}
 		catch (Exception e)
 		{
-			String errorString = "--> on opening socket connection";
+			String errorString = "--> On opening socket connection";
 			errorString += "\n--> Host '" + this.host + "', Port '" + String.valueOf(this.port) + "'";
 			this.context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Socket", "ErrorOnSocketConnection"), errorString, e);
 			return false;

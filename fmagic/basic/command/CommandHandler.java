@@ -4,6 +4,7 @@ import java.net.SocketTimeoutException;
 
 import fmagic.basic.context.Context;
 import fmagic.basic.notification.NotificationManager;
+import fmagic.basic.resource.ResourceManager;
 
 /**
  * This class executes a command on client side including calling it on server.
@@ -53,6 +54,12 @@ public class CommandHandler
 
 		// Open a socket connection to the server
 		SocketHandler socketHandler = workstepOpenSocketConnectionToServer(executingContext, responseContainer);
+		
+		if (socketHandler == null )
+		{
+			responseContainer.setErrorCode(ResourceManager.notification(executingContext, "Socket", "ErrorOnSocketConnection").getRecourceIdentifier());
+			return responseContainer;
+		}
 
 		// Do handshake
 		if (socketHandler != null && commandEncrypted != null)

@@ -176,12 +176,12 @@ public class TestManager implements ManagerInterface
 	}
 
 	/**
-	 * Push an error message to the error protocols of a test
-	 * runner and a test suite.
+	 * Push an error message to the error protocols of a test runner and a test
+	 * suite.
 	 * 
 	 * @param testRunner
-	 *            The test runner that invoked this method, or <TT>null</TT>
-	 *            if no test container is available.
+	 *            The test runner that invoked this method, or <TT>null</TT> if
+	 *            no test container is available.
 	 * 
 	 * @param assertText
 	 *            Headline text that describes the assertion.
@@ -376,6 +376,34 @@ public class TestManager implements ManagerInterface
 		filePath = filePath.replace("${testsession}", testRunner.getTestSessionName());
 
 		FileUtilFunctions.directoryDeleteAllFiles(filePath);
+	}
+
+	/**
+	 * Clean all media files in a test media environment.
+	 * <p>
+	 * In order to avoid removing of innocent directories there is a convention:
+	 * Only those directories are removed the begins with <TT>$media$.</TT>.
+	 * 
+	 * @param context
+	 *            The application context.
+	 */
+	public static void cleanTestMediaDirectory(Context context)
+	{
+		// Be careful: Please let run in test environment only
+		if (!context.isRunningInTestMode()) return;
+
+		// Get file path of local media repository
+		String filePath = context.getMediaManager().getMediaRootFilePath();
+		if (filePath == null || filePath.length() == 0) return;
+
+		// Check if it is a media directory
+		String mediaTestDirectoryLiteral = FileLocationFunctions.getMediaTestDirectoryLiteral();
+		if (mediaTestDirectoryLiteral == null || mediaTestDirectoryLiteral.length() == 0) return;
+		mediaTestDirectoryLiteral = "/" + mediaTestDirectoryLiteral + ".";
+		if (!filePath.contains(mediaTestDirectoryLiteral)) return;
+		
+		// Delete directory
+		FileUtilFunctions.directoryDeleteRecursively(filePath);
 	}
 
 	/**

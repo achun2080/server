@@ -41,9 +41,6 @@ public class TestRunnerMediaClient extends TestRunner
 	{
 		// Call super class
 		super(testSuite, TEST_RUNNER_NAME, testSessionName);
-
-		// Clear test session directory
-		TestManager.cleanTestSessionDirectory(this);
 	}
 
 	@Override
@@ -51,7 +48,6 @@ public class TestRunnerMediaClient extends TestRunner
 	{
 		try
 		{
-
 			/*
 			 * Please notice that each application server is configured with
 			 * specific settings via configuration files.
@@ -61,6 +57,11 @@ public class TestRunnerMediaClient extends TestRunner
 			clientAp1 = this.createApplicationClient("cl1");
 			clientAp2 = this.createApplicationClient("cl2");
 			clientAp3 = this.createApplicationClient("cl3");
+			
+			// Cleanup media directories
+			TestManager.cleanTestMediaDirectory(clientAp1.getContext());
+			TestManager.cleanTestMediaDirectory(clientAp2.getContext());
+			TestManager.cleanTestMediaDirectory(clientAp3.getContext());
 			
 			// Set test parameter to local data of the clients
 			Context context;

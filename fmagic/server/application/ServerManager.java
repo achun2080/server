@@ -18,7 +18,7 @@ import fmagic.basic.notification.NotificationManager;
 import fmagic.basic.resource.ResourceContainer.OriginEnum;
 import fmagic.basic.resource.ResourceManager;
 import fmagic.server.media.ServerMediaManager;
-import fmagic.server.media.ServerMediaPoolServer;
+import fmagic.server.media.ServerMediaServer;
 import fmagic.server.watchdog.WatchdogManager;
 import fmagic.server.watchdog.WatchdogServer;
 
@@ -85,8 +85,9 @@ public abstract class ServerManager extends ApplicationManager
 	 */
 	protected ServerManager(
 			ApplicationManager.ApplicationIdentifierEnum applicationIdentifier,
-			int applicationVersion, String codeName, int serverSocketPort, boolean runningInTestMode,
-			String testCaseName, String testSessionName)
+			int applicationVersion, String codeName, int serverSocketPort,
+			boolean runningInTestMode, String testCaseName,
+			String testSessionName)
 	{
 		// Instantiate super class
 		super(applicationIdentifier, applicationVersion, codeName, OriginEnum.Server, runningInTestMode, testCaseName, testSessionName);
@@ -154,7 +155,7 @@ public abstract class ServerManager extends ApplicationManager
 			if (watchdogServer.startServer(this.getContext()) == false) isError = true;
 
 			// Start media server
-			this.mediaServer = new ServerMediaPoolServer(this.getContext(), (ServerMediaManager) this.getContext().getMediaManager());
+			this.mediaServer = new ServerMediaServer(this.getContext(), (ServerMediaManager) this.getContext().getMediaManager());
 			if (this.mediaServer.startServer(this.getContext()) == false) isError = true;
 		}
 		catch (Exception e)
@@ -162,7 +163,7 @@ public abstract class ServerManager extends ApplicationManager
 			this.getContext().getNotificationManager().notifyError(this.getContext(), ResourceManager.notification(this.getContext(), "Application", "ErrorOnStartingServer"), null, e);
 			isError = true;
 		}
-		
+
 		// Return
 		return isError;
 	}
@@ -201,7 +202,7 @@ public abstract class ServerManager extends ApplicationManager
 
 			// Read parameter: PercentageRateForCleaning
 			this.percentageRateForCleaning = context.getConfigurationManager().getPropertyAsIntegerValue(context, ResourceManager.configuration(context, "Session", "PercentageRateForCleaning"), false);
-			
+
 			// Read parameter: SocketTimeoutInMilliseconds
 			this.socketTimeoutInMilliseconds = context.getConfigurationManager().getPropertyAsIntegerValue(context, ResourceManager.configuration(context, "Application", "SocketTimeoutInMilliseconds"), false);
 
@@ -550,7 +551,7 @@ public abstract class ServerManager extends ApplicationManager
 		{
 			this.getContext().getNotificationManager().notifyError(this.getContext(), ResourceManager.notification(this.getContext(), "Application", "ErrorOnServerSocket"), "--> on closing server socket port: '" + String.valueOf(this.getServerSocketPort()) + "'", e);
 		}
-		
+
 		// Release integrated server
 		this.releaseIntegratedServer();
 	}
@@ -595,12 +596,15 @@ public abstract class ServerManager extends ApplicationManager
 	{
 		if (this.threadPool == null) return;
 
-		// Remove expired threads
+		// Remove an expired thread from the list of threads
 		try
 		{
 			for (Thread thread : new ArrayList<Thread>(this.threadPool))
 			{
-				if (!thread.isAlive()) this.threadPool.remove(thread);
+				if (!thread.isAlive())
+				{
+					this.threadPool.remove(thread);
+				}
 			}
 		}
 		catch (Exception exception)

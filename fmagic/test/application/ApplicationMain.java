@@ -24,18 +24,17 @@ public class ApplicationMain
 		try
 		{
 //			TestSuite testSuite = new TestSuiteComplete();
-//			TestSuite testSuite = new TestSuiteMedia();
-//			testSuite.execute();
-//			String errorProtocol = testSuite.printAssertionErrorProtocol();
-//			if (errorProtocol != null) System.err.println(errorProtocol);
-			
-			
-			TestRunnerMediaPool testRunner = new TestRunnerMediaPool(null, "xxxxxxxxxx");
-			TestContainerMediaPool testContainer = new TestContainerMediaPool(testRunner);
-			
-			testRunner.setup();
-			testRunner.executeSingleFunctionTest(testContainer, "xxxxxxxxxx");
-			testRunner.cleanup();
+			TestSuite testSuite = new TestSuiteMedia();
+			testSuite.execute();
+			String errorProtocol = testSuite.printAssertionErrorProtocol();
+			if (errorProtocol != null) System.err.println(errorProtocol);
+
+//			TestRunnerMediaPool testRunner = new TestRunnerMediaPool(null, "xxxxxxxxxx");
+//			TestContainerMediaPool testContainer = new TestContainerMediaPool(testRunner);
+//			
+//			testRunner.setup();
+//			testRunner.executeSingleFunctionTest(testContainer, "xxxxxxxxxx");
+//			testRunner.cleanup();
 		}
 		catch (Exception e)
 		{

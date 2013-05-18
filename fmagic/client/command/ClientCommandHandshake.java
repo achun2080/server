@@ -32,12 +32,12 @@ public class ClientCommandHandshake extends ClientCommand
 	 * @param context
 	 *            Current context.
 	 * 
-	 * @param client
+	 * @param application
 	 *            Application client.
 	 */
-	public ClientCommandHandshake(Context context, ApplicationManager client, ConnectionContainer connectionContainer)
+	public ClientCommandHandshake(Context context, ApplicationManager application, ConnectionContainer connectionContainer)
 	{
-		super(context, client, ResourceManager.command(context, "Handshake").getRecourceIdentifier(), connectionContainer, context.getConfigurationManager().getPropertyAsIntegerValue(context, ResourceManager.configuration(context, "CommandHandshake", "SocketTimeoutInMilliseconds"), false));
+		super(context, application, ResourceManager.command(context, "Handshake").getRecourceIdentifier(), connectionContainer, context.getConfigurationManager().getPropertyAsIntegerValue(context, ResourceManager.configuration(context, "CommandHandshake", "SocketTimeoutInMilliseconds"), false));
 	}
 
 	@Override

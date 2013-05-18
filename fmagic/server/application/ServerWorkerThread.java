@@ -475,15 +475,20 @@ public class ServerWorkerThread implements Runnable
 		{
 			/*
 			 * Note: If the server finds the COMMAND
-			 * 'ClientCommandCreateSession' to execute, the test regarding the
+			 * 'ClientCommandCreateSession' to execute, the check regarding the
 			 * client session is switched off.
 			 */
 			if (!requestContainer.getCommandIdentifier().equals(ResourceManager.command(context, "CreateSession").getRecourceIdentifier()))
 			{
 				if (this.serverManager.sessionCheckClientSession(requestContainer.getClientSessionIdentifier()) == false)
 				{
-					String errorText = "--> Requesting client session identifier: '" + requestContainer.getClientSessionIdentifier() + "'";
-					responseContainer.notifyError(this.context, "Application", "ClientSessionDoesNotExistOnServer", errorText, null);
+					// Set error code to the response container
+					responseContainer.setErrorCode(ResourceManager.notification(context, "Application", "ClientSessionDoesNotExistOnServer").getRecourceIdentifier());
+
+					// But log this event only, because it is not a real error 
+					String logText = "Client session does not exist on server";
+					logText += "\n--> Requesting client session identifier: '" + requestContainer.getClientSessionIdentifier() + "'";
+					this.context.getNotificationManager().notifyLogMessage(this.context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
 					return false;
 				}
 			}

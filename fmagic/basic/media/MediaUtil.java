@@ -1152,7 +1152,7 @@ public class MediaUtil
 	 * @return Returns <TT>true</TT> if the maximum size is exceeded or an error
 	 *         occurred, otherwise <TT>false</TT>.
 	 */
-	boolean isMaximumFileSizeExceeded(Context context, String mediaFileName)
+	public boolean isMaximumFileSizeExceeded(Context context, String mediaFileName)
 	{
 		// Validate parameter
 		if (mediaFileName == null || mediaFileName.length() == 0) return true;

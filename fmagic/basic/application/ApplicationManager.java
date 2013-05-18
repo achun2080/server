@@ -12,7 +12,7 @@ import fmagic.client.application.ClientManager;
 import fmagic.client.context.ClientContext;
 import fmagic.server.application.ServerManager;
 import fmagic.server.context.ServerContext;
-import fmagic.server.media.ServerMediaPoolServer;
+import fmagic.server.media.ServerMediaServer;
 import fmagic.server.watchdog.WatchdogServer;
 import fmagic.test.application.TestManager;
 
@@ -49,7 +49,7 @@ public abstract class ApplicationManager implements ManagerInterface
 
 	// Integrated server
 	protected WatchdogServer watchdogServer;
-	protected ServerMediaPoolServer mediaServer;
+	protected ServerMediaServer mediaServer;
 
 	// Shut down flag: If this flag is set, the server was not started because
 	// of severe errors during initialization

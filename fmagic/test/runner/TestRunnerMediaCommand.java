@@ -51,9 +51,6 @@ public class TestRunnerMediaCommand extends TestRunner
 	{
 		// Call super class
 		super(testSuite, TEST_RUNNER_NAME, testSessionName);
-
-		// Clear test session directory
-		TestManager.cleanTestSessionDirectory(this);
 	}
 
 	@Override
@@ -81,6 +78,21 @@ public class TestRunnerMediaCommand extends TestRunner
 			clientAp7 = this.createApplicationClient("cl7");
 			clientAp8 = this.createApplicationClient("cl8");
 			clientAp9 = this.createApplicationClient("cl9");
+			
+			// Cleanup media directories
+			TestManager.cleanTestMediaDirectory(serverAp1.getContext());
+			TestManager.cleanTestMediaDirectory(serverAp2.getContext());
+			TestManager.cleanTestMediaDirectory(serverAp3.getContext());
+			
+			TestManager.cleanTestMediaDirectory(clientAp1.getContext());
+			TestManager.cleanTestMediaDirectory(clientAp2.getContext());
+			TestManager.cleanTestMediaDirectory(clientAp3.getContext());
+			TestManager.cleanTestMediaDirectory(clientAp4.getContext());
+			TestManager.cleanTestMediaDirectory(clientAp5.getContext());
+			TestManager.cleanTestMediaDirectory(clientAp6.getContext());
+			TestManager.cleanTestMediaDirectory(clientAp7.getContext());
+			TestManager.cleanTestMediaDirectory(clientAp8.getContext());
+			TestManager.cleanTestMediaDirectory(clientAp9.getContext());
 		}
 		catch (Exception e)
 		{

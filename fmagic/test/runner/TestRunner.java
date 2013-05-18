@@ -58,6 +58,9 @@ abstract public class TestRunner
 		this.testSuite = testSuite;
 		this.testRunnerName = testRunnerName;
 		this.testSessionName = testSessionName;
+
+		// Clear test session directory
+		TestManager.cleanTestSessionDirectory(this);
 	}
 
 	/**
@@ -137,17 +140,45 @@ abstract public class TestRunner
 	 * @param codeName
 	 *            The code name of the application.
 	 * 
+	 * @param portParameter
+	 *            The port number to set as socket port to the application
+	 *            server, or <TT>null</TT> if the port number has to be set
+	 *            automatically.
+	 * 
 	 * @return Returns the server instance, or <TT>null</TT> if an error
 	 *         occurred.
 	 */
 	protected ServerManager createApplicationServer(String codeName)
+	{
+		return createApplicationServer(codeName, null);
+	}
+
+	/**
+	 * Create an application server and start it.
+	 * <p>
+	 * You can get the current port number, used by an application server, by
+	 * invoking the getter method <TT>getServerSocketPort()</TT> of the server
+	 * instance.
+	 * 
+	 * @param codeName
+	 *            The code name of the application.
+	 * 
+	 * @param portParameter
+	 *            The port number to set as socket port to the application
+	 *            server, or <TT>null</TT> if the port number has to be set
+	 *            automatically.
+	 * 
+	 * @return Returns the server instance, or <TT>null</TT> if an error
+	 *         occurred.
+	 */
+	protected ServerManager createApplicationServer(String codeName, Integer portParameter)
 	{
 		ServerManager server = null;
 
 		try
 		{
 			// Allocate port number
-			int port = this.allocatePortNumber();
+			int port = this.allocatePortNumber(codeName, portParameter);
 
 			// Create instance
 			server = ServerReferenceApplication.getTestInstance(codeName, port, this.getTestRunnerName(), this.getTestSessionName());
@@ -161,7 +192,7 @@ abstract public class TestRunner
 				TestManager.addErrorToErrorProtocolLists(this, "Error on creating appplication server", additionalText);
 				return null;
 			}
-			
+
 			// Start application server
 
 			// Start application server
@@ -203,7 +234,7 @@ abstract public class TestRunner
 				TestManager.addErrorToErrorProtocolLists(this, "Error on creating client appplication", additionalText);
 				return null;
 			}
-			
+
 			// Start client application
 			client.startApplication();
 		}
@@ -319,13 +350,36 @@ abstract public class TestRunner
 	 * The range of port numbers that can be allocated starts with <TT>8000</TT>
 	 * and ends with <TT>8999</TT>.
 	 * 
+	 * @param portParameter
+	 *            The port number to set as socket port to the application
+	 *            server, or <TT>null</TT> if the port number has to be set
+	 *            automatically.
+	 * 
 	 * @return Returns the allocated port number, or <TT>0</TT> if an error
 	 *         occurred.
 	 */
-	public synchronized int allocatePortNumber()
+	public synchronized int allocatePortNumber(String codeName, Integer portParameter)
 	{
 		try
 		{
+			// Reserve preset port number
+			if (portParameter != null && portParameter > 0)
+			{
+				if (TestRunner.usedServerPorts.contains(portParameter))
+				{
+					String additionalText = "--> The manually set port number '" + String.valueOf(portParameter) + "' is already used.";
+					additionalText += "\n--> Test runner name: '" + this.getTestRunnerName() + "'";
+					additionalText += "\n--> Test session name: '" + this.getTestSessionName() + "'";
+					additionalText += "\n--> Code name: '" + codeName + "'";
+					TestManager.addErrorToErrorProtocolLists(this, "Error on allocating port number", additionalText);
+					return 0;
+				}
+
+				TestRunner.usedServerPorts.add(portParameter);
+				return portParameter;
+			}
+
+			// Set port number automatically
 			for (int port = 8000; port <= 8999; port++)
 			{
 				if (TestRunner.usedServerPorts.contains(port)) continue;
