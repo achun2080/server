@@ -4,6 +4,7 @@ import java.util.List;
 
 import fmagic.basic.context.Context;
 import fmagic.basic.file.FileUtilFunctions;
+import fmagic.basic.media.MediaContainer;
 import fmagic.basic.media.ResourceContainerMedia;
 import fmagic.basic.resource.ResourceContainer;
 import fmagic.basic.resource.ResourceManager;
@@ -28,7 +29,7 @@ public class TestContainerMediaPool extends TestContainer
 	private int parameterPlainDataIdentifierTestUploadStartFrom = 3001;
 	private String parameterPlainResourceGroup = "Factory";
 	private String parameterPlainResourceName = "Doorway";
-	
+
 	// Executing application
 	private ServerManager parameterServer = null;
 
@@ -180,9 +181,9 @@ public class TestContainerMediaPool extends TestContainer
 		try
 		{
 			ServerMediaManager mediaManager = (ServerMediaManager) this.getContext().getMediaManager();
-			
+
 			System.out.println(mediaManager);
-			
+
 		}
 		catch (Exception e)
 		{
@@ -220,7 +221,7 @@ public class TestContainerMediaPool extends TestContainer
 			if (fileList == null) return;
 
 			TestManager.assertGreaterThan(parameterServer.getContext(), this, additionalText, fileList.size(), 0);
-			
+
 			int currentDataIdentifier = this.parameterPlainDataIdentifierTestUploadStartFrom;
 
 			// Try some uploads
@@ -232,7 +233,7 @@ public class TestContainerMediaPool extends TestContainer
 				// Process files only that matches the maximum media size
 				String fileToBeUploaded = fileList.get(index);
 				if (FileUtilFunctions.fileGetFileSize(fileToBeUploaded) > (mediaResource.attributeGetMaximumMediaSize(parameterServer.getContext()) * 1024L)) continue;
-				if (FileUtilFunctions.fileGetFileSize(fileToBeUploaded) > (parameterServer.getContext().getMediaManager().getMaximumMediaSize() * 1024L)) continue;
+				if (FileUtilFunctions.fileGetFileSize(fileToBeUploaded) > (parameterServer.getContext().getServerMediaManagerTest().getMaximumMediaSize() * 1024L)) continue;
 
 				// Push file
 				this.doPushFileFromClientToServer(this.parameterPlainResourceGroup, this.parameterPlainResourceName, String.valueOf(currentDataIdentifier++), fileToBeUploaded);
@@ -251,6 +252,8 @@ public class TestContainerMediaPool extends TestContainer
 	{
 		try
 		{
+			boolean resultBoolean = false;
+
 			// Create resource container
 			ResourceContainerMedia mediaResource = ResourceManager.media(parameterServer.getContext(), resourceGroup, resourceName);
 
@@ -259,21 +262,22 @@ public class TestContainerMediaPool extends TestContainer
 			String hashValue = FileUtilFunctions.fileGetHashValue(uploadFileName);
 
 			/*
-			 * Upload the media file to a server
+			 * Upload the media file to the media pool
 			 */
-			
+
 			String additionalText = "--> Upload media file to media pool";
 			additionalText += "\n--> Media resource: '" + mediaResource.getRecourceIdentifier() + "'";
 			additionalText += "\n--> Upload file name: '" + uploadFileName + "'";
 			additionalText += "\n--> Data identifier: '" + dataIdentifierString + "'";
 
-			boolean resultBoolean = parameterServer.getContext().getServerMediaManager().getMediaPoolUtil().poolUploadMediaFileToPool(parameterServer.getContext(), mediaResource, uploadFileName, dataIdentifierString);
+			resultBoolean = parameterServer.getContext().getServerMediaManagerTest().poolUploadMediaFileToPool(parameterServer.getContext(), mediaResource, uploadFileName, dataIdentifierString);
 			TestManager.assertTrue(parameterServer.getContext(), this, additionalText, resultBoolean);
 
 			if (resultBoolean == false) return;
 
 			/*
-			 * Check if exactly the same file (with the same hash value) really exists on server
+			 * Check if exactly the same file (with the same hash value) really
+			 * exists on the media pool
 			 */
 			if (!this.isConcurrentAccess())
 			{
@@ -282,66 +286,97 @@ public class TestContainerMediaPool extends TestContainer
 				additionalText += "\n--> Upload file name: '" + uploadFileName + "'";
 				additionalText += "\n--> Data identifier: '" + dataIdentifierString + "'";
 
-				resultBoolean = parameterServer.getContext().getServerMediaManager().getMediaPoolUtil().poolCheckMediaFileOnPool(parameterServer.getContext(), mediaResource, fileType, dataIdentifierString, hashValue);
-				TestManager.assertFalse(parameterServer.getContext(), this, additionalText, resultBoolean);
+				// Try to check the media file for 30 seconds (Waiting for
+				// processing the main queue)
+				int counter = 10;
 
+				while (counter-- >= 0)
+				{
+					FileUtilFunctions.generalSleepSeconds(3);
+
+					resultBoolean = parameterServer.getContext().getServerMediaManagerTest().poolCheckMediaFileOnPool(parameterServer.getContext(), mediaResource, fileType, dataIdentifierString, hashValue);
+					if (resultBoolean == true) break;
+				}
+
+				TestManager.assertTrue(parameterServer.getContext(), this, additionalText, resultBoolean);
 				if (resultBoolean == false) return;
 			}
 
-//			/*
-//			 * Read the media file from server and store it in the local media
-//			 * repository
-//			 */
-//			additionalText = "--> Media file couldn't be read from server";
-//			additionalText += "\n--> Media resource: '" + mediaResource.getRecourceIdentifier() + "'";
-//			additionalText += "\n--> Upload file name: '" + uploadFileName + "'";
-//			additionalText += "\n--> Data identifier: '" + dataIdentifierString + "'";
-//
-//			boolean booleanResult = parameterServer.getContext().getMediaManager().commandReadOnServer(parameterServer.getContext(), parameterServer.getConnectionContainer(), mediaResource, dataIdentifierString);
-//			TestManager.assertTrue(parameterServer.getContext(), this, additionalText, booleanResult);
-//
-//			// Return after error
-//			if (booleanResult == false) return;
-//
-//			/*
-//			 * Check if file content can be read
-//			 */
-//			additionalText = "--> Tried to read file content of an uploaded file";
-//			additionalText += "\n--> Media resource: '" + mediaResource.getRecourceIdentifier() + "'";
-//			additionalText += "\n--> Upload file name: '" + uploadFileName + "'";
-//			additionalText += "\n--> Data identifier? '" + dataIdentifierString + "'";
-//
-//			MediaContainer mediaContainer = new MediaContainer(parameterServer.getContext(), mediaResource, dataIdentifierString);
-//			TestManager.assertNotNull(parameterServer.getContext(), this, additionalText, mediaContainer);
-//
-//			// Bind media object
-//			booleanResult = mediaContainer.bindMedia();
-//			TestManager.assertTrue(parameterServer.getContext(), this, additionalText + "\n--> Error on binding media file", booleanResult);
-//
-//			// Compare check sum of source file and destination file
-//			if (!this.isConcurrentAccess())
-//			{
-//				// Check always: If the checksum of the uploaded file and
-//				// the working file are the same, all the same if the media
-//				// files are encoded.
-//				TestManager.assertEqualsFile(parameterServer.getContext(), this, additionalText, uploadFileName, mediaContainer.getWorkingMediaFilePath());
-//
-//				// Check if encoding is enabled: If the checksum of
-//				// the uploaded file and the original file are different.
-//				if (parameterServer.getContext().getMediaManager().isEncodingEnabled(parameterServer.getContext(), mediaResource) == true)
-//				{
-//					TestManager.assertNotEqualsFile(parameterServer.getContext(), this, additionalText, uploadFileName, mediaContainer.getOriginalMediaFilePath());
-//				}
-//			}
-//
-//			// Read file content
-//			byte[] contentAsByteBuffer = mediaContainer.readMediaContentAsByteArray();
-//			TestManager.assertNotNull(parameterServer.getContext(), this, additionalText + "\n--> Error on reading media file content", contentAsByteBuffer);
-//			TestManager.assertGreaterThan(parameterServer.getContext(), this, additionalText, contentAsByteBuffer.length, 0);
-//
-//			// Release media file
-//			booleanResult = mediaContainer.releaseMedia();
-//			TestManager.assertTrue(parameterServer.getContext(), this, additionalText + "\n--> Error on releasing media file", booleanResult);
+			/*
+			 * Read the media file from the media pool and store it in the local
+			 * media repository.
+			 */
+			additionalText = "--> Media file couldn't be read from media pool";
+			additionalText += "\n--> Media resource: '" + mediaResource.getRecourceIdentifier() + "'";
+			additionalText += "\n--> Upload file name: '" + uploadFileName + "'";
+			additionalText += "\n--> Data identifier: '" + dataIdentifierString + "'";
+
+			// Try to read the media file for 30 seconds (Waiting for
+			// processing the main queue)
+			int counter = 10;
+			
+			String pendingFileName = null;
+
+			while (counter-- >= 0)
+			{
+				pendingFileName = parameterServer.getContext().getServerMediaManagerTest().poolReadMediaFileOnPool(parameterServer.getContext(), mediaResource, dataIdentifierString);
+				if (pendingFileName != null) break;
+				
+				FileUtilFunctions.generalSleepSeconds(3);
+			}
+
+			TestManager.assertNotNull(parameterServer.getContext(), this, additionalText, pendingFileName);
+
+			// Return after error
+			if (pendingFileName == null) return;
+
+			// Store media file in local media repository
+			boolean booleanResult = parameterServer.getContext().getServerMediaManagerTest().localStoreMediaFile(parameterServer.getContext(), mediaResource, pendingFileName, dataIdentifierString);
+			TestManager.assertTrue(parameterServer.getContext(), this, additionalText + "\n--> Error on storing file to local media repository", booleanResult);
+
+			// Delete pending file
+			booleanResult = FileUtilFunctions.fileDelete(pendingFileName);
+			TestManager.assertTrue(parameterServer.getContext(), this, additionalText + "\n--> Error on deleting pending media file", booleanResult);
+
+			/*
+			 * Check if file content can be read
+			 */
+			additionalText = "--> Tried to read file content of an uploaded file";
+			additionalText += "\n--> Media resource: '" + mediaResource.getRecourceIdentifier() + "'";
+			additionalText += "\n--> Upload file name: '" + uploadFileName + "'";
+			additionalText += "\n--> Data identifier? '" + dataIdentifierString + "'";
+
+			MediaContainer mediaContainer = new MediaContainer(parameterServer.getContext(), mediaResource, dataIdentifierString);
+			TestManager.assertNotNull(parameterServer.getContext(), this, additionalText, mediaContainer);
+
+			// Bind media object
+			booleanResult = mediaContainer.bindMedia();
+			TestManager.assertTrue(parameterServer.getContext(), this, additionalText + "\n--> Error on binding media file", booleanResult);
+
+			// Compare check sum of source file and destination file
+			if (!this.isConcurrentAccess())
+			{
+				// Check always: If the checksum of the uploaded file and
+				// the working file are the same, all the same if the media
+				// files are encoded.
+				TestManager.assertEqualsFile(parameterServer.getContext(), this, additionalText, uploadFileName, mediaContainer.getWorkingMediaFilePath());
+
+				// Check if encoding is enabled: If the checksum of
+				// the uploaded file and the original file are different.
+				if (parameterServer.getContext().getMediaManager().isEncodingEnabled(parameterServer.getContext(), mediaResource) == true)
+				{
+					TestManager.assertNotEqualsFile(parameterServer.getContext(), this, additionalText, uploadFileName, mediaContainer.getOriginalMediaFilePath());
+				}
+			}
+
+			// Read file content
+			byte[] contentAsByteBuffer = mediaContainer.readMediaContentAsByteArray();
+			TestManager.assertNotNull(parameterServer.getContext(), this, additionalText + "\n--> Error on reading media file content", contentAsByteBuffer);
+			TestManager.assertGreaterThan(parameterServer.getContext(), this, additionalText, contentAsByteBuffer.length, 0);
+
+			// Release media file
+			booleanResult = mediaContainer.releaseMedia();
+			TestManager.assertTrue(parameterServer.getContext(), this, additionalText + "\n--> Error on releasing media file", booleanResult);
 		}
 		catch (Exception e)
 		{

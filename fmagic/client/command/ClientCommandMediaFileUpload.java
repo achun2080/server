@@ -5,7 +5,6 @@ import fmagic.basic.command.ConnectionContainer;
 import fmagic.basic.context.Context;
 import fmagic.basic.file.FileUtilFunctions;
 import fmagic.basic.resource.ResourceManager;
-import fmagic.client.application.ClientManager;
 
 /**
  * COMMAND: Upload a media file from client to server.

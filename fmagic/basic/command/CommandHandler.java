@@ -227,7 +227,7 @@ public class CommandHandler
 		try
 		{
 			EncodingHandler encodingUitility = new EncodingHandler();
-			newResponseContainer = encodingUitility.decodeResponseContainer(executingContext, responseData, connectionContainer.getClientPrivateKey());
+			newResponseContainer = encodingUitility.decodeResponseContainer(executingContext, responseData, connectionContainer.getKeyApplicationPrivateKey());
 		}
 		catch (Exception exception)
 		{

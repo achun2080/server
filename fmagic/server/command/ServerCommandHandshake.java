@@ -20,7 +20,7 @@ import fmagic.basic.resource.ResourceManager;
  */
 public class ServerCommandHandshake extends ServerCommand
 {
-	private String serverPublicKey = null;
+	private String keyRemotePublicKey = null;
 	private Boolean isSuccessful = null;
 
 	/**
@@ -51,9 +51,9 @@ public class ServerCommandHandshake extends ServerCommand
 		try
 		{
 			// Get parameter: ClientPublicKey
-			String clientPublicKey = this.requestContainer.getProperty(ResourceManager.commandParameter(this.getContext(), "Handshake", "ClientPublicKey").getAliasName(), null);
+			String keyApplicationPublicKey = this.requestContainer.getProperty(ResourceManager.commandParameter(this.getContext(), "Handshake", "ClientPublicKey").getAliasName(), null);
 
-			if (clientPublicKey == null || clientPublicKey.length() == 0)
+			if (keyApplicationPublicKey == null || keyApplicationPublicKey.length() == 0)
 			{
 				this.notifyError("Application", "PublicKeyOnClientNotSet", null, null);
 				return false;
@@ -75,7 +75,7 @@ public class ServerCommandHandshake extends ServerCommand
 		try
 		{
 			// Get public key of the server
-			this.serverPublicKey = this.context.getConfigurationManager().getProperty(this.context, ResourceManager.configuration(this.context, "Application", "PublicKey"), true);
+			this.keyRemotePublicKey = this.context.getConfigurationManager().getProperty(this.context, ResourceManager.configuration(this.context, "Application", "PublicKey"), true);
 
 			// Set command to status successful
 			this.isSuccessful = true;
@@ -99,7 +99,7 @@ public class ServerCommandHandshake extends ServerCommand
 			this.responseContainer.addProperty(ResourceManager.commandParameter(this.getContext(), "Handshake", "IsSuccessful").getAliasName(), this.isSuccessful.toString());
 
 			// Set parameter: ServerPublicKey
-			this.responseContainer.addProperty(ResourceManager.commandParameter(this.getContext(), "Handshake", "ServerPublicKey").getAliasName(), this.serverPublicKey);
+			this.responseContainer.addProperty(ResourceManager.commandParameter(this.getContext(), "Handshake", "ServerPublicKey").getAliasName(), this.keyRemotePublicKey);
 
 			// Return
 			return true;

@@ -5,7 +5,7 @@ import java.security.KeyPair;
 import org.apache.commons.codec.binary.Base64;
 
 import fmagic.basic.command.EncodingHandler;
-import fmagic.test.container.TestContainerMediaLocal;
+import fmagic.test.container.TestContainerMediaLocalServer;
 import fmagic.test.container.TestContainerMediaPool;
 import fmagic.test.runner.TestRunnerMediaCommand;
 import fmagic.test.runner.TestRunnerMediaPool;

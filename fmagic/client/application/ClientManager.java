@@ -17,10 +17,6 @@ import fmagic.basic.resource.ResourceManager;
  */
 public abstract class ClientManager extends ApplicationManager
 {
-	// Security data
-	private String clientPublicKey = null;
-	private String clientPrivateKey = null;
-
 	// Connection container with actual connection settings to the application
 	// server the client deals with
 	private ConnectionContainer connectionContainer = null;
@@ -76,30 +72,6 @@ public abstract class ClientManager extends ApplicationManager
 		this.context = this.getContext().createTrackingContext(ResourceManager.context(this.getContext(), "Overall", "Tracking"));
 	}
 
-	@Override
-	public boolean readSecurityKeys()
-	{
-		// Initialize
-		boolean isSuccessful = true;
-
-		// Read and check
-		try
-		{
-			this.clientPublicKey = this.getContext().getConfigurationManager().getProperty(this.getContext(), ResourceManager.configuration(this.getContext(), "Application", "PublicKey"), true);
-			if (this.clientPublicKey == null || this.clientPublicKey.length() == 0) isSuccessful = false;
-
-			this.clientPrivateKey = this.getContext().getConfigurationManager().getProperty(this.getContext(), ResourceManager.configuration(this.getContext(), "Application", "PrivateKey"), true);
-			if (this.clientPrivateKey == null || this.clientPrivateKey.length() == 0) isSuccessful = false;
-		}
-		catch (Exception e)
-		{
-			return false;
-		}
-
-		// Return
-		return isSuccessful;
-	}
-
 	/**
 	 * Set connection parameter for the socket connection to a server.
 	 * 
@@ -116,7 +88,7 @@ public abstract class ClientManager extends ApplicationManager
 	public void setSocketConnectionParameter(String serverSocketHost, int serverSocketPort)
 	{
 		this.connectionContainer = new ConnectionContainer(0, serverSocketHost, serverSocketPort);
-		this.connectionContainer.setPrivateKey(this.getClientPrivateKey());
+		this.connectionContainer.setKeyApplicationPrivateKey(this.getKeyApplicationPrivateKey());
 		this.connectionContainer.setSessionIdentifier(this.getClientSessionIdentifier());
 		
 		this.saveLastKnownConnectionData();
@@ -208,7 +180,7 @@ public abstract class ClientManager extends ApplicationManager
 			if (clientSessionIdentifier == null || clientSessionIdentifier.length() == 0) clientSessionIdentifier = ConnectionContainer.createClientSessionIdentifier();
 
 			// Create a new connection container with the read data
-			this.connectionContainer = new ConnectionContainer(0, host, port, this.getClientPrivateKey(), serverPublicKey);
+			this.connectionContainer = new ConnectionContainer(0, host, port, this.getKeyApplicationPrivateKey(), serverPublicKey);
 			this.connectionContainer.setSessionIdentifier(clientSessionIdentifier);
 			
 			// Try to establish the connection automatically, if all settings are available
@@ -242,7 +214,7 @@ public abstract class ClientManager extends ApplicationManager
 			// Save data to local data
 			this.getContext().getLocaldataManager().writeProperty(this.getContext(), ResourceManager.localdata(this.getContext(), "LastValidServerConnection", "Host"), this.connectionContainer.getHost());
 			this.getContext().getLocaldataManager().writeProperty(this.getContext(), ResourceManager.localdata(this.getContext(), "LastValidServerConnection", "Port"), String.valueOf(this.connectionContainer.getPort()));
-			this.getContext().getLocaldataManager().writeProperty(this.getContext(), ResourceManager.localdata(this.getContext(), "LastValidServerConnection", "ServerPublicKey"), this.connectionContainer.getServerPublicKey());
+			this.getContext().getLocaldataManager().writeProperty(this.getContext(), ResourceManager.localdata(this.getContext(), "LastValidServerConnection", "ServerPublicKey"), this.connectionContainer.getKeyRemotePublicKey());
 			this.getContext().getLocaldataManager().writeProperty(this.getContext(), ResourceManager.localdata(this.getContext(), "LastValidServerConnection", "ClientSessionIdentifier"), this.connectionContainer.getSessionIdentifier());
 		}
 		catch (Exception e)
@@ -283,22 +255,6 @@ public abstract class ClientManager extends ApplicationManager
 			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Application", "ErrorOnProcessingCommandOnClient"), null, e);
 			return null;
 		}
-	}
-
-	/**
-	 * Getter
-	 */
-	public String getClientPublicKey()
-	{
-		return clientPublicKey;
-	}
-
-	/**
-	 * Getter
-	 */
-	public String getClientPrivateKey()
-	{
-		return clientPrivateKey;
 	}
 
 	/**

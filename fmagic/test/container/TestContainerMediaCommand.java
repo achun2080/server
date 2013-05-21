@@ -227,7 +227,7 @@ public class TestContainerMediaCommand extends TestContainer
 				// Process files only that matches the maximum media size
 				String fileToBeUploaded = fileList.get(index);
 				if (FileUtilFunctions.fileGetFileSize(fileToBeUploaded) > (mediaResource.attributeGetMaximumMediaSize(parameterClient.getContext()) * 1024L)) continue;
-				if (FileUtilFunctions.fileGetFileSize(fileToBeUploaded) > (parameterClient.getContext().getMediaManager().getMaximumMediaSize() * 1024L)) continue;
+				if (FileUtilFunctions.fileGetFileSize(fileToBeUploaded) > (parameterClient.getContext().getClientMediaManagerTest().getMaximumMediaSize() * 1024L)) continue;
 
 				// Push file
 				this.doPushFileFromClientToServer(this.parameterPlainResourceGroup, this.parameterPlainResourceName, this.parameterPlainDataIdentifierTestUpload, fileToBeUploaded);
@@ -276,13 +276,13 @@ public class TestContainerMediaCommand extends TestContainer
 			/*
 			 * Get current configuration property
 			 */
-			Integer lastValueOfMaximumMediaSize = parameterClient.getContext().getMediaManager().getMaximumMediaSize();
+			Integer lastValueOfMaximumMediaSize = parameterClient.getContext().getClientMediaManagerTest().getMaximumMediaSize();
 			if (lastValueOfMaximumMediaSize == null) lastValueOfMaximumMediaSize = 0;
 
 			/*
 			 * Check a couple of media resource settings
 			 */
-			parameterClient.getContext().getMediaManager().testSetMaximumMediaSize(parameterClient.getContext(), 5000);
+			parameterClient.getContext().getClientMediaManagerTest().setMaximumMediaSize(parameterClient.getContext(), 5000);
 			this.doMaximumMediaSizeAttribute(fileList, "Test", "Size50", 50);
 			this.doMaximumMediaSizeAttribute(fileList, "Test", "Size500", 500);
 			this.doMaximumMediaSizeAttribute(fileList, "Test", "Size3000", 3000);
@@ -290,19 +290,19 @@ public class TestContainerMediaCommand extends TestContainer
 			/*
 			 * Check the configuration setting
 			 */
-			parameterClient.getContext().getMediaManager().testSetMaximumMediaSize(parameterClient.getContext(), 200);
+			parameterClient.getContext().getClientMediaManagerTest().setMaximumMediaSize(parameterClient.getContext(), 200);
 			this.doMaximumMediaSizeConfiguration(fileList, "Test", "Size3000", 200);
 
-			parameterClient.getContext().getMediaManager().testSetMaximumMediaSize(parameterClient.getContext(), 700);
+			parameterClient.getContext().getClientMediaManagerTest().setMaximumMediaSize(parameterClient.getContext(), 700);
 			this.doMaximumMediaSizeConfiguration(fileList, "Test", "Size3000", 700);
 
-			parameterClient.getContext().getMediaManager().testSetMaximumMediaSize(parameterClient.getContext(), 1400);
+			parameterClient.getContext().getClientMediaManagerTest().setMaximumMediaSize(parameterClient.getContext(), 1400);
 			this.doMaximumMediaSizeConfiguration(fileList, "Test", "Size3000", 1400);
 
 			/*
 			 * Reset current configuration property
 			 */
-			parameterClient.getContext().getMediaManager().testSetMaximumMediaSize(parameterClient.getContext(), lastValueOfMaximumMediaSize);
+			parameterClient.getContext().getClientMediaManagerTest().setMaximumMediaSize(parameterClient.getContext(), lastValueOfMaximumMediaSize);
 
 		}
 		catch (Exception e)
@@ -355,7 +355,7 @@ public class TestContainerMediaCommand extends TestContainer
 
 				// Process files only that matches the maximum media size
 				if (FileUtilFunctions.fileGetFileSize(fileToBeUploaded) > (mediaResource.attributeGetMaximumMediaSize(parameterClient.getContext()) * 1024L)) continue;
-				if (FileUtilFunctions.fileGetFileSize(fileToBeUploaded) > (parameterClient.getContext().getMediaManager().getMaximumMediaSize() * 1024L)) continue;
+				if (FileUtilFunctions.fileGetFileSize(fileToBeUploaded) > (parameterClient.getContext().getClientMediaManagerTest().getMaximumMediaSize() * 1024L)) continue;
 
 				// Push file
 				this.doPushFileFromClientToServer(this.parameterCycleResourceGroup, this.parameterCycleResourceName, dataIdentifierString, fileToBeUploaded);
@@ -377,8 +377,8 @@ public class TestContainerMediaCommand extends TestContainer
 		try
 		{
 			// Prepare resource item
-			ResourceContainerMedia media = ResourceManager.media(parameterClient.getContext(), group, name);
-			Integer settingOfAttributeMediaSize = media.attributeGetMaximumMediaSize(parameterClient.getContext());
+			ResourceContainerMedia mediaResource = ResourceManager.media(parameterClient.getContext(), group, name);
+			Integer settingOfAttributeMediaSize = mediaResource.attributeGetMaximumMediaSize(parameterClient.getContext());
 			TestManager.assertNotNull(parameterClient.getContext(), this, null, settingOfAttributeMediaSize);
 			if (settingOfAttributeMediaSize != null) TestManager.assertGreaterThan(parameterClient.getContext(), this, null, settingOfAttributeMediaSize, maximumConfigurationMediaSize);
 
@@ -395,14 +395,14 @@ public class TestContainerMediaCommand extends TestContainer
 					{
 						String errorIdentifier = ResourceManager.notification(parameterClient.getContext(), "Media", "MaximumMediaSizeExceeded").getRecourceIdentifier();
 						TestManager.errorSuppressErrorMessageOnce(parameterClient.getContext(), errorIdentifier);
-						boolean resultBoolean = parameterClient.getContext().getMediaManager().commandUploadToServer(parameterClient.getContext(), parameterClient.getConnectionContainer(), media, fileList.get(i), name);
+						boolean resultBoolean = parameterClient.getContext().getClientMediaManagerTest().commandUploadToServer(parameterClient.getContext(), parameterClient.getConnectionContainer(), mediaResource, fileList.get(i), name);
 						TestManager.assertRuntimeErrorCode(parameterClient.getContext(), this, null, errorIdentifier);
 						TestManager.assertFalse(parameterClient.getContext(), this, null, resultBoolean);
 					}
 					// Upload regularly
 					else
 					{
-						boolean resultBoolean = parameterClient.getContext().getMediaManager().commandUploadToServer(parameterClient.getContext(), parameterClient.getConnectionContainer(), media, fileList.get(i), name);
+						boolean resultBoolean = parameterClient.getContext().getClientMediaManagerTest().commandUploadToServer(parameterClient.getContext(), parameterClient.getConnectionContainer(), mediaResource, fileList.get(i), name);
 						TestManager.assertTrue(parameterClient.getContext(), this, null, resultBoolean);
 					}
 				}
@@ -428,8 +428,8 @@ public class TestContainerMediaCommand extends TestContainer
 		try
 		{
 			// Prepare resource item
-			ResourceContainerMedia media = ResourceManager.media(parameterClient.getContext(), group, name);
-			Integer settingOfAttributeMediaSize = media.attributeGetMaximumMediaSize(parameterClient.getContext());
+			ResourceContainerMedia mediaResource = ResourceManager.media(parameterClient.getContext(), group, name);
+			Integer settingOfAttributeMediaSize = mediaResource.attributeGetMaximumMediaSize(parameterClient.getContext());
 			TestManager.assertNotNull(parameterClient.getContext(), this, null, settingOfAttributeMediaSize);
 			if (settingOfAttributeMediaSize != null) TestManager.assertEquals(parameterClient.getContext(), this, null, settingOfAttributeMediaSize, maximumAttributeMediaSize);
 
@@ -446,14 +446,14 @@ public class TestContainerMediaCommand extends TestContainer
 					{
 						String errorIdentifier = ResourceManager.notification(parameterClient.getContext(), "Media", "MaximumMediaSizeExceeded").getRecourceIdentifier();
 						TestManager.errorSuppressErrorMessageOnce(parameterClient.getContext(), errorIdentifier);
-						boolean resultBoolean = parameterClient.getContext().getMediaManager().commandUploadToServer(parameterClient.getContext(), parameterClient.getConnectionContainer(), media, fileList.get(i), name);
+						boolean resultBoolean = parameterClient.getContext().getClientMediaManagerTest().commandUploadToServer(parameterClient.getContext(), parameterClient.getConnectionContainer(), mediaResource, fileList.get(i), name);
 						TestManager.assertRuntimeErrorCode(parameterClient.getContext(), this, null, errorIdentifier);
 						TestManager.assertFalse(parameterClient.getContext(), this, null, resultBoolean);
 					}
 					// Upload regularly
 					else
 					{
-						boolean resultBoolean = parameterClient.getContext().getMediaManager().commandUploadToServer(parameterClient.getContext(), parameterClient.getConnectionContainer(), media, fileList.get(i), name);
+						boolean resultBoolean = parameterClient.getContext().getClientMediaManagerTest().commandUploadToServer(parameterClient.getContext(), parameterClient.getConnectionContainer(), mediaResource, fileList.get(i), name);
 						TestManager.assertTrue(parameterClient.getContext(), this, null, resultBoolean);
 					}
 				}
@@ -543,7 +543,7 @@ public class TestContainerMediaCommand extends TestContainer
 			additionalText += "\n--> Upload file name: '" + uploadFileName + "'";
 			additionalText += "\n--> Data identifier: '" + dataIdentifierString + "'";
 
-			boolean resultBoolean = parameterClient.getContext().getMediaManager().commandUploadToServer(parameterClient.getContext(), parameterClient.getConnectionContainer(), mediaResource, uploadFileName, dataIdentifierString);
+			boolean resultBoolean = parameterClient.getContext().getClientMediaManagerTest().commandUploadToServer(parameterClient.getContext(), parameterClient.getConnectionContainer(), mediaResource, uploadFileName, dataIdentifierString);
 			TestManager.assertTrue(parameterClient.getContext(), this, additionalText, resultBoolean);
 
 			if (resultBoolean == false) return;
@@ -558,7 +558,7 @@ public class TestContainerMediaCommand extends TestContainer
 				additionalText += "\n--> Upload file name: '" + uploadFileName + "'";
 				additionalText += "\n--> Data identifier: '" + dataIdentifierString + "'";
 
-				resultBoolean = parameterClient.getContext().getMediaManager().commandCheckOnServer(parameterClient.getContext(), parameterClient.getConnectionContainer(), mediaResource, fileType, dataIdentifierString, hashValue);
+				resultBoolean = parameterClient.getContext().getClientMediaManagerTest().commandCheckOnServer(parameterClient.getContext(), parameterClient.getConnectionContainer(), mediaResource, fileType, dataIdentifierString, hashValue);
 				TestManager.assertTrue(parameterClient.getContext(), this, additionalText, resultBoolean);
 
 				if (resultBoolean == false) return;
@@ -573,12 +573,20 @@ public class TestContainerMediaCommand extends TestContainer
 			additionalText += "\n--> Upload file name: '" + uploadFileName + "'";
 			additionalText += "\n--> Data identifier: '" + dataIdentifierString + "'";
 
-			boolean booleanResult = parameterClient.getContext().getMediaManager().commandReadOnServer(parameterClient.getContext(), parameterClient.getConnectionContainer(), mediaResource, dataIdentifierString);
-			TestManager.assertTrue(parameterClient.getContext(), this, additionalText, booleanResult);
+			String pendingFileName = parameterClient.getContext().getClientMediaManagerTest().commandReadOnServer(parameterClient.getContext(), parameterClient.getConnectionContainer(), mediaResource, dataIdentifierString);
+			TestManager.assertNotNull(parameterClient.getContext(), this, additionalText, pendingFileName);
 
 			// Return after error
-			if (booleanResult == false) return;
-
+			if (pendingFileName == null) return;
+			
+			// Store media file in local media repository
+			boolean booleanResult = parameterClient.getContext().getClientMediaManagerTest().localStoreMediaFile(parameterClient.getContext(), mediaResource, pendingFileName, dataIdentifierString);
+			TestManager.assertTrue(parameterClient.getContext(), this, additionalText + "\n--> Error on storing file to local media repository", booleanResult);
+			
+			// Delete pending file
+			booleanResult = FileUtilFunctions.fileDelete(pendingFileName);
+			TestManager.assertTrue(parameterClient.getContext(), this, additionalText + "\n--> Error on deleting pending media file", booleanResult);
+			
 			/*
 			 * Check if file content can be read
 			 */

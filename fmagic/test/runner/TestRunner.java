@@ -10,6 +10,8 @@ import java.util.Set;
 import fmagic.application.reference.client.ClientReferenceApplication;
 import fmagic.application.reference.server.ServerReferenceApplication;
 import fmagic.basic.context.Context;
+import fmagic.basic.file.FileLocationFunctions;
+import fmagic.basic.file.FileUtilFunctions;
 import fmagic.client.application.ClientManager;
 import fmagic.server.application.ServerManager;
 import fmagic.test.application.TestManager;
@@ -465,5 +467,33 @@ abstract public class TestRunner
 	public String printAssertionErrorProtocol()
 	{
 		return TestManager.printAssertionErrorProtocol(this.assertionNumberOfErrors, this.assertionErrorProtocol);
+	}
+
+	/**
+	 * Clean all media files in a test media environment.
+	 * <p>
+	 * In order to avoid removing of innocent directories there is a convention:
+	 * Only those directories are removed the begins with <TT>$media$.</TT>.
+	 * 
+	 * @param context
+	 *            The application context.
+	 */
+	protected void cleanTestMediaDirectory(Context context)
+	{
+		// Be careful: Please let run in test environment only
+		if (!context.isRunningInTestMode()) return;
+
+		// Get file path of local media repository
+		String filePath = context.getMediaManager().getMediaRootFilePath();
+		if (filePath == null || filePath.length() == 0) return;
+
+		// Check if it is a media directory
+		String mediaTestDirectoryLiteral = FileLocationFunctions.getMediaTestDirectoryLiteral();
+		if (mediaTestDirectoryLiteral == null || mediaTestDirectoryLiteral.length() == 0) return;
+		mediaTestDirectoryLiteral = "/" + mediaTestDirectoryLiteral + ".";
+		if (!filePath.contains(mediaTestDirectoryLiteral)) return;
+		
+		// Delete directory
+		FileUtilFunctions.directoryDeleteRecursively(filePath);
 	}
 }

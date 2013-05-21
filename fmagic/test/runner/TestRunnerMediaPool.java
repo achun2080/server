@@ -2,11 +2,8 @@ package fmagic.test.runner;
 
 import java.util.List;
 
-import fmagic.basic.file.FileUtilFunctions;
 import fmagic.server.application.ServerManager;
-import fmagic.test.application.TestManager;
 import fmagic.test.container.TestContainer;
-import fmagic.test.container.TestContainerMediaCommand;
 import fmagic.test.container.TestContainerMediaPool;
 import fmagic.test.suite.TestSuite;
 
@@ -141,6 +138,8 @@ public class TestRunnerMediaPool extends TestRunner
 		{
 			TestContainerMediaPool testContainer;
 			
+			int plainNumberOfMediaToBeUploaded = 100;
+			
 			/*
 			 * Please notice that each application is configured with specific
 			 * settings via configuration files.
@@ -161,25 +160,56 @@ public class TestRunnerMediaPool extends TestRunner
 			ServerManager serverMs4 = this.createApplicationServer("ms4", 8024);
 			
 			// Cleanup media directories
-			TestManager.cleanTestMediaDirectory(serverAp1234.getContext());
-			TestManager.cleanTestMediaDirectory(serverMs1.getContext());
-			TestManager.cleanTestMediaDirectory(serverMs2.getContext());
-			TestManager.cleanTestMediaDirectory(serverMs3.getContext());
-			TestManager.cleanTestMediaDirectory(serverMs4.getContext());
+			this.cleanTestMediaDirectory(serverAp1234.getContext());
+			this.cleanTestMediaDirectory(serverMs1.getContext());
+			this.cleanTestMediaDirectory(serverMs2.getContext());
+			this.cleanTestMediaDirectory(serverMs3.getContext());
+			this.cleanTestMediaDirectory(serverMs4.getContext());
 		
-			// Prepare test container
+			// Run test on test container
 			testContainer = new TestContainerMediaPool(serverAp1234.getContext(), this, false);
 			testContainer.setParameterServer(serverAp1234);
 			testContainer.setParameterPlainResourceGroup("Factory");
 			testContainer.setParameterPlainResourceName("Doorway");
 			testContainer.setParameterPlainDataIdentifierTestUploadStartFrom(3001);
-			testContainer.setParameterPlainNumberOfMediaToBeUploaded(10);
-			
-			// Run test container
+			testContainer.setParameterPlainNumberOfMediaToBeUploaded(plainNumberOfMediaToBeUploaded);
 			testContainer.executeComponentTest();
 			
-			// Wait 120 seconds for processing
-			FileUtilFunctions.generalSleepSeconds(120);
+			// Run test on test container
+			testContainer = new TestContainerMediaPool(serverAp1234.getContext(), this, false);
+			testContainer.setParameterServer(serverAp1234);
+			testContainer.setParameterPlainResourceGroup("Factory");
+			testContainer.setParameterPlainResourceName("Hall");
+			testContainer.setParameterPlainDataIdentifierTestUploadStartFrom(3001);
+			testContainer.setParameterPlainNumberOfMediaToBeUploaded(plainNumberOfMediaToBeUploaded);
+			testContainer.executeComponentTest();
+			
+			// Run test on test container
+			testContainer = new TestContainerMediaPool(serverAp1234.getContext(), this, false);
+			testContainer.setParameterServer(serverAp1234);
+			testContainer.setParameterPlainResourceGroup("Factory");
+			testContainer.setParameterPlainResourceName("Office");
+			testContainer.setParameterPlainDataIdentifierTestUploadStartFrom(3001);
+			testContainer.setParameterPlainNumberOfMediaToBeUploaded(plainNumberOfMediaToBeUploaded);
+			testContainer.executeComponentTest();
+			
+			// Run test on test container
+			testContainer = new TestContainerMediaPool(serverAp1234.getContext(), this, false);
+			testContainer.setParameterServer(serverAp1234);
+			testContainer.setParameterPlainResourceGroup("Factory");
+			testContainer.setParameterPlainResourceName("Canteen");
+			testContainer.setParameterPlainDataIdentifierTestUploadStartFrom(3001);
+			testContainer.setParameterPlainNumberOfMediaToBeUploaded(plainNumberOfMediaToBeUploaded);
+			testContainer.executeComponentTest();
+			
+			// Run test on test container
+			testContainer = new TestContainerMediaPool(serverAp1234.getContext(), this, false);
+			testContainer.setParameterServer(serverAp1234);
+			testContainer.setParameterPlainResourceGroup("Factory");
+			testContainer.setParameterPlainResourceName("Doorway");
+			testContainer.setParameterPlainDataIdentifierTestUploadStartFrom(3001);
+			testContainer.setParameterPlainNumberOfMediaToBeUploaded(plainNumberOfMediaToBeUploaded);
+			testContainer.executeComponentTest();
 
 			// Release all servers
 			if (serverAp1234 != null) this.releaseApplicationServer(serverAp1234);

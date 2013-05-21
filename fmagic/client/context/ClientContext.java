@@ -57,7 +57,7 @@ public class ClientContext extends Context
 			int applicationVersion, ClientManager applicationManager,
 			boolean runningInTestMode, String testCaseName, String testSessionName)
 	{
-		super(codeName, applicationName, applicationVersion, ResourceContainer.OriginEnum.Client.toString(), applicationManager, new ClientMediaManager(), new TestManagerClient(), runningInTestMode, testCaseName, testSessionName);
+		super(codeName, applicationName, applicationVersion, ResourceContainer.OriginEnum.Client.toString(), applicationManager, new TestManagerClient(), runningInTestMode, testCaseName, testSessionName);
 	}
 
 	@Override

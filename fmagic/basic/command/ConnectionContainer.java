@@ -24,8 +24,8 @@ public class ConnectionContainer
 	final private int number;
 	final private String host;
 	final private int port;
-	private String clientPrivateKey;
-	private String serverPublicKey;
+	private String keyApplicationPrivateKey;
+	private String keyRemotePublicKey;
 	private String sessionIdentifier = null;
 
 	// Processing
@@ -47,10 +47,10 @@ public class ConnectionContainer
 	 * @param timeoutTimeInMilliseconds
 	 *            Socket timeout in Milliseconds.
 	 * 
-	 * @param clientPrivateKey
+	 * @param keyApplicationPrivateKey
 	 *            Private key of the caller.
 	 * 
-	 * @param serverPublicKey
+	 * @param keyRemotePublicKey
 	 *            Private key of the server called for.
 	 */
 	public ConnectionContainer(int number, String host, int port,
@@ -59,8 +59,8 @@ public class ConnectionContainer
 		this.number = number;
 		this.host = host;
 		this.port = port;
-		this.clientPrivateKey = clientPrivateKey;
-		this.serverPublicKey = serverPublicKey;
+		this.keyApplicationPrivateKey = clientPrivateKey;
+		this.keyRemotePublicKey = serverPublicKey;
 	}
 
 	/**
@@ -109,6 +109,20 @@ public class ConnectionContainer
 		// Initialize
 		boolean resultValue = false;
 
+		// Set parameter, if not set yet
+		try
+		{
+			if (this.getKeyRemotePublicKey() == null || getKeyRemotePublicKey().length() == 0) this.setKeyApplicationPrivateKey(context.getApplicationManager().getKeyApplicationPrivateKey());
+			if (this.getSessionIdentifier() == null || getSessionIdentifier().length() == 0) this.setSessionIdentifier(ConnectionContainer.createClientSessionIdentifier());
+		}
+		catch (Exception e)
+		{
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Application", "ErrorOnProcessingCommandOnClient"), null, e);
+			this.initialized = false;
+			this.error = true;
+			return false;
+		}
+
 		// Process connection
 		try
 		{
@@ -124,8 +138,7 @@ public class ConnectionContainer
 				}
 
 				// First try a handshake to see if the last known connection
-				// works
-				// yet
+				// works yet
 				if (this.commandHandshake(context) == true)
 				{
 					this.initialized = true;
@@ -151,6 +164,9 @@ public class ConnectionContainer
 				this.initialized = false;
 				this.error = true;
 				resultValue = false;
+				
+				// Notify error message
+				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Application", "ErrorOnEstablishingConnection"), null, null);
 
 				// Break
 				break;
@@ -277,7 +293,7 @@ public class ConnectionContainer
 				isSuccessful = false;
 			}
 
-			if (this.clientPrivateKey == null || this.clientPrivateKey.length() == 0)
+			if (this.keyApplicationPrivateKey == null || this.keyApplicationPrivateKey.length() == 0)
 			{
 				errorText += "\n--> Parameter 'ClientPrivateKey' not set";
 				isSuccessful = false;
@@ -340,33 +356,33 @@ public class ConnectionContainer
 	/**
 	 * Getter
 	 */
-	public String getClientPrivateKey()
+	public String getKeyApplicationPrivateKey()
 	{
-		return clientPrivateKey;
+		return keyApplicationPrivateKey;
 	}
 
 	/**
 	 * Setter
 	 */
-	public void setPrivateKey(String clientPrivateKey)
+	public void setKeyApplicationPrivateKey(String keyApplicationPrivateKey)
 	{
-		this.clientPrivateKey = clientPrivateKey;
+		this.keyApplicationPrivateKey = keyApplicationPrivateKey;
 	}
 
 	/**
 	 * Getter
 	 */
-	public String getServerPublicKey()
+	public String getKeyRemotePublicKey()
 	{
-		return serverPublicKey;
+		return keyRemotePublicKey;
 	}
 
 	/**
 	 * Setter
 	 */
-	public void setServerPublicKey(String serverPublicKey)
+	public void setKeyRemotePublicKey(String keyRemotePublicKey)
 	{
-		this.serverPublicKey = serverPublicKey;
+		this.keyRemotePublicKey = keyRemotePublicKey;
 	}
 
 	/**
@@ -406,8 +422,8 @@ public class ConnectionContainer
 		outputString += "Number: '" + String.valueOf(this.getNumber()) + "'\n";
 		if (this.getHost() != null) outputString += "Host: '" + this.getHost() + "'\n";
 		if (this.getHost() != null) outputString += "Port: '" + String.valueOf(this.getPort()) + "'\n";
-		if (this.getClientPrivateKey() != null) outputString += "Private key of client: '" + this.getClientPrivateKey().substring(0, Math.min(10, this.getClientPrivateKey().length())) + "'\n";
-		if (this.getServerPublicKey() != null) outputString += "Public key of server: '" + this.getServerPublicKey().substring(0, Math.min(10, this.getServerPublicKey().length())) + "'\n";
+		if (this.getKeyApplicationPrivateKey() != null) outputString += "Private key of client: '" + this.getKeyApplicationPrivateKey().substring(0, Math.min(10, this.getKeyApplicationPrivateKey().length())) + "'\n";
+		if (this.getKeyRemotePublicKey() != null) outputString += "Public key of server: '" + this.getKeyRemotePublicKey().substring(0, Math.min(10, this.getKeyRemotePublicKey().length())) + "'\n";
 		if (this.getSessionIdentifier() != null) outputString += "Session identifier: '" + this.getSessionIdentifier() + "'\n";
 		outputString += "Is initialized: '" + String.valueOf(this.isInitialized()) + "'\n";
 		outputString += "Is error: '" + String.valueOf(this.isError()) + "'\n";

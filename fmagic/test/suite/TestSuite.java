@@ -236,7 +236,7 @@ public abstract class TestSuite
 			if (processingStatus == ProcessingStatusEnum.STARTED)
 			{
 				messageText += "Test suite started at " + simpleDateFormat.format(messageDate);
-				fileName = this.testSuiteName + "-a-STARTED.log";
+				fileName = this.testSuiteName + "-1-STARTED.log";
 			}
 			else if (processingStatus == ProcessingStatusEnum.PROGRESS)
 			{
@@ -244,12 +244,12 @@ public abstract class TestSuite
 				
 				if (testRunner != null) messageText += " [" + testRunner.getTestRunnerName() + "][" + testRunner.getTestSessionName() + "]";				if (progressText != null) messageText += " " +  progressText;
 				
-				fileName = this.testSuiteName + "-b-PROGRESS.log";
+				fileName = this.testSuiteName + "-2-PROGRESS.log";
 			}
 			else if (processingStatus == ProcessingStatusEnum.STOPPED)
 			{
 				messageText += "Test suite stopped at " + simpleDateFormat.format(messageDate);
-				fileName = this.testSuiteName + "-c-STOPPED.log";
+				fileName = this.testSuiteName + "-3-STOPPED.log";
 			}
 			else if (processingStatus == ProcessingStatusEnum.RESULT)
 			{
@@ -257,12 +257,12 @@ public abstract class TestSuite
 				{
 					messageText += String.valueOf(this.getAssertionNumberOfErrors()) + " errors found\n\n";
 					messageText += this.printAssertionErrorProtocol();
-					fileName = this.testSuiteName + "-d-ERROR.log";
+					fileName = this.testSuiteName + "-4-ERROR.log";
 				}
 				else
 				{
 					messageText += "No errors found";
-					fileName = this.testSuiteName + "-d-OK.log";
+					fileName = this.testSuiteName + "-4-OK.log";
 				}
 			}
 			else

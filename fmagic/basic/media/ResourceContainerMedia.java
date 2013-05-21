@@ -431,7 +431,7 @@ public class ResourceContainerMedia extends ResourceContainer
 	 */
 	public String mediaFileGetRegularFilePath(Context context)
 	{
-		return FileLocationFunctions.compileFilePath(context.getMediaManager().mediaFileGetRootFilePath(context), FileUtilFunctions.generalFitToFileNameCompatibility(context.getApplicationName()), this.attributeGetLogicalPath(context));
+		return FileLocationFunctions.compileFilePath(context.getMediaManager().getMediaRootFilePath(context), FileUtilFunctions.generalFitToFileNameCompatibility(context.getApplicationName()), this.attributeGetLogicalPath(context));
 	}
 
 	/**

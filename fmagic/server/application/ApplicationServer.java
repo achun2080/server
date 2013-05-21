@@ -1,4 +1,4 @@
-package fmagic.basic.application;
+package fmagic.server.application;
 
 import java.net.Socket;
 import java.net.SocketTimeoutException;
@@ -7,8 +7,6 @@ import fmagic.basic.command.SocketHandler;
 import fmagic.basic.context.Context;
 import fmagic.basic.notification.NotificationManager;
 import fmagic.basic.resource.ResourceManager;
-import fmagic.server.application.ServerManager;
-import fmagic.server.application.ServerWorkerThread;
 
 /**
  * This class implements an application server or client running all time.
@@ -32,8 +30,7 @@ public class ApplicationServer extends Thread
 	 * @param applicationManager
 	 *            The application manager to use.
 	 */
-	public ApplicationServer(Context context,
-			ServerManager serverManager)
+	public ApplicationServer(Context context, ServerManager serverManager)
 	{
 		this.server = serverManager;
 		this.context = context;
@@ -62,13 +59,16 @@ public class ApplicationServer extends Thread
 			}
 
 			// Check shutdown flag
-			if (this.getServerManager().isShutdown() == true) break;
-
-			// Check if the thread is forced to end
-			if (this.isInterrupted()) break;
+			if (this.getServerManager().isShutdown() == true)
+			{
+				break;
+			}
 
 			// Check stop running flag
-			if (this.getServerManager().isStopRunning() == true) break;
+			if (this.getServerManager().isStopRunning())
+			{
+				break;
+			}
 
 			// Accept a client request via socket
 			try
@@ -77,11 +77,11 @@ public class ApplicationServer extends Thread
 				Socket clientSocket = null;
 				clientSocket = this.getServerManager().getServerSocket().accept();
 
-				// Check stop running flag
-				if (this.getServerManager().isStopRunning() == true)
+				// Check stop accepting flag
+				if (this.getServerManager().isStopAcceptingSocketConnections() == true)
 				{
 					clientSocket.close();
-					break;
+					continue;
 				}
 
 				// Execute inside the thread pool
@@ -94,14 +94,14 @@ public class ApplicationServer extends Thread
 					SocketHandler socketConnector = new SocketHandler(newContext);
 					socketConnector.adoptSocket(clientSocket, this.getServerManager().getSocketTimeoutInMilliseconds());
 
-					ServerWorkerThread worker = new ServerWorkerThread(newContext, this.getServerManager(), socketConnector, this.getServerManager().getServerPrivateKey());
+					ServerWorkerThread worker = new ServerWorkerThread(newContext, this.getServerManager(), socketConnector, this.getServerManager().getKeyApplicationPrivateKey());
 
 					this.execute(newContext, worker);
 				}
 			}
 			catch (SocketTimeoutException e)
 			{
-				// Be silent
+				continue;
 			}
 			catch (Exception e)
 			{
@@ -221,5 +221,5 @@ public class ApplicationServer extends Thread
 	{
 		return context;
 	}
-	
+
 }

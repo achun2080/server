@@ -17,9 +17,9 @@ import fmagic.basic.resource.ResourceManager;
  */
 public class ServerCommandCreateSession extends ServerCommand
 {
-	private String clientPublicKey = null;
+	private String keyApplicationPublicKey = null;
 
-	private String serverPublicKey = null;
+	private String keyRemotePublicKey = null;
 	private Boolean isSuccessful = null;
 
 	/**
@@ -50,12 +50,12 @@ public class ServerCommandCreateSession extends ServerCommand
 		try
 		{
 			// Get parameter: ClientPublicKey
-			this.clientPublicKey = this.requestContainer.getProperty(ResourceManager.commandParameter(this.getContext(), "CreateSession", "ClientPublicKey").getAliasName(), null);
+			this.keyApplicationPublicKey = this.requestContainer.getProperty(ResourceManager.commandParameter(this.getContext(), "CreateSession", "ClientPublicKey").getAliasName(), null);
 
-			if (this.clientPublicKey == null || this.clientPublicKey.length() == 0)
+			if (this.keyApplicationPublicKey == null || this.keyApplicationPublicKey.length() == 0)
 			{
 				String errorText = "--> Error on validating command parameter";
-				errorText += "\n--> Missing client public key";
+				errorText += "\n--> Missing application public key";
 				this.notifyError("Command", "IntegrityError", errorText, null);
 				return false;
 			}
@@ -78,7 +78,7 @@ public class ServerCommandCreateSession extends ServerCommand
 			// Create a new session
 			String clientSessionIdentifier = this.requestContainer.getClientSessionIdentifier();
 
-			if (this.getContext().getServerManager().sessionAddClientSession(clientSessionIdentifier, this.clientPublicKey) == false)
+			if (this.getContext().getServerManager().sessionAddClientSession(clientSessionIdentifier, this.keyApplicationPublicKey) == false)
 			{
 				String errorText = "--> Client session identifier requested '" + clientSessionIdentifier + "'";
 				this.notifyError("Application", "ClientSessionAlreadyExistsOnServer", errorText, null);
@@ -91,7 +91,7 @@ public class ServerCommandCreateSession extends ServerCommand
 			}
 
 			// Get public key of the server
-			this.serverPublicKey = this.context.getConfigurationManager().getProperty(this.context, ResourceManager.configuration(this.context, "Application", "PublicKey"), true);
+			this.keyRemotePublicKey = this.context.getConfigurationManager().getProperty(this.context, ResourceManager.configuration(this.context, "Application", "PublicKey"), true);
 
 			// Return
 			return true;
@@ -112,7 +112,7 @@ public class ServerCommandCreateSession extends ServerCommand
 			this.responseContainer.addProperty(ResourceManager.commandParameter(this.getContext(), "CreateSession", "IsSuccessful").getAliasName(), this.isSuccessful.toString());
 
 			// Set parameter: ServerPublicKey
-			this.responseContainer.addProperty(ResourceManager.commandParameter(this.getContext(), "CreateSession", "ServerPublicKey").getAliasName(), this.serverPublicKey);
+			this.responseContainer.addProperty(ResourceManager.commandParameter(this.getContext(), "CreateSession", "ServerPublicKey").getAliasName(), this.keyRemotePublicKey);
 
 			// Return
 			return true;

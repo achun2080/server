@@ -1,6 +1,8 @@
 package fmagic.server.command;
 
 import fmagic.basic.context.Context;
+import fmagic.basic.file.FileUtilFunctions;
+import fmagic.basic.media.MediaContainer;
 import fmagic.basic.media.ResourceContainerMedia;
 import fmagic.basic.resource.ResourceContainer;
 import fmagic.basic.resource.ResourceManager;
@@ -109,7 +111,7 @@ public class ServerCommandMediaFileRead extends ServerCommand
 		try
 		{
 			// Check if media file exists
-			if (this.getContext().getMediaManager().getMediaUtil().isMediaFileExists(this.getContext(), this.mediaResourceContainer, this.dataIdentifier) == false)
+			if (this.businessIsMediaFileExists(this.getContext(), this.mediaResourceContainer, this.dataIdentifier) == false)
 			{
 				this.isExisting = false;
 				this.isRead = false;
@@ -121,7 +123,7 @@ public class ServerCommandMediaFileRead extends ServerCommand
 			}
 
 			// Get file type of media file
-			this.fileType = this.getContext().getMediaManager().getMediaUtil().getMediaFileType(this.getContext(), this.mediaResourceContainer, this. dataIdentifier);
+			this.fileType = this.businessGetMediaFileType(this.getContext(), this.mediaResourceContainer, this. dataIdentifier);
 
 			if (this.fileType == null || this.fileType.length() == 0)
 			{
@@ -130,7 +132,7 @@ public class ServerCommandMediaFileRead extends ServerCommand
 			}
 
 			// Read content from media file
-			this.mediaContent = this.getContext().getMediaManager().getMediaUtil().readMediaContentFromMediaFile(this.context, this.mediaResourceContainer, this.dataIdentifier);
+			this.mediaContent = this.businessReadMediaContentFromMediaFile(this.context, this.mediaResourceContainer, this.dataIdentifier);
 
 			if (this.mediaContent == null)
 			{
@@ -175,6 +177,144 @@ public class ServerCommandMediaFileRead extends ServerCommand
 		catch (Exception e)
 		{
 			this.notifyError("Command", "ErrorOnProcessingCommand", null, e);
+			return false;
+		}
+	}
+
+	/**
+	 * Read the content of a media file as a string.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param mediaResourceContainer
+	 *            The media resource container to consider.
+	 * 
+	 * @param dataIdentifier
+	 *            The data identifier of the media.
+	 * 
+	 * @return Returns the media content as string, or <TT>null</TT> if the
+	 *         media file doesn't exist or couldn't be read.
+	 * 
+	 */
+	private String businessReadMediaContentFromMediaFile(Context context, ResourceContainerMedia mediaResourceContainer, String dataIdentifier)
+	{
+		try
+		{
+			// Create media container
+			MediaContainer mediaContainer = new MediaContainer(context, mediaResourceContainer, dataIdentifier);
+
+			if (mediaContainer.bindMedia() == false)
+			{
+				String errorString = "--> COMMAND MEDIA FILE READ: Error on binding media container";
+				errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+				errorString += "\n--> Data identifier: '" + dataIdentifier + "'";
+				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Command", "ErrorOnProcessingCommand"), errorString, null);
+				return null;
+			}
+
+			// Read file content
+			String mediaContent = mediaContainer.readMediaContentAsString();
+
+			if (mediaContent == null)
+			{
+				String errorString = "--> COMMAND MEDIA FILE READ: Error on reading media content";
+				errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+				errorString += "\n--> Data identifier: '" + dataIdentifier + "'";
+				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Command", "ErrorOnProcessingCommand"), errorString, null);
+				return null;
+			}
+
+			// Release media file
+			if (mediaContainer.releaseMedia() == false)
+			{
+				String errorString = "--> COMMAND MEDIA FILE READ: Error on releasing media container";
+				errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+				errorString += "\n--> Data identifier: '" + dataIdentifier + "'";
+				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Command", "ErrorOnProcessingCommand"), errorString, null);
+				// No return, because the media content could be read
+				// successfully
+			}
+
+			// Return
+			return mediaContent;
+		}
+		catch (Exception e)
+		{
+			return null;
+		}
+	}
+
+	/**
+	 * Get the file type of a media file.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param mediaResourceContainer
+	 *            The media resource container to consider.
+	 * 
+	 * @param dataIdentifier
+	 *            The data identifier of the media.
+	 * 
+	 * @return Returns the file type as string, or <TT>null</TT> if the media
+	 *         file doesn't exist.
+	 * 
+	 */
+	private String businessGetMediaFileType(Context context, ResourceContainerMedia mediaResourceContainer, String dataIdentifier)
+	{
+		try
+		{
+			// Get the current file name of the most recent media file
+			String currentFileName = mediaResourceContainer.mediaFileGetRealFileName(context, dataIdentifier);
+
+			if (currentFileName == null || currentFileName.length() == 0) { return null; }
+
+			// Extract the file type
+			String fileType = FileUtilFunctions.fileGetFileTypePart(currentFileName);
+
+			if (fileType == null || fileType.length() == 0) { return null; }
+
+			// Return
+			return fileType;
+		}
+		catch (Exception e)
+		{
+			return null;
+		}
+	}
+
+	/**
+	 * Check if a media file already exists, using the following criteria: media
+	 * resource container and data identifier.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param mediaResourceContainer
+	 *            The media resource container to consider.
+	 * 
+	 * @param dataIdentifier
+	 *            The data identifier of the media.
+	 * 
+	 * @return Returns <TT>true</TT> if the media file exists, otherwise
+	 *         <TT>false</TT>.
+	 * 
+	 */
+	private boolean businessIsMediaFileExists(Context context, ResourceContainerMedia mediaResourceContainer, String dataIdentifier)
+	{
+		try
+		{
+			// Get all values from server
+			String currentFileName = mediaResourceContainer.mediaFileGetRealFileName(context, dataIdentifier);
+
+			if (currentFileName == null || currentFileName.length() == 0) { return false; }
+
+			// Return
+			return true;
+		}
+		catch (Exception e)
+		{
 			return false;
 		}
 	}

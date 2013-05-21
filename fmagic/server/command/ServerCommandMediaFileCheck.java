@@ -1,6 +1,7 @@
 package fmagic.server.command;
 
 import fmagic.basic.context.Context;
+import fmagic.basic.file.FileUtilFunctions;
 import fmagic.basic.media.ResourceContainerMedia;
 import fmagic.basic.resource.ResourceContainer;
 import fmagic.basic.resource.ResourceManager;
@@ -126,7 +127,7 @@ public class ServerCommandMediaFileCheck extends ServerCommand
 		try
 		{
 			// File already exists
-			this.isExisting = this.context.getMediaManager().getMediaUtil().isMediaFileExists(this.context, this.mediaResourceContainer, this.dataIdentifier, this.fileType, this.hashValue);
+			this.isExisting = this.businessIsMediaFileExists(this.context, this.mediaResourceContainer, this.dataIdentifier, this.fileType, this.hashValue);
 		
 			// Return
 			return true;
@@ -152,6 +153,57 @@ public class ServerCommandMediaFileCheck extends ServerCommand
 		catch (Exception e)
 		{
 			this.notifyError("Command", "ErrorOnProcessingCommand", null, e);
+			return false;
+		}
+	}
+
+	/**
+	 * Check if a media file already exists, using the following criteria: media
+	 * resource container, data identifier, file type and hash value.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param mediaResourceContainer
+	 *            The media resource container to consider.
+	 * 
+	 * @param dataIdentifier
+	 *            The data identifier of the media.
+	 * 
+	 * @param fileType
+	 *            The file type to consider.
+	 * 
+	 * @param hashValue
+	 *            The hash value to consider.
+	 * 
+	 * @return Returns <TT>true</TT> if the media file exists, otherwise
+	 *         <TT>false</TT>.
+	 * 
+	 */
+	private boolean businessIsMediaFileExists(Context context, ResourceContainerMedia mediaResourceContainer, String dataIdentifier, String fileType, String hashValue)
+	{
+		try
+		{
+			// Get all values from server
+			String currentFileName = mediaResourceContainer.mediaFileGetRealFileName(context, dataIdentifier);
+
+			if (currentFileName == null || currentFileName.length() == 0) { return false; }
+
+			// Compare file type
+			String currentFileType = FileUtilFunctions.fileGetFileTypePart(currentFileName);
+
+			if (currentFileType == null || !currentFileType.equals(fileType)) { return false; }
+
+			// Compare hash value
+			String currentHashValue = mediaResourceContainer.mediaFileGetFileNamePartHashValue(context, currentFileName);
+
+			if (currentHashValue == null || !currentHashValue.equals(hashValue)) { return false; }
+
+			// Return
+			return true;
+		}
+		catch (Exception e)
+		{
 			return false;
 		}
 	}

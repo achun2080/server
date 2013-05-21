@@ -914,23 +914,17 @@ public class WatchdogManager
 	}
 
 	/**
-	 * Wait for the end of processing of all commands of the WATCHDOG, but after
-	 * maximum of x seconds the method always returns.
-	 * 
-	 * @param maxTimeToWaitInSeconds
-	 *            Maximum number of seconds to wait.
+	 * Wait for the end of processing of all commands of the WATCHDOG.
 	 */
-	public void waitForCompletingWatchdogQueue(int maxTimeToWaitInSeconds)
+	public void waitForCompletingWatchdogQueue()
 	{
-		int counter = maxTimeToWaitInSeconds * 10;
-
-		while (counter-- > 0)
+		while (true)
 		{
 			if (this.getNumberOfWatchdogElements() <= 0) break;
 
 			try
 			{
-				Thread.sleep(100);
+				Thread.sleep(1000);
 			}
 			catch (Exception e)
 			{

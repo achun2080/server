@@ -23,7 +23,7 @@ import fmagic.basic.resource.ResourceManager;
  */
 public class ClientCommandHandshake extends ClientCommand
 {
-	private String serverPublicKey = null;
+	private String keyRemotePublicKey = null;
 	private Boolean isSuccessful = null;
 
 	/**
@@ -46,11 +46,11 @@ public class ClientCommandHandshake extends ClientCommand
 		try
 		{
 			// Set parameter: ClientPublicKey
-			String clientPublicKey = this.context.getConfigurationManager().getProperty(this.context, ResourceManager.configuration(this.context, "Application", "PublicKey"), true);
+			String keyApplicationPublicKey = this.context.getConfigurationManager().getProperty(this.context, ResourceManager.configuration(this.context, "Application", "PublicKey"), true);
 
-			if (clientPublicKey != null && !clientPublicKey.equals(""))
+			if (keyApplicationPublicKey != null && !keyApplicationPublicKey.equals(""))
 			{
-				this.requestContainer.addProperty(ResourceManager.commandParameter(this.getContext(), "Handshake", "ClientPublicKey").getAliasName(), clientPublicKey);
+				this.requestContainer.addProperty(ResourceManager.commandParameter(this.getContext(), "Handshake", "ClientPublicKey").getAliasName(), keyApplicationPublicKey);
 			}
 			else
 			{
@@ -83,9 +83,9 @@ public class ClientCommandHandshake extends ClientCommand
 			if (result != null && result.equalsIgnoreCase("false")) this.isSuccessful = false;
 			
 			// Get result: ServerPublicKey
-			this.serverPublicKey = this.responseContainer.getProperty(ResourceManager.commandParameter(this.getContext(), "Handshake", "ServerPublicKey").getAliasName(), null);
+			this.keyRemotePublicKey = this.responseContainer.getProperty(ResourceManager.commandParameter(this.getContext(), "Handshake", "ServerPublicKey").getAliasName(), null);
 
-			if (this.serverPublicKey == null || this.serverPublicKey.length() == 0)
+			if (this.keyRemotePublicKey == null || this.keyRemotePublicKey.length() == 0)
 			{
 				ResourceContainer errorCode = ResourceManager.notification(this.context, "Application", "PublicKeyOnServerNotSet");
 				this.context.getNotificationManager().notifyError(this.context, errorCode, null, null);
@@ -96,7 +96,7 @@ public class ClientCommandHandshake extends ClientCommand
 			{
 				if (!this.context.getApplicationManager().isServerApplication())
 				{
-					this.getContext().getLocaldataManager().writeProperty(this.getContext(), ResourceManager.localdata(this.getContext(), "LastValidServerConnection", "ServerPublicKey"), this.serverPublicKey);
+					this.getContext().getLocaldataManager().writeProperty(this.getContext(), ResourceManager.localdata(this.getContext(), "LastValidServerConnection", "ServerPublicKey"), this.keyRemotePublicKey);
 				}
 			}
 
@@ -149,8 +149,8 @@ public class ClientCommandHandshake extends ClientCommand
 	 * @return Returns <TT>null</TT> if the command wasn't processed yet or an
 	 *         error occurred, otherwise <TT>true</TT> or <TT>false</TT>.
 	 */
-	public String getServerPublicKey()
+	public String getKeyRemotePublicKey()
 	{
-		return this.serverPublicKey;
+		return this.keyRemotePublicKey;
 	}
 }

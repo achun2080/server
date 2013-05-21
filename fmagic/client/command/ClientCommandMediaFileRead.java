@@ -5,7 +5,6 @@ import fmagic.basic.command.ConnectionContainer;
 import fmagic.basic.context.Context;
 import fmagic.basic.resource.ResourceContainer;
 import fmagic.basic.resource.ResourceManager;
-import fmagic.client.application.ClientManager;
 
 /**
  * COMMAND: Read a media file from a remote server.

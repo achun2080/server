@@ -27,7 +27,8 @@ public abstract class ClientCommand extends Command
 	 * Constructor
 	 */
 	public ClientCommand(Context context, ApplicationManager application,
-			String commandIdentifier, ConnectionContainer connectionContainer, int socketTimeoutInMilliseconds)
+			String commandIdentifier, ConnectionContainer connectionContainer,
+			int socketTimeoutInMilliseconds)
 	{
 		// Call super class
 		super(context, commandIdentifier);
@@ -76,6 +77,14 @@ public abstract class ClientCommand extends Command
 	{
 		try
 		{
+			// Establish connection
+			if (this.establishConnection() == false)
+			{
+				this.notifyError("Application", "ErrorOnEstablishingConnection", null, null);
+				this.context.getNotificationManager().flushDump(this.context);
+				return this.responseContainer;
+			}
+
 			// Prepare request container
 			if (this.prepareRequestContainer() == false)
 			{
@@ -152,6 +161,26 @@ public abstract class ClientCommand extends Command
 
 		// An error occurred
 		return false;
+	}
+
+	/**
+	 * Prepare all parameters and resources of the command
+	 * 
+	 * @return Returns <TT>true</TT> if the connection could be established, or
+	 *         <TT>false</TT> if an error occurred.
+	 */
+	public boolean establishConnection()
+	{
+		try
+		{
+			if (this.commandIdentifier.equals(ResourceManager.command(this.context, "Handshake").getRecourceIdentifier())) return true;
+			if (this.commandIdentifier.equals(ResourceManager.command(this.context, "CreateSession").getRecourceIdentifier())) return true;
+			return this.connectionContainer.establishConnection(this.context);
+		}
+		catch (Exception e)
+		{
+			return false;
+		}
 	}
 
 	/**

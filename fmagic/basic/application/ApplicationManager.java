@@ -10,6 +10,7 @@ import fmagic.basic.resource.ResourceContainer.OriginEnum;
 import fmagic.basic.resource.ResourceManager;
 import fmagic.client.application.ClientManager;
 import fmagic.client.context.ClientContext;
+import fmagic.server.application.ApplicationServer;
 import fmagic.server.application.ServerManager;
 import fmagic.server.context.ServerContext;
 import fmagic.server.media.ServerMediaServer;
@@ -34,11 +35,15 @@ public abstract class ApplicationManager implements ManagerInterface
 	final private String codeName;
 	final private boolean serverApplication;
 	final private boolean clientApplication;
+	
+	// Security data
+	private String keyApplicationPrivateKey = null;
+	private String keyApplicationPublicKey = null;
 
 	// Sets context of server
 	protected Context context;
 
-	// Flag if processing is to be continued
+	// Flag if processing is to be stopped
 	private boolean stopRunning = false;
 
 	// Language data
@@ -54,9 +59,6 @@ public abstract class ApplicationManager implements ManagerInterface
 	// Shut down flag: If this flag is set, the server was not started because
 	// of severe errors during initialization
 	private boolean shutdown = false;
-
-	// Shut down configuration
-	protected Integer maximumWaitingTimeForPendingThreadsInSeconds = null;
 
 	// Application codes
 	public static enum ApplicationIdentifierEnum
@@ -208,14 +210,6 @@ public abstract class ApplicationManager implements ManagerInterface
 	}
 
 	/**
-	 * Read and check all security keys.
-	 * 
-	 * @return Returns <TT>true</TT> if the keys could be read and checked
-	 *         positive, otherwise <TT>false</TT>.
-	 */
-	public abstract boolean readSecurityKeys();
-
-	/**
 	 * Release all resources needed by the application server.
 	 */
 	protected abstract void releaseResources();
@@ -268,9 +262,6 @@ public abstract class ApplicationManager implements ManagerInterface
 	{
 		try
 		{
-			// Read parameter: MaximumWaitingTimeForPendingThreadsInSeconds
-			this.maximumWaitingTimeForPendingThreadsInSeconds = context.getConfigurationManager().getPropertyAsIntegerValue(context, ResourceManager.configuration(context, "Shutdown", "MaximumWaitingTimeForPendingThreadsInSeconds"), false);
-
 			// Return
 			return false;
 		}
@@ -447,6 +438,35 @@ public abstract class ApplicationManager implements ManagerInterface
 
 				isSuccessful = false;
 			}
+		}
+		catch (Exception e)
+		{
+			return false;
+		}
+
+		// Return
+		return isSuccessful;
+	}
+
+	/**
+	 * Read and check all security keys.
+	 * 
+	 * @return Returns <TT>true</TT> if the keys could be read and checked
+	 *         positive, otherwise <TT>false</TT>.
+	 */
+	private boolean readSecurityKeys()
+	{
+		// Initialize
+		boolean isSuccessful = true;
+
+		// Read and check
+		try
+		{
+			this.keyApplicationPublicKey = this.getContext().getConfigurationManager().getProperty(this.getContext(), ResourceManager.configuration(this.getContext(), "Application", "PublicKey"), true);
+			if (this.keyApplicationPublicKey == null || this.keyApplicationPublicKey.length() == 0) isSuccessful = false;
+
+			this.keyApplicationPrivateKey = this.getContext().getConfigurationManager().getProperty(this.getContext(), ResourceManager.configuration(this.getContext(), "Application", "PrivateKey"), true);
+			if (this.keyApplicationPrivateKey == null || this.keyApplicationPrivateKey.length() == 0) isSuccessful = false;
 		}
 		catch (Exception e)
 		{
@@ -662,7 +682,7 @@ public abstract class ApplicationManager implements ManagerInterface
 	/**
 	 * Setter
 	 */
-	public void setStopRunning(boolean stopRunning)
+	protected void setStopRunning(boolean stopRunning)
 	{
 		this.stopRunning = stopRunning;
 	}
@@ -742,8 +762,16 @@ public abstract class ApplicationManager implements ManagerInterface
 	/**
 	 * Getter
 	 */
-	public Integer getMaximumWaitingTimeForPendingThreadsInSeconds()
+	public String getKeyApplicationPrivateKey()
 	{
-		return maximumWaitingTimeForPendingThreadsInSeconds;
+		return keyApplicationPrivateKey;
+	}
+
+	/**
+	 * Getter
+	 */
+	public String getKeyApplicationPublicKey()
+	{
+		return keyApplicationPublicKey;
 	}
 }

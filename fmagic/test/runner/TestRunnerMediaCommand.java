@@ -80,19 +80,19 @@ public class TestRunnerMediaCommand extends TestRunner
 			clientAp9 = this.createApplicationClient("cl9");
 			
 			// Cleanup media directories
-			TestManager.cleanTestMediaDirectory(serverAp1.getContext());
-			TestManager.cleanTestMediaDirectory(serverAp2.getContext());
-			TestManager.cleanTestMediaDirectory(serverAp3.getContext());
+			this.cleanTestMediaDirectory(serverAp1.getContext());
+			this.cleanTestMediaDirectory(serverAp2.getContext());
+			this.cleanTestMediaDirectory(serverAp3.getContext());
 			
-			TestManager.cleanTestMediaDirectory(clientAp1.getContext());
-			TestManager.cleanTestMediaDirectory(clientAp2.getContext());
-			TestManager.cleanTestMediaDirectory(clientAp3.getContext());
-			TestManager.cleanTestMediaDirectory(clientAp4.getContext());
-			TestManager.cleanTestMediaDirectory(clientAp5.getContext());
-			TestManager.cleanTestMediaDirectory(clientAp6.getContext());
-			TestManager.cleanTestMediaDirectory(clientAp7.getContext());
-			TestManager.cleanTestMediaDirectory(clientAp8.getContext());
-			TestManager.cleanTestMediaDirectory(clientAp9.getContext());
+			this.cleanTestMediaDirectory(clientAp1.getContext());
+			this.cleanTestMediaDirectory(clientAp2.getContext());
+			this.cleanTestMediaDirectory(clientAp3.getContext());
+			this.cleanTestMediaDirectory(clientAp4.getContext());
+			this.cleanTestMediaDirectory(clientAp5.getContext());
+			this.cleanTestMediaDirectory(clientAp6.getContext());
+			this.cleanTestMediaDirectory(clientAp7.getContext());
+			this.cleanTestMediaDirectory(clientAp8.getContext());
+			this.cleanTestMediaDirectory(clientAp9.getContext());
 		}
 		catch (Exception e)
 		{

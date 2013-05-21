@@ -175,13 +175,16 @@ public class WatchdogServer extends Thread
 		// Logging
 		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "Stopping WATCHDOG server [" + context.getCodeName() + "]: " + this.toString());
 
-		// Reset WATCHDOG context back to the context of the outside world
-		this.watchdogManager.setContext(context);
-
 		// Stop WATCHDOG server
 		try
 		{
-			context.getWatchdogManager().waitForCompletingWatchdogQueue(context.getApplicationManager().getMaximumWaitingTimeForPendingThreadsInSeconds());
+			// Wait until all orders in the command queue are finished
+			context.getWatchdogManager().waitForCompletingWatchdogQueue();
+
+			// Reset WATCHDOG context back to the context of the outside world
+			this.watchdogManager.setContext(context);
+			
+			// Interrupt processing
 			context.getNotificationManager().notifyEvent(context, ResourceManager.notification(context, "Watchdog", "WatchdogServerInterrupted"), null, null);
 			this.interrupt();
 		}
@@ -234,9 +237,6 @@ public class WatchdogServer extends Thread
 		{
 			while (this.watchdogManager.getNumberOfWatchdogElements() > 0)
 			{
-				// Check if the thread is forced to end
-				if (this.isInterrupted()) break;
-
 				// Read WATCHDOG command from queue
 				WatchdogCommand watchdogCommand = this.watchdogManager.getWatchdogCommand();
 				if (watchdogCommand == null) break;

@@ -58,7 +58,7 @@ public class ServerContext extends Context
 			int applicationVersion, ServerManager applicationManager,
 			boolean runningInTestMode, String testCaseName, String testSessionName)
 	{
-		super(codeName, applicationName, applicationVersion, ResourceContainer.OriginEnum.Server.toString(), applicationManager, new ServerMediaManager(), new TestManagerServer(), runningInTestMode, testCaseName, testSessionName);
+		super(codeName, applicationName, applicationVersion, ResourceContainer.OriginEnum.Server.toString(), applicationManager, new TestManagerServer(), runningInTestMode, testCaseName, testSessionName);
 	}
 
 	@Override

@@ -27,6 +27,10 @@ import fmagic.server.application.ServerManager;
 import fmagic.server.media.ServerMediaManager;
 import fmagic.server.watchdog.WatchdogManager;
 import fmagic.test.application.TestManager;
+import fmagic.test.classes.ClientMediaManagerTest;
+import fmagic.test.classes.LicenseManagerTest;
+import fmagic.test.classes.RightManagerTest;
+import fmagic.test.classes.ServerMediaManagerTest;
 
 /**
  * This class contains context data needed by all classes and functions of a
@@ -93,7 +97,7 @@ public abstract class Context implements Cloneable, ManagerInterface
 	private final LicenseManager licenseManager;
 	private final MediaManager mediaManager;
 	private final TestManager testManager;
-
+	
 	// Common data of context
 	private final String codeName;
 	private final String applicationName;
@@ -170,9 +174,9 @@ public abstract class Context implements Cloneable, ManagerInterface
 	 */
 	public Context(String codeName, String applicationName,
 			int applicationVersion, String originName,
-			ApplicationManager applicationManager, MediaManager mediaManager,
-			TestManager testManager, boolean runningInTestMode,
-			String testCaseName, String testSessionName)
+			ApplicationManager applicationManager, TestManager testManager,
+			boolean runningInTestMode, String testCaseName,
+			String testSessionName)
 	{
 		this.codeName = FileUtilFunctions.generalFitToFileNameCompatibility(codeName);
 		this.applicationName = FileUtilFunctions.generalFitToFileNameCompatibility(applicationName);
@@ -186,9 +190,6 @@ public abstract class Context implements Cloneable, ManagerInterface
 		this.labelManager = new LabelManager();
 		this.resourceManager = new ResourceManager();
 		this.commandManager = new CommandManager();
-		this.rightManager = new RightManager();
-		this.licenseManager = new LicenseManager();
-		this.mediaManager = mediaManager;
 		this.testManager = testManager;
 
 		// If the application is running in "test mode", the context type is set
@@ -196,6 +197,20 @@ public abstract class Context implements Cloneable, ManagerInterface
 		// test ticket number is created
 		if (runningInTestMode == true)
 		{
+			// Assign extended managers for testing
+			this.rightManager = new RightManagerTest();
+			this.licenseManager = new LicenseManagerTest();
+
+			if (this.isClientApplication())
+			{
+				this.mediaManager = new ClientMediaManagerTest();
+			}
+			else
+			{
+				this.mediaManager = new ServerMediaManagerTest();
+			}
+			
+			// Set testing modus information
 			this.runningInTestMode = true;
 
 			if (testCaseName == null || testCaseName.length() == 0)
@@ -222,6 +237,20 @@ public abstract class Context implements Cloneable, ManagerInterface
 		}
 		else
 		{
+			// Assign regular managers
+			this.rightManager = new RightManager();
+			this.licenseManager = new LicenseManager();
+
+			if (this.isClientApplication())
+			{
+				this.mediaManager = new ClientMediaManager();
+			}
+			else
+			{
+				this.mediaManager = new ServerMediaManager();
+			}
+
+			// Clean testing modus information
 			this.runningInTestMode = false;
 			this.testCaseName = null;
 			this.testSessionName = null;
@@ -809,7 +838,17 @@ public abstract class Context implements Cloneable, ManagerInterface
 	 */
 	public RightManager getRightManager()
 	{
-		return this.rightManager;
+		if (this.rightManager instanceof RightManager) return (RightManager) this.rightManager;
+		return null;
+	}
+
+	/**
+	 * Getter
+	 */
+	public RightManagerTest getRightManagerTest()
+	{
+		if (this.rightManager instanceof RightManagerTest) return (RightManagerTest) this.rightManager;
+		return null;
 	}
 
 	/**
@@ -817,7 +856,17 @@ public abstract class Context implements Cloneable, ManagerInterface
 	 */
 	public LicenseManager getLicenseManager()
 	{
-		return this.licenseManager;
+		if (this.licenseManager instanceof LicenseManager) return (LicenseManager) this.licenseManager;
+		return null;
+	}
+
+	/**
+	 * Getter
+	 */
+	public LicenseManagerTest getLicenseManagerTest()
+	{
+		if (this.licenseManager instanceof LicenseManagerTest) return (LicenseManagerTest) this.licenseManager;
+		return null;
 	}
 
 	/**
@@ -825,7 +874,9 @@ public abstract class Context implements Cloneable, ManagerInterface
 	 */
 	public MediaManager getMediaManager()
 	{
-		return this.mediaManager;
+		if (this.mediaManager instanceof ServerMediaManager) return (MediaManager) mediaManager;
+		if (this.mediaManager instanceof ClientMediaManager) return (MediaManager) mediaManager;
+		return null;
 	}
 
 	/**
@@ -840,9 +891,27 @@ public abstract class Context implements Cloneable, ManagerInterface
 	/**
 	 * Getter
 	 */
+	public ServerMediaManagerTest getServerMediaManagerTest()
+	{
+		if (this.mediaManager instanceof ServerMediaManagerTest) return (ServerMediaManagerTest) mediaManager;
+		return null;
+	}
+
+	/**
+	 * Getter
+	 */
 	public ClientMediaManager getClientMediaManager()
 	{
 		if (this.mediaManager instanceof ClientMediaManager) return (ClientMediaManager) mediaManager;
+		return null;
+	}
+
+	/**
+	 * Getter
+	 */
+	public ClientMediaManagerTest getClientMediaManagerTest()
+	{
+		if (this.mediaManager instanceof ClientMediaManagerTest) return (ClientMediaManagerTest) mediaManager;
 		return null;
 	}
 
@@ -934,6 +1003,22 @@ public abstract class Context implements Cloneable, ManagerInterface
 	public boolean isRunningInTestMode()
 	{
 		return this.runningInTestMode;
+	}
+
+	/**
+	 * Getter
+	 */
+	public boolean isClientApplication()
+	{
+		return this.originName.equalsIgnoreCase("Client");
+	}
+
+	/**
+	 * Getter
+	 */
+	public boolean isServerApplication()
+	{
+		return this.originName.equalsIgnoreCase("Server");
 	}
 
 	/**

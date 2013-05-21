@@ -10,10 +10,8 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import fmagic.basic.application.ApplicationManager;
-import fmagic.basic.application.ApplicationServer;
 import fmagic.basic.command.SessionContainer;
 import fmagic.basic.context.Context;
-import fmagic.basic.file.FileUtilFunctions;
 import fmagic.basic.notification.NotificationManager;
 import fmagic.basic.resource.ResourceContainer.OriginEnum;
 import fmagic.basic.resource.ResourceManager;
@@ -33,24 +31,21 @@ import fmagic.server.watchdog.WatchdogServer;
  */
 public abstract class ServerManager extends ApplicationManager
 {
-	// Specific data
-	private final int serverSocketPort;
-
 	// Socket data
+	private final int serverSocketPort;
 	private ServerSocket serverSocket = null;
 	private int socketTimeoutInMilliseconds = 120000;
-
-	// Encoding data
-	private String serverPublicKey = null;
-	private String serverPrivateKey = null;
 
 	// Thread pool
 	private final List<Thread> threadPool = new ArrayList<Thread>();
 
-	// Session configuration
+	// Session settings
 	private final HashMap<String, SessionContainer> sessions = new HashMap<String, SessionContainer>();
 	private Integer maxNuOfActiveSessions = null;
 	private Integer percentageRateForCleaning = null;
+
+	// Flag if accepting of socket connections has to be stopped
+	private boolean stopAcceptingSocketConnections = false;
 
 	/**
 	 * Constructor
@@ -155,7 +150,7 @@ public abstract class ServerManager extends ApplicationManager
 			if (watchdogServer.startServer(this.getContext()) == false) isError = true;
 
 			// Start media server
-			this.mediaServer = new ServerMediaServer(this.getContext(), (ServerMediaManager) this.getContext().getMediaManager());
+			this.mediaServer = new ServerMediaServer(this.getContext(), this.getContext().getServerMediaManager());
 			if (this.mediaServer.startServer(this.getContext()) == false) isError = true;
 		}
 		catch (Exception e)
@@ -166,28 +161,6 @@ public abstract class ServerManager extends ApplicationManager
 
 		// Return
 		return isError;
-	}
-
-	/**
-	 * Release all integrated server.
-	 * 
-	 * @return Returns <TT>true</TT> if an error occurred, otherwise
-	 *         <TT>false</TT>.
-	 */
-	private void releaseIntegratedServer()
-	{
-		// Stop media server
-		try
-		{
-			if (this.mediaServer != null)
-			{
-				this.mediaServer.stopServer(this.getContext());
-			}
-		}
-		catch (Exception e)
-		{
-			this.getContext().getNotificationManager().notifyError(this.getContext(), ResourceManager.notification(this.getContext(), "MediaServer", "ErrorOnStoppingServer"), null, e);
-		}
 	}
 
 	@Override
@@ -217,30 +190,6 @@ public abstract class ServerManager extends ApplicationManager
 	}
 
 	@Override
-	public boolean readSecurityKeys()
-	{
-		// Initialize
-		boolean isSuccessful = true;
-
-		// Read and check
-		try
-		{
-			this.serverPublicKey = this.getContext().getConfigurationManager().getProperty(this.getContext(), ResourceManager.configuration(getContext(), "Application", "PublicKey"), true);
-			if (this.serverPublicKey == null || this.serverPublicKey.length() == 0) isSuccessful = false;
-
-			this.serverPrivateKey = this.getContext().getConfigurationManager().getProperty(this.getContext(), ResourceManager.configuration(getContext(), "Application", "PrivateKey"), true);
-			if (this.serverPrivateKey == null || this.serverPrivateKey.length() == 0) isSuccessful = false;
-		}
-		catch (Exception e)
-		{
-			return false;
-		}
-
-		// Return
-		return isSuccessful;
-	}
-
-	@Override
 	protected boolean bindResources()
 	{
 		// Open server socket
@@ -248,6 +197,7 @@ public abstract class ServerManager extends ApplicationManager
 		{
 			// Open server socket
 			this.serverSocket = new ServerSocket(this.getServerSocketPort());
+			this.serverSocket.setSoTimeout(10000);
 		}
 		catch (Exception e)
 		{
@@ -289,11 +239,9 @@ public abstract class ServerManager extends ApplicationManager
 		// Logging
 		this.getContext().getNotificationManager().notifyLogMessage(this.getContext(), NotificationManager.SystemLogLevelEnum.NOTICE, "Stopping application server [" + this.getCodeName() + "]: " + this.toString());
 
-		// Set stop running flag
-		this.setStopRunning(true);
-
-		// Let the server some time to end running client requests
-		this.threadPoolShutDown();
+		// No more new socket connection will be accepted by the application
+		// server
+		this.setStopAcceptingSocketConnections(true);
 
 		// Release all resources
 		this.releaseResources();
@@ -302,17 +250,34 @@ public abstract class ServerManager extends ApplicationManager
 		try
 		{
 			this.getContext().getNotificationManager().notifyEvent(this.getContext(), ResourceManager.notification(getContext(), "Application", "ApplicationServerInterrupted"), null, null);
-			this.applicationServer.interrupt();
+			this.setStopRunning(true);
 		}
 		catch (Exception e)
 		{
 			this.getContext().getNotificationManager().notifyError(this.getContext(), ResourceManager.notification(this.getContext(), "Application", "ErrorOnStoppingServer"), null, e);
 		}
 
-		// Wait till end of thread
-		FileUtilFunctions.generalWaitForThreadTerminating(this.applicationServer, 60);
+		try
+		{
+			this.applicationServer.join();
+		}
+		catch (Exception e)
+		{
+			// Be silent
+		}
 
-		// Release WATCHDOG
+		// Close server socket
+		try
+		{
+			if (this.serverSocket != null) this.serverSocket.close();
+		}
+		catch (Exception e)
+		{
+			this.getContext().getNotificationManager().notifyError(this.getContext(), ResourceManager.notification(this.getContext(), "Application", "ErrorOnServerSocket"), "--> on closing server socket port: '" + String.valueOf(this.getServerSocketPort()) + "'", e);
+		}
+
+		// Release WATCHDOG at the end, because it has to notify the stopping of
+		// the application
 		this.releaseWatchdog();
 	}
 
@@ -333,6 +298,15 @@ public abstract class ServerManager extends ApplicationManager
 		catch (Exception e)
 		{
 			this.getContext().getNotificationManager().notifyError(this.getContext(), ResourceManager.notification(this.getContext(), "Watchdog", "ErrorOnStoppingServer"), null, e);
+		}
+
+		try
+		{
+			this.watchdogServer.join();
+		}
+		catch (Exception e)
+		{
+			// Be silent
 		}
 	}
 
@@ -538,37 +512,38 @@ public abstract class ServerManager extends ApplicationManager
 	@Override
 	protected void releaseResources()
 	{
-		// Shutdown all running command threads.
-		// Let the server some time to end running client requests.
+		// Wait for the end of all active threads of the thread pool that
+		// process command requests via socket
 		this.threadPoolShutDown();
 
-		// Close server socket
+		// Stop media server
 		try
 		{
-			if (this.serverSocket != null) this.serverSocket.close();
+			if (this.mediaServer != null)
+			{
+				this.mediaServer.stopServer(this.getContext());
+			}
 		}
 		catch (Exception e)
 		{
-			this.getContext().getNotificationManager().notifyError(this.getContext(), ResourceManager.notification(this.getContext(), "Application", "ErrorOnServerSocket"), "--> on closing server socket port: '" + String.valueOf(this.getServerSocketPort()) + "'", e);
+			this.getContext().getNotificationManager().notifyError(this.getContext(), ResourceManager.notification(this.getContext(), "MediaServer", "ErrorOnStoppingServer"), null, e);
 		}
 
-		// Release integrated server
-		this.releaseIntegratedServer();
+		try
+		{
+			this.mediaServer.join();
+		}
+		catch (Exception e)
+		{
+			// Be silent
+		}
 	}
 
 	/**
-	 * Wait for the end of all treads of a thread list.
+	 * Wait for the end of all threads of a thread pool.
 	 */
 	public void threadPoolShutDown()
 	{
-		// Validate parameter
-		if (this.getMaximumWaitingTimeForPendingThreadsInSeconds() == null)
-		{
-			String errorString = "--> Configuration parameter 'Shutdown/MaximumWaitingTimeForPendingThreadsInSeconds' is not defined";
-			this.getContext().getNotificationManager().notifyError(this.getContext(), ResourceManager.notification(this.getContext(), "Application", "ErrorOnShutdownThreadPool"), errorString, null);
-			this.maximumWaitingTimeForPendingThreadsInSeconds = 120;
-		}
-
 		// Check parameter
 		if (this.threadPool == null) return;
 		if (this.threadPool.size() == 0) return;
@@ -577,7 +552,7 @@ public abstract class ServerManager extends ApplicationManager
 		{
 			try
 			{
-				FileUtilFunctions.generalWaitForThreadTerminating(thread, this.getMaximumWaitingTimeForPendingThreadsInSeconds());
+				thread.join();
 			}
 			catch (Exception exception)
 			{
@@ -654,18 +629,18 @@ public abstract class ServerManager extends ApplicationManager
 	}
 
 	/**
-	 * Get server public key.
+	 * Getter
 	 */
-	public String getServerPublicKey()
+	public boolean isStopAcceptingSocketConnections()
 	{
-		return serverPublicKey;
+		return stopAcceptingSocketConnections;
 	}
 
 	/**
-	 * Get server private key.
+	 * Setter
 	 */
-	public String getServerPrivateKey()
+	private void setStopAcceptingSocketConnections(boolean stopAcceptingSocketConnections)
 	{
-		return serverPrivateKey;
+		this.stopAcceptingSocketConnections = stopAcceptingSocketConnections;
 	}
 }

@@ -5,9 +5,8 @@ import java.util.List;
 import fmagic.basic.context.Context;
 import fmagic.basic.resource.ResourceManager;
 import fmagic.client.application.ClientManager;
-import fmagic.test.application.TestManager;
 import fmagic.test.container.TestContainer;
-import fmagic.test.container.TestContainerMediaLocal;
+import fmagic.test.container.TestContainerMediaLocalClient;
 import fmagic.test.suite.TestSuite;
 
 /**
@@ -59,9 +58,9 @@ public class TestRunnerMediaClient extends TestRunner
 			clientAp3 = this.createApplicationClient("cl3");
 			
 			// Cleanup media directories
-			TestManager.cleanTestMediaDirectory(clientAp1.getContext());
-			TestManager.cleanTestMediaDirectory(clientAp2.getContext());
-			TestManager.cleanTestMediaDirectory(clientAp3.getContext());
+			this.cleanTestMediaDirectory(clientAp1.getContext());
+			this.cleanTestMediaDirectory(clientAp2.getContext());
+			this.cleanTestMediaDirectory(clientAp3.getContext());
 			
 			// Set test parameter to local data of the clients
 			Context context;
@@ -166,12 +165,12 @@ public class TestRunnerMediaClient extends TestRunner
 	 */
 	private void doComponentTest(Context context)
 	{
-		TestContainerMediaLocal testMediaSingle;
+		TestContainerMediaLocalClient testMediaSingle;
 
 		try
 		{
 			// Room
-			testMediaSingle = new TestContainerMediaLocal(context, this, false);
+			testMediaSingle = new TestContainerMediaLocalClient(context, this, false);
 			testMediaSingle.setParameterResourceGroup("Apartment");
 			testMediaSingle.setParameterResourceName("Room");
 			testMediaSingle.setParameterNumberOfMediaToBeUploaded(50);
@@ -183,25 +182,25 @@ public class TestRunnerMediaClient extends TestRunner
 			testMediaSingle.executeComponentTest();
 
 			// Floor (don't test, cleanup only)
-			testMediaSingle = new TestContainerMediaLocal(context, this, false);
+			testMediaSingle = new TestContainerMediaLocalClient(context, this, false);
 			testMediaSingle.setParameterResourceGroup("Apartment");
 			testMediaSingle.setParameterResourceName("Floor");
 			testMediaSingle.cleanupComponentTest();
 
 			// Bedroom (don't test, cleanup only)
-			testMediaSingle = new TestContainerMediaLocal(context, this, false);
+			testMediaSingle = new TestContainerMediaLocalClient(context, this, false);
 			testMediaSingle.setParameterResourceGroup("Apartment");
 			testMediaSingle.setParameterResourceName("Bedroom");
 			testMediaSingle.cleanupComponentTest();
 
 			// Kitchen (don't test, cleanup only)
-			testMediaSingle = new TestContainerMediaLocal(context, this, false);
+			testMediaSingle = new TestContainerMediaLocalClient(context, this, false);
 			testMediaSingle.setParameterResourceGroup("Apartment");
 			testMediaSingle.setParameterResourceName("Kitchen");
 			testMediaSingle.cleanupComponentTest();
 
 			// Bathroom (don't test, cleanup only)
-			testMediaSingle = new TestContainerMediaLocal(context, this, false);
+			testMediaSingle = new TestContainerMediaLocalClient(context, this, false);
 			testMediaSingle.setParameterResourceGroup("Apartment");
 			testMediaSingle.setParameterResourceName("Bathroom");
 			testMediaSingle.cleanupComponentTest();
@@ -233,12 +232,12 @@ public class TestRunnerMediaClient extends TestRunner
 	 */
 	private void defineIntegrationTest(List<Thread> threadList)
 	{
-		TestContainerMediaLocal testMediaConcurrent;
+		TestContainerMediaLocalClient testMediaConcurrent;
 
 		try
 		{
 			// Room 1
-			testMediaConcurrent = new TestContainerMediaLocal(this.clientAp1.getContext(), this, true);
+			testMediaConcurrent = new TestContainerMediaLocalClient(this.clientAp1.getContext(), this, true);
 			testMediaConcurrent.setParameterResourceGroup("Apartment");
 			testMediaConcurrent.setParameterResourceName("Room");
 			testMediaConcurrent.setParameterNumberOfMediaToBeUploaded(50);
@@ -250,7 +249,7 @@ public class TestRunnerMediaClient extends TestRunner
 			threadList.add(new Thread(testMediaConcurrent));
 
 			// Room 2
-			testMediaConcurrent = new TestContainerMediaLocal(this.clientAp2.getContext(), this, true);
+			testMediaConcurrent = new TestContainerMediaLocalClient(this.clientAp2.getContext(), this, true);
 			testMediaConcurrent.setParameterResourceGroup("Apartment");
 			testMediaConcurrent.setParameterResourceName("Room");
 			testMediaConcurrent.setParameterNumberOfMediaToBeUploaded(50);
@@ -262,7 +261,7 @@ public class TestRunnerMediaClient extends TestRunner
 			threadList.add(new Thread(testMediaConcurrent));
 
 			// Room 3
-			testMediaConcurrent = new TestContainerMediaLocal(this.clientAp3.getContext(), this, true);
+			testMediaConcurrent = new TestContainerMediaLocalClient(this.clientAp3.getContext(), this, true);
 			testMediaConcurrent.setParameterResourceGroup("Apartment");
 			testMediaConcurrent.setParameterResourceName("Room");
 			testMediaConcurrent.setParameterNumberOfMediaToBeUploaded(50);
@@ -274,7 +273,7 @@ public class TestRunnerMediaClient extends TestRunner
 			threadList.add(new Thread(testMediaConcurrent));
 
 			// Floor
-			testMediaConcurrent = new TestContainerMediaLocal(this.clientAp1.getContext(), this, true);
+			testMediaConcurrent = new TestContainerMediaLocalClient(this.clientAp1.getContext(), this, true);
 			testMediaConcurrent.setParameterResourceGroup("Apartment");
 			testMediaConcurrent.setParameterResourceName("Floor");
 			testMediaConcurrent.setParameterNumberOfMediaToBeUploaded(50);
@@ -286,7 +285,7 @@ public class TestRunnerMediaClient extends TestRunner
 			threadList.add(new Thread(testMediaConcurrent));
 
 			// Bedroom
-			testMediaConcurrent = new TestContainerMediaLocal(this.clientAp2.getContext(), this, true);
+			testMediaConcurrent = new TestContainerMediaLocalClient(this.clientAp2.getContext(), this, true);
 			testMediaConcurrent.setParameterResourceGroup("Apartment");
 			testMediaConcurrent.setParameterResourceName("Bedroom");
 			testMediaConcurrent.setParameterNumberOfMediaToBeUploaded(50);
@@ -298,7 +297,7 @@ public class TestRunnerMediaClient extends TestRunner
 			threadList.add(new Thread(testMediaConcurrent));
 
 			// Kitchen
-			testMediaConcurrent = new TestContainerMediaLocal(this.clientAp3.getContext(), this, true);
+			testMediaConcurrent = new TestContainerMediaLocalClient(this.clientAp3.getContext(), this, true);
 			testMediaConcurrent.setParameterResourceGroup("Apartment");
 			testMediaConcurrent.setParameterResourceName("Kitchen");
 			testMediaConcurrent.setParameterNumberOfMediaToBeUploaded(50);
@@ -310,7 +309,7 @@ public class TestRunnerMediaClient extends TestRunner
 			threadList.add(new Thread(testMediaConcurrent));
 
 			// Bathroom
-			testMediaConcurrent = new TestContainerMediaLocal(this.clientAp1.getContext(), this, true);
+			testMediaConcurrent = new TestContainerMediaLocalClient(this.clientAp1.getContext(), this, true);
 			testMediaConcurrent.setParameterResourceGroup("Apartment");
 			testMediaConcurrent.setParameterResourceName("Bathroom");
 			testMediaConcurrent.setParameterNumberOfMediaToBeUploaded(50);

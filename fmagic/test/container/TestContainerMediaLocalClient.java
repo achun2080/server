@@ -15,7 +15,7 @@ import fmagic.basic.resource.ResourceManager;
 import fmagic.test.application.TestManager;
 import fmagic.test.runner.TestRunner;
 
-public class TestContainerMediaLocal extends TestContainer
+public class TestContainerMediaLocalClient extends TestContainer
 {
 	private String parameterResourceGroup = "Apartment";
 	private String parameterResourceName = "Room";
@@ -47,7 +47,7 @@ public class TestContainerMediaLocal extends TestContainer
 	 *            in a concurrent environment with other parallel threads or
 	 *            applications, otherwise to <TT>false</TT>.
 	 */
-	public TestContainerMediaLocal(Context context, TestRunner testRunner,
+	public TestContainerMediaLocalClient(Context context, TestRunner testRunner,
 			boolean concurrentAccess)
 	{
 		super(context, testRunner, concurrentAccess);
@@ -60,7 +60,7 @@ public class TestContainerMediaLocal extends TestContainer
 	 *            The test runner that holds this container, or <TT>null</TT> if
 	 *            no test runner is available.
 	 */
-	public TestContainerMediaLocal(TestRunner testRunner)
+	public TestContainerMediaLocalClient(TestRunner testRunner)
 	{
 		super(null, testRunner, false);
 	}
@@ -394,13 +394,13 @@ public class TestContainerMediaLocal extends TestContainer
 			/*
 			 *  Get current configuration property
 			 */
-			Integer lastValueOfMaximumMediaSize = this.getContext().getMediaManager().getMaximumMediaSize();
+			Integer lastValueOfMaximumMediaSize = this.getContext().getClientMediaManagerTest().getMaximumMediaSize();
 			if (lastValueOfMaximumMediaSize == null) lastValueOfMaximumMediaSize = 0;
 
 			/*
 			 *  Check a couple of media resource settings
 			 */
-			this.getContext().getMediaManager().testSetMaximumMediaSize(this.getContext(), 5000);
+			this.getContext().getClientMediaManagerTest().setMaximumMediaSize(this.getContext(), 5000);
 			
 			this.doMaximumMediaSizeAttribute(fileList, "Test", "Size50", 50);
 			this.doMaximumMediaSizeAttribute(fileList, "Test", "Size500", 500);
@@ -409,19 +409,19 @@ public class TestContainerMediaLocal extends TestContainer
 			/*
 			 *  Check the configuration setting
 			 */
-			this.getContext().getMediaManager().testSetMaximumMediaSize(this.getContext(), 200);
+			this.getContext().getClientMediaManagerTest().setMaximumMediaSize(this.getContext(), 200);
 			this.doMaximumMediaSizeConfiguration(fileList, "Test", "Size3000", 200);
 
-			this.getContext().getMediaManager().testSetMaximumMediaSize(this.getContext(), 700);
+			this.getContext().getClientMediaManagerTest().setMaximumMediaSize(this.getContext(), 700);
 			this.doMaximumMediaSizeConfiguration(fileList, "Test", "Size3000", 700);
 
-			this.getContext().getMediaManager().testSetMaximumMediaSize(this.getContext(), 1400);
+			this.getContext().getClientMediaManagerTest().setMaximumMediaSize(this.getContext(), 1400);
 			this.doMaximumMediaSizeConfiguration(fileList, "Test", "Size3000", 1400);
 
 			/*
 			 *  Reset current configuration property
 			 */
-			this.getContext().getMediaManager().testSetMaximumMediaSize(this.getContext(), lastValueOfMaximumMediaSize);
+			this.getContext().getClientMediaManagerTest().setMaximumMediaSize(this.getContext(), lastValueOfMaximumMediaSize);
 		}
 		catch (Exception e)
 		{
@@ -652,7 +652,7 @@ public class TestContainerMediaLocal extends TestContainer
 			additionalText += "\n--> Upload file? '" + uploadFileName + "'";
 			additionalText += "\n--> Data identifier? '" + dataIdentifierString + "'";
 
-			boolean booleanResult = this.getContext().getMediaManager().localStoreMediaFile(this.getContext(), mediaResource, uploadFileName, dataIdentifierString);
+			boolean booleanResult = this.getContext().getClientMediaManagerTest().localStoreMediaFile(this.getContext(), mediaResource, uploadFileName, dataIdentifierString);
 			TestManager.assertTrue(this.getContext(), this, additionalText, booleanResult);
 
 			/*
@@ -838,12 +838,12 @@ public class TestContainerMediaLocal extends TestContainer
 
 			if (cleaningFunction == CleaningFunctionEnum.PENDING)
 			{
-				daysToKeep = this.getContext().getMediaManager().getMediaUtil().getCleanPendingDaysToKeep();
+				daysToKeep = this.getContext().getClientMediaManagerTest().getCleanPendingDaysToKeep();
 				dayRange = daysToKeep * 2;
 			}
 			else if (cleaningFunction == CleaningFunctionEnum.DELETED)
 			{
-				daysToKeep = this.getContext().getMediaManager().getMediaUtil().getCleanDeletedDaysToKeep();
+				daysToKeep = this.getContext().getClientMediaManagerTest().getCleanDeletedDaysToKeep();
 				dayRange = daysToKeep * 2;
 			}
 			else
@@ -947,12 +947,12 @@ public class TestContainerMediaLocal extends TestContainer
 			if (cleaningFunction == CleaningFunctionEnum.PENDING)
 			{
 				remainingFilePath = mediaResource.mediaFileGetPendingFilePath(this.getContext());
-				nuOfDeletedFiles = this.getContext().getMediaManager().getMediaUtil().cleanPendingDirectory(this.getContext(), mediaResource, daysToKeep);
+				nuOfDeletedFiles = this.getContext().getClientMediaManagerTest().cleanPendingDirectory( this.getContext(), mediaResource, daysToKeep);
 			}
 			else if (cleaningFunction == CleaningFunctionEnum.DELETED)
 			{
 				remainingFilePath = mediaResource.mediaFileGetDeletedFilePath(this.getContext());
-				nuOfDeletedFiles = this.getContext().getMediaManager().getMediaUtil().cleanDeletedDirectory(this.getContext(), mediaResource, daysToKeep);
+				nuOfDeletedFiles = this.getContext().getClientMediaManagerTest().cleanDeletedDirectory(this.getContext(), mediaResource, daysToKeep);
 			}
 			else
 			{
@@ -1015,7 +1015,7 @@ public class TestContainerMediaLocal extends TestContainer
 			// Initialize variables
 			ResourceContainerMedia mediaResource = ResourceManager.media(this.getContext(), group, name);
 
-			int daysToKeep = this.getContext().getMediaManager().getMediaUtil().getCleanObsoleteDaysToKeep();
+			int daysToKeep = this.getContext().getClientMediaManagerTest().getCleanObsoleteDaysToKeep();
 			int dayRange = daysToKeep * 2;
 
 			Date currentDate = new Date();
@@ -1121,7 +1121,7 @@ public class TestContainerMediaLocal extends TestContainer
 			TestManager.assertGreaterThan(this.getContext(), this, null, daysToKeep, 1);
 
 			String remainingFilePath = mediaResource.mediaFileGetRegularFilePath(this.getContext());
-			int nuOfDeletedFiles = this.getContext().getMediaManager().getMediaUtil().cleanRegularDirectory(this.getContext(), mediaResource, daysToKeep);
+			int nuOfDeletedFiles = this.getContext().getClientMediaManagerTest().cleanRegularDirectory(this.getContext(), mediaResource, daysToKeep);
 			TestManager.assertGreaterThan(this.getContext(), this, null, nuOfDeletedFiles, 0);
 			TestManager.assertLowerThan(this.getContext(), this, null, nuOfDeletedFiles, nuOfFilesCreated);
 
@@ -1201,7 +1201,7 @@ public class TestContainerMediaLocal extends TestContainer
 			}
 
 			// Initialize day range
-			int daysToKeep = this.getContext().getMediaManager().getMediaUtil().getCleanObsoleteDaysToKeep();
+			int daysToKeep = this.getContext().getClientMediaManagerTest().getCleanObsoleteDaysToKeep();
 			int dayRange = daysToKeep * 2;
 
 			Date currentDate = new Date();
@@ -1318,11 +1318,11 @@ public class TestContainerMediaLocal extends TestContainer
 
 			// Modify this parameter to ensure that no 'deleted' files were
 			// removed in this test case.
-			int currentCleanDeletedDaysToKeep = this.getContext().getMediaManager().getMediaUtil().getCleanDeletedDaysToKeep();
-			this.getContext().getMediaManager().getMediaUtil().testSetCleanDeletedDaysToKeep(this.getContext(), daysToKeep * 3);
+			int currentCleanDeletedDaysToKeep = this.getContext().getClientMediaManagerTest().getCleanDeletedDaysToKeep();
+			this.getContext().getClientMediaManagerTest().setCleanDeletedDaysToKeep(this.getContext(), daysToKeep * 3);
 
 			// Invoke regular clean function of the media manager
-			int nuOfDeletedFiles = this.getContext().getMediaManager().getMediaUtil().cleanAll(this.getContext());
+			int nuOfDeletedFiles = this.getContext().getClientMediaManagerTest().cleanAll(this.getContext());
 
 			TestManager.assertGreaterThan(this.getContext(), this, null, nuOfDeletedFiles, 0);
 			TestManager.assertLowerThan(this.getContext(), this, null, nuOfDeletedFiles, nuOfFilesCreated);
@@ -1332,7 +1332,7 @@ public class TestContainerMediaLocal extends TestContainer
 
 			// Undo modifying this parameter to ensure that no 'deleted' files
 			// were removed in this test case.
-			this.getContext().getMediaManager().getMediaUtil().testSetCleanDeletedDaysToKeep(this.getContext(), currentCleanDeletedDaysToKeep);
+			this.getContext().getClientMediaManagerTest().setCleanDeletedDaysToKeep(this.getContext(), currentCleanDeletedDaysToKeep);
 
 			// Count the real number of remaining files in the 'regular'
 			// directories
@@ -1395,14 +1395,14 @@ public class TestContainerMediaLocal extends TestContainer
 					{
 						String errorIdentifier = ResourceManager.notification(this.getContext(), "Media", "MaximumMediaSizeExceeded").getRecourceIdentifier();
 						TestManager.errorSuppressErrorMessageOnce(this.getContext(), errorIdentifier);
-						boolean booleanResult = this.getContext().getMediaManager().localStoreMediaFile(this.getContext(), media, fileList.get(i), name);
+						boolean booleanResult = this.getContext().getClientMediaManagerTest().localStoreMediaFile(this.getContext(), media, fileList.get(i), name);
 						TestManager.assertRuntimeErrorCode(this.getContext(), this, null, errorIdentifier);
 						TestManager.assertFalse(this.getContext(), this, null, booleanResult);
 					}
 					// Upload regularly
 					else
 					{
-						boolean booleanResult = this.getContext().getMediaManager().localStoreMediaFile(this.getContext(), media, fileList.get(i), name);
+						boolean booleanResult = this.getContext().getClientMediaManagerTest().localStoreMediaFile(this.getContext(), media, fileList.get(i), name);
 						TestManager.assertTrue(this.getContext(), this, null, booleanResult);
 					}
 				}
@@ -1446,14 +1446,14 @@ public class TestContainerMediaLocal extends TestContainer
 					{
 						String errorIdentifier = ResourceManager.notification(this.getContext(), "Media", "MaximumMediaSizeExceeded").getRecourceIdentifier();
 						TestManager.errorSuppressErrorMessageOnce(this.getContext(), errorIdentifier);
-						boolean booleanResult = this.getContext().getMediaManager().localStoreMediaFile(this.getContext(), media, fileList.get(i), name);
+						boolean booleanResult = this.getContext().getClientMediaManagerTest().localStoreMediaFile(this.getContext(), media, fileList.get(i), name);
 						TestManager.assertRuntimeErrorCode(this.getContext(), this, null, errorIdentifier);
 						TestManager.assertFalse(this.getContext(), this, null, booleanResult);
 					}
 					// Upload regularly
 					else
 					{
-						boolean booleanResult = this.getContext().getMediaManager().localStoreMediaFile(this.getContext(), media, fileList.get(i), name);
+						boolean booleanResult = this.getContext().getClientMediaManagerTest().localStoreMediaFile(this.getContext(), media, fileList.get(i), name);
 						TestManager.assertTrue(this.getContext(), this, null, booleanResult);
 					}
 				}

@@ -19,7 +19,7 @@ public class SessionContainer
 	final private String clientSessionIdentifier;
 
 	// Public key of the client application
-	final private String clientPublicKey;
+	final private String keyApplicationPublicKey;
 
 	// Right group of the current user
 	private ResourceContainer userRightGroup = null;
@@ -37,13 +37,13 @@ public class SessionContainer
 	 * @param clientSessionIdentifier
 	 *            Session identifier of the client application.
 	 * 
-	 * @param clientPublicKey
+	 * @param keyApplicationPublicKey
 	 *            Public key of the client application.
 	 */
 	public SessionContainer(String clientSessionIdentifier, String clientPublicKey)
 	{
 		this.clientSessionIdentifier = clientSessionIdentifier;
-		this.clientPublicKey = clientPublicKey;
+		this.keyApplicationPublicKey = clientPublicKey;
 		this.creationDate = new Date();
 		this.lastModificationDate = new Date();
 	}
@@ -75,9 +75,9 @@ public class SessionContainer
 	/**
 	 * Getter
 	 */
-	public String getClientPublicKey()
+	public String getKeyApplicationPublicKey()
 	{
-		return clientPublicKey;
+		return keyApplicationPublicKey;
 	}
 
 	/**

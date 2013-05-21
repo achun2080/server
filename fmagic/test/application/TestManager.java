@@ -379,34 +379,6 @@ public class TestManager implements ManagerInterface
 	}
 
 	/**
-	 * Clean all media files in a test media environment.
-	 * <p>
-	 * In order to avoid removing of innocent directories there is a convention:
-	 * Only those directories are removed the begins with <TT>$media$.</TT>.
-	 * 
-	 * @param context
-	 *            The application context.
-	 */
-	public static void cleanTestMediaDirectory(Context context)
-	{
-		// Be careful: Please let run in test environment only
-		if (!context.isRunningInTestMode()) return;
-
-		// Get file path of local media repository
-		String filePath = context.getMediaManager().getMediaRootFilePath();
-		if (filePath == null || filePath.length() == 0) return;
-
-		// Check if it is a media directory
-		String mediaTestDirectoryLiteral = FileLocationFunctions.getMediaTestDirectoryLiteral();
-		if (mediaTestDirectoryLiteral == null || mediaTestDirectoryLiteral.length() == 0) return;
-		mediaTestDirectoryLiteral = "/" + mediaTestDirectoryLiteral + ".";
-		if (!filePath.contains(mediaTestDirectoryLiteral)) return;
-		
-		// Delete directory
-		FileUtilFunctions.directoryDeleteRecursively(filePath);
-	}
-
-	/**
 	 * Format a assert message to a common string format.
 	 * 
 	 * @param assertText
