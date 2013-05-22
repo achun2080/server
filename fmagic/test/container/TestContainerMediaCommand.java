@@ -9,6 +9,7 @@ import fmagic.basic.media.ResourceContainerMedia;
 import fmagic.basic.resource.ResourceContainer;
 import fmagic.basic.resource.ResourceManager;
 import fmagic.client.application.ClientManager;
+import fmagic.client.command.ClientCommandMediaFileInfo;
 import fmagic.server.application.ServerManager;
 import fmagic.test.application.TestManager;
 import fmagic.test.runner.TestRunner;
@@ -549,7 +550,8 @@ public class TestContainerMediaCommand extends TestContainer
 			if (resultBoolean == false) return;
 
 			/*
-			 * Check if exactly the same file (with the same hash value) really exists on server
+			 * Check if exactly the same file (with the same hash value) really
+			 * exists on server
 			 */
 			if (!this.isConcurrentAccess())
 			{
@@ -562,6 +564,71 @@ public class TestContainerMediaCommand extends TestContainer
 				TestManager.assertTrue(parameterClient.getContext(), this, additionalText, resultBoolean);
 
 				if (resultBoolean == false) return;
+			}
+
+			/*
+			 * Get file information
+			 */
+			if (!this.isConcurrentAccess())
+			{
+				// Execute COMMAND
+				additionalText = "--> Get media file information";
+				additionalText += "\n--> Media resource: '" + mediaResource.getRecourceIdentifier() + "'";
+				additionalText += "\n--> Upload file name: '" + uploadFileName + "'";
+				additionalText += "\n--> Data identifier: '" + dataIdentifierString + "'";
+
+				ClientCommandMediaFileInfo command = parameterClient.getContext().getClientMediaManagerTest().commandInfoOnServer(parameterClient.getContext(), parameterClient.getConnectionContainer(), mediaResource, dataIdentifierString);
+				TestManager.assertNotNull(parameterClient.getContext(), this, additionalText, command);
+
+				// Return on error
+				if (command == null) return;
+
+				// Compare existing
+				additionalText = "--> File does not exist";
+				additionalText += "\n--> Media resource: '" + mediaResource.getRecourceIdentifier() + "'";
+				additionalText += "\n--> Upload file name: '" + uploadFileName + "'";
+				additionalText += "\n--> Data identifier: '" + dataIdentifierString + "'";
+				TestManager.assertTrue(parameterClient.getContext(), this, additionalText, command.isExisting());
+
+				if (command.isExisting())
+				{
+					// Compare file type
+					additionalText = "--> File type missmatch";
+					additionalText += "\n--> Media resource: '" + mediaResource.getRecourceIdentifier() + "'";
+					additionalText += "\n--> Upload file name: '" + uploadFileName + "'";
+					additionalText += "\n--> Data identifier: '" + dataIdentifierString + "'";
+					TestManager.assertEquals(parameterClient.getContext(), this, additionalText, fileType, command.getFileType());
+
+					// Compare hash value
+					additionalText = "--> Hash value missmatch";
+					additionalText += "\n--> Media resource: '" + mediaResource.getRecourceIdentifier() + "'";
+					additionalText += "\n--> Upload file name: '" + uploadFileName + "'";
+					additionalText += "\n--> Data identifier: '" + dataIdentifierString + "'";
+					TestManager.assertEquals(parameterClient.getContext(), this, additionalText, hashValue, command.getHashValue());
+
+					// Compare last modified date
+					additionalText = "--> Last modified date not set";
+					additionalText += "\n--> Media resource: '" + mediaResource.getRecourceIdentifier() + "'";
+					additionalText += "\n--> Upload file name: '" + uploadFileName + "'";
+					additionalText += "\n--> Data identifier: '" + dataIdentifierString + "'";
+					TestManager.assertNotNull(parameterClient.getContext(), this, additionalText, command.getLastModifiedDate());
+
+					// Compare file size
+					additionalText = "--> File size missmatch";
+					additionalText += "\n--> Media resource: '" + mediaResource.getRecourceIdentifier() + "'";
+					additionalText += "\n--> Upload file name: '" + uploadFileName + "'";
+					additionalText += "\n--> Data identifier: '" + dataIdentifierString + "'";
+					
+					if (command.isEncoded())
+					{
+						// If the file is encoded on server the file size is modified to a value that is divisible by 8
+						TestManager.assertEquals(parameterClient.getContext(), this, additionalText, (((FileUtilFunctions.fileGetFileSize(uploadFileName) / 8L) + 1L) * 8L), command.getFileSize());
+					}
+					else
+					{
+						TestManager.assertEquals(parameterClient.getContext(), this, additionalText, FileUtilFunctions.fileGetFileSize(uploadFileName), command.getFileSize());
+					}
+				}
 			}
 
 			/*
@@ -578,15 +645,15 @@ public class TestContainerMediaCommand extends TestContainer
 
 			// Return after error
 			if (pendingFileName == null) return;
-			
+
 			// Store media file in local media repository
 			boolean booleanResult = parameterClient.getContext().getClientMediaManagerTest().localStoreMediaFile(parameterClient.getContext(), mediaResource, pendingFileName, dataIdentifierString);
 			TestManager.assertTrue(parameterClient.getContext(), this, additionalText + "\n--> Error on storing file to local media repository", booleanResult);
-			
+
 			// Delete pending file
 			booleanResult = FileUtilFunctions.fileDelete(pendingFileName);
 			TestManager.assertTrue(parameterClient.getContext(), this, additionalText + "\n--> Error on deleting pending media file", booleanResult);
-			
+
 			/*
 			 * Check if file content can be read
 			 */

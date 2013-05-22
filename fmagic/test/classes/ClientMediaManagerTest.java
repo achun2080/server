@@ -3,6 +3,7 @@ package fmagic.test.classes;
 import fmagic.basic.command.ConnectionContainer;
 import fmagic.basic.context.Context;
 import fmagic.basic.media.ResourceContainerMedia;
+import fmagic.client.command.ClientCommandMediaFileInfo;
 import fmagic.client.media.ClientMediaManager;
 
 /**
@@ -66,6 +67,15 @@ public class ClientMediaManagerTest extends ClientMediaManager
 	{
 		if (!context.isRunningInTestMode()) return false;
 		return super.commandCheckOnServer(context, connectionContainer, mediaResourceContainer, fileType, dataIdentifier, hashValue);
+	}
+
+	/**
+	 * Specific test method
+	 */
+	public ClientCommandMediaFileInfo commandInfoOnServer(Context context, ConnectionContainer connectionContainer, ResourceContainerMedia mediaResourceContainer, String dataIdentifier)
+	{
+		if (!context.isRunningInTestMode()) return null;
+		return super.commandInfoOnServer(context, connectionContainer, mediaResourceContainer, dataIdentifier);
 	}
 
 	/**

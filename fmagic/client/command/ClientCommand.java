@@ -46,6 +46,7 @@ public abstract class ClientCommand extends Command
 		this.requestContainer = new RequestContainer(application.getApplicationIdentifier().toString(), application.getApplicationVersion(), context.getCodeName(), commandIdentifier);
 
 		// Set session identifier
+		if (connectionContainer.getSessionIdentifier() == null || connectionContainer.getSessionIdentifier().length() == 0) connectionContainer.setSessionIdentifier(ConnectionContainer.createClientSessionIdentifier());
 		this.requestContainer.setClientSessionIdentifier(connectionContainer.getSessionIdentifier());
 
 		// Create a response container with a default error message

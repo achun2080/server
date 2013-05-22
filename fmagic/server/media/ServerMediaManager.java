@@ -13,6 +13,7 @@ import fmagic.basic.media.MediaManager;
 import fmagic.basic.media.ResourceContainerMedia;
 import fmagic.basic.resource.ResourceContainer;
 import fmagic.basic.resource.ResourceManager;
+import fmagic.client.command.ClientCommandMediaFileInfo;
 
 /**
  * This class implements the management of media of server applications.
@@ -1066,6 +1067,119 @@ public class ServerMediaManager extends MediaManager
 	}
 
 	/**
+	 * Get information of a media file on a media server pool. Only the most
+	 * recent media file is searched for on server, not any obsolete files.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param mediaResourceContainer
+	 *            The media resource container to consider.
+	 * 
+	 * @param dataIdentifier
+	 *            The identifier of the concrete media item to check.
+	 * 
+	 * @return Returns the client command <<TT>ClientCommandMediaFileInfo</TT>,
+	 *         or <TT>null</TT> if an error occurred.
+	 */
+	protected ClientCommandMediaFileInfo poolInfoMediaFileOnPool(Context context, ResourceContainerMedia mediaResourceContainer, String dataIdentifier)
+	{
+		/*
+		 * Check variables and conditions
+		 */
+
+		// Check if media pool is enabled
+		if (!this.isEnableMediaPool()) { return null; }
+
+		// Check media resource container
+		if (mediaResourceContainer == null)
+		{
+			String errorString = "--> INFO ON POOL: Media resource container not set (NULL value).";
+			if (dataIdentifier != null) errorString += "\n--> Data identifier of media: '" + dataIdentifier + "'";
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnCheckingFile"), errorString, null);
+			return null;
+		}
+
+		// Check data identifier
+		if (dataIdentifier == null || dataIdentifier.length() == 0)
+		{
+			String errorString = "--> INFO ON POOL: Missing data identifier of media (NULL value or EMPTY).";
+			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+			if (dataIdentifier != null) errorString += "\n--> Data identifier of media: '" + dataIdentifier + "'";
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnCheckingFile"), errorString, null);
+			return null;
+		}
+
+		/*
+		 * Get info of media file on media pool
+		 */
+
+		// Initialize
+		boolean mediaFileExists = false;
+		ClientCommandMediaFileInfo command = null;
+
+		try
+		{
+			while (true)
+			{
+				// Ask main server of media pool
+				int mainServerNumber = this.poolMainServerNumber;
+
+				if (mainServerNumber > 0)
+				{
+					ConnectionContainer connectionContainer = this.mediaPoolList.get(mainServerNumber);
+
+					if (connectionContainer != null)
+					{
+						command = this.doMediaFileInfoOnMediaPool(context, connectionContainer, mediaResourceContainer, dataIdentifier);
+
+						if (command != null && command.isExisting())
+						{
+							mediaFileExists = true;
+							break;
+						}
+					}
+				}
+
+				// Ask secondary servers of media pool
+				int numberOfserverInPool = this.mediaPoolList.size();
+
+				if (numberOfserverInPool > 0)
+				{
+					for (ConnectionContainer connectionContainer : this.mediaPoolList.values())
+					{
+						if (connectionContainer.getNumber() == mainServerNumber) continue;
+
+						command = this.doMediaFileInfoOnMediaPool(context, connectionContainer, mediaResourceContainer, dataIdentifier);
+
+						if (command != null && command.isExisting())
+						{
+							mediaFileExists = true;
+							break;
+						}
+					}
+				}
+
+				// End of processing
+				break;
+			}
+		}
+		catch (Exception e)
+		{
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnCheckingFile"), null, e);
+			mediaFileExists = false;
+		}
+
+		// Logging
+		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "\n--> INFO ON POOL: Result of getting media file information on pool: '" + String.valueOf(mediaFileExists) + "'");
+
+		/*
+		 * Return
+		 */
+		return command;
+	}
+
+	/**
 	 * Read a media file from media pool
 	 * 
 	 * @param context
@@ -1431,6 +1545,31 @@ public class ServerMediaManager extends MediaManager
 	{
 		// Execute command
 		return this.commandCheckOnServer(context, connectionContainer, mediaResourceContainer, fileType, dataIdentifier, hashValue);
+	}
+
+	/**
+	 * Get information of a media file on a media server pool. Only the most
+	 * recent media file is searched for on server, not any obsolete files.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param connectionContainer
+	 *            Connection container that holds all information of the
+	 *            connection to use.
+	 * 
+	 * @param mediaResourceContainer
+	 *            The media resource container to consider.
+	 * @param dataIdentifier
+	 *            The identifier of the concrete media item to check.
+	 * 
+	 * @return Returns the client command <TT>ClientCommandMediaFileInfo</TT>,
+	 *         or <TT>null</TT> if an error occurred.
+	 */
+	private ClientCommandMediaFileInfo doMediaFileInfoOnMediaPool(Context context, ConnectionContainer connectionContainer, ResourceContainerMedia mediaResourceContainer, String dataIdentifier)
+	{
+		// Execute command
+		return this.commandInfoOnServer(context, connectionContainer, mediaResourceContainer, dataIdentifier);
 	}
 
 	/**

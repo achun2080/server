@@ -8,6 +8,7 @@ import fmagic.basic.media.MediaContainer;
 import fmagic.basic.media.ResourceContainerMedia;
 import fmagic.basic.resource.ResourceContainer;
 import fmagic.basic.resource.ResourceManager;
+import fmagic.client.command.ClientCommandMediaFileInfo;
 import fmagic.server.application.ServerManager;
 import fmagic.server.media.ServerMediaManager;
 import fmagic.test.application.TestManager;
@@ -288,11 +289,11 @@ public class TestContainerMediaPool extends TestContainer
 
 				// Try to check the media file for 30 seconds (Waiting for
 				// processing the main queue)
-				int counter = 10;
+				int counter = 30;
 
 				while (counter-- >= 0)
 				{
-					FileUtilFunctions.generalSleepSeconds(3);
+					FileUtilFunctions.generalSleepSeconds(1);
 
 					resultBoolean = parameterServer.getContext().getServerMediaManagerTest().poolCheckMediaFileOnPool(parameterServer.getContext(), mediaResource, fileType, dataIdentifierString, hashValue);
 					if (resultBoolean == true) break;
@@ -302,6 +303,71 @@ public class TestContainerMediaPool extends TestContainer
 				if (resultBoolean == false) return;
 			}
 
+			/*
+			 * Get file information
+			 */
+			if (!this.isConcurrentAccess())
+			{
+				// Execute COMMAND on media pool
+				additionalText = "--> Get media file information";
+				additionalText += "\n--> Media resource: '" + mediaResource.getRecourceIdentifier() + "'";
+				additionalText += "\n--> Upload file name: '" + uploadFileName + "'";
+				additionalText += "\n--> Data identifier: '" + dataIdentifierString + "'";
+
+				ClientCommandMediaFileInfo command = parameterServer.getContext().getServerMediaManagerTest().poolInfoMediaFileOnPool(parameterServer.getContext(), mediaResource, dataIdentifierString);
+				TestManager.assertNotNull(parameterServer.getContext(), this, additionalText, command);
+
+				// Return on error
+				if (command == null) return;
+
+				// Compare existing
+				additionalText = "--> File does not exist";
+				additionalText += "\n--> Media resource: '" + mediaResource.getRecourceIdentifier() + "'";
+				additionalText += "\n--> Upload file name: '" + uploadFileName + "'";
+				additionalText += "\n--> Data identifier: '" + dataIdentifierString + "'";
+				TestManager.assertTrue(parameterServer.getContext(), this, additionalText, command.isExisting());
+
+				if (command.isExisting())
+				{
+					// Compare file type
+					additionalText = "--> File type missmatch";
+					additionalText += "\n--> Media resource: '" + mediaResource.getRecourceIdentifier() + "'";
+					additionalText += "\n--> Upload file name: '" + uploadFileName + "'";
+					additionalText += "\n--> Data identifier: '" + dataIdentifierString + "'";
+					TestManager.assertEquals(parameterServer.getContext(), this, additionalText, fileType, command.getFileType());
+
+					// Compare hash value
+					additionalText = "--> Hash value missmatch";
+					additionalText += "\n--> Media resource: '" + mediaResource.getRecourceIdentifier() + "'";
+					additionalText += "\n--> Upload file name: '" + uploadFileName + "'";
+					additionalText += "\n--> Data identifier: '" + dataIdentifierString + "'";
+					TestManager.assertEquals(parameterServer.getContext(), this, additionalText, hashValue, command.getHashValue());
+
+					// Compare last modified date
+					additionalText = "--> Last modified date not set";
+					additionalText += "\n--> Media resource: '" + mediaResource.getRecourceIdentifier() + "'";
+					additionalText += "\n--> Upload file name: '" + uploadFileName + "'";
+					additionalText += "\n--> Data identifier: '" + dataIdentifierString + "'";
+					TestManager.assertNotNull(parameterServer.getContext(), this, additionalText, command.getLastModifiedDate());
+
+					// Compare file size
+					additionalText = "--> File size missmatch";
+					additionalText += "\n--> Media resource: '" + mediaResource.getRecourceIdentifier() + "'";
+					additionalText += "\n--> Upload file name: '" + uploadFileName + "'";
+					additionalText += "\n--> Data identifier: '" + dataIdentifierString + "'";
+					
+					if (command.isEncoded())
+					{
+						// If the file is encoded on server the file size is modified to a value that is divisible by 8
+						TestManager.assertEquals(parameterServer.getContext(), this, additionalText, (((FileUtilFunctions.fileGetFileSize(uploadFileName) / 8L) + 1L) * 8L), command.getFileSize());
+					}
+					else
+					{
+						TestManager.assertEquals(parameterServer.getContext(), this, additionalText, FileUtilFunctions.fileGetFileSize(uploadFileName), command.getFileSize());
+					}
+				}
+			}
+			
 			/*
 			 * Read the media file from the media pool and store it in the local
 			 * media repository.
@@ -313,7 +379,7 @@ public class TestContainerMediaPool extends TestContainer
 
 			// Try to read the media file for 30 seconds (Waiting for
 			// processing the main queue)
-			int counter = 10;
+			int counter = 30;
 			
 			String pendingFileName = null;
 
@@ -322,7 +388,7 @@ public class TestContainerMediaPool extends TestContainer
 				pendingFileName = parameterServer.getContext().getServerMediaManagerTest().poolReadMediaFileOnPool(parameterServer.getContext(), mediaResource, dataIdentifierString);
 				if (pendingFileName != null) break;
 				
-				FileUtilFunctions.generalSleepSeconds(3);
+				FileUtilFunctions.generalSleepSeconds(1);
 			}
 
 			TestManager.assertNotNull(parameterServer.getContext(), this, additionalText, pendingFileName);

@@ -840,6 +840,36 @@ public class FileUtilFunctions
 	}
 
 	/**
+	 * Get the last modified date of a file.
+	 * 
+	 * @param filePath
+	 *            The path of the file to be analyzed.
+	 * 
+	 * @return Returns the last modified date of a file, or <TT>null</TT> if the file
+	 *         couldn't be read.
+	 */
+	public static Date fileGetLastModifiedDate(String filePath)
+	{
+		// Check parameters
+		if (filePath == null || filePath.length() == 0) return null;
+		if (FileUtilFunctions.fileExists(filePath) == false) return null;
+
+		// Create FILE objects
+		File file = new File(filePath);
+
+		// Delete file
+		try
+		{
+			Date lastModifiedDate = new Date(file.lastModified());
+			return lastModifiedDate;
+		}
+		catch (Exception e)
+		{
+			return null;
+		}
+	}
+
+	/**
 	 * Delete a list of files file.
 	 * 
 	 * @param fileList

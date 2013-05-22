@@ -18,6 +18,7 @@ import fmagic.basic.resource.ResourceContainer;
 import fmagic.basic.resource.ResourceManager;
 import fmagic.client.command.ClientCommand;
 import fmagic.client.command.ClientCommandMediaFileCheck;
+import fmagic.client.command.ClientCommandMediaFileInfo;
 import fmagic.client.command.ClientCommandMediaFileRead;
 import fmagic.client.command.ClientCommandMediaFileUpload;
 
@@ -1187,7 +1188,7 @@ public abstract class MediaManager implements ManagerInterface
 			if (fileType != null) errorString += "\n--> File type of media: '" + fileType + "'";
 			if (dataIdentifier != null) errorString += "\n--> Data identifier of media: '" + dataIdentifier + "'";
 			if (hashValue != null) errorString += "\n--> Hash value of media: '" + hashValue + "'";
-			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnCheckingFile"), errorString, null);
 			return false;
 		}
 
@@ -1200,7 +1201,7 @@ public abstract class MediaManager implements ManagerInterface
 			if (dataIdentifier != null) errorString += "\n--> Data identifier of media: '" + dataIdentifier + "'";
 			if (hashValue != null) errorString += "\n--> Hash value of media: '" + hashValue + "'";
 			errorString += responseContainer.toString();
-			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnUploadingFile"), errorString, null);
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnCheckingFile"), errorString, null);
 			return false;
 		}
 
@@ -1211,6 +1212,89 @@ public abstract class MediaManager implements ManagerInterface
 		 */
 		if (command.isMediaFileExisting() == null || command.isMediaFileExisting() == false) return false;
 		return true;
+	}
+
+	/**
+	 * Executes the Client/Server COMMAND <TT>CommandMediaFileInfo</TT>.
+	 * <p>
+	 * Get information of a media file on server. Only the most recent
+	 * media file is searched for on server, not any obsolete files.
+	 * 
+	 * @param context
+	 *            Application context.
+	 * 
+	 * @param connectionContainer
+	 *            The connection container to use for the connection.
+	 * 
+	 * @param mediaResourceContainer
+	 *            The media resource container to consider.
+	 * 
+	 * @param dataIdentifier
+	 *            The identifier of the concrete media item to consider.
+	 * 
+	 * @return Returns the command container of the requested command if the media file exists, otherwise
+	 *         <TT>null</TT>.
+	 */
+	protected ClientCommandMediaFileInfo commandInfoOnServer(Context context, ConnectionContainer connectionContainer, ResourceContainerMedia mediaResourceContainer, String dataIdentifier)
+	{
+		/*
+		 * Check variables and conditions
+		 */
+
+		// Check media resource container
+		if (mediaResourceContainer == null)
+		{
+			String errorString = "--> INFO ON SERVER: Media resource container not set (NULL value).";
+			if (dataIdentifier != null) errorString += "\n--> Data identifier of media: '" + dataIdentifier + "'";
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnCheckingFile"), errorString, null);
+			return null;
+		}
+
+		// Check data identifier
+		if (dataIdentifier == null || dataIdentifier.length() == 0)
+		{
+			String errorString = "--> INFO ON SERVER: Missing data identifier of media (NULL value or EMPTY).";
+			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+			if (dataIdentifier != null) errorString += "\n--> Data identifier of media: '" + dataIdentifier + "'";
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnCheckingFile"), errorString, null);
+			return null;
+		}
+
+		/*
+		 * COMMAND Media File info
+		 */
+
+		// Execute command
+		ClientCommandMediaFileInfo command = new ClientCommandMediaFileInfo(context, context.getApplicationManager(), connectionContainer, mediaResourceContainer.getRecourceIdentifier(), dataIdentifier);
+		ResponseContainer responseContainer = command.execute();
+
+		if (responseContainer == null)
+		{
+			String errorString = "--> INFO ON SERVER: Error on executing command 'ClientCommandMediaFileInfo' on server.";
+			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+			if (dataIdentifier != null) errorString += "\n--> Data identifier of media: '" + dataIdentifier + "'";
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnCheckingFile"), errorString, null);
+			return null;
+		}
+
+		if (responseContainer.isError())
+		{
+			String errorString = "--> INFO ON SERVER: Error on executing command 'ClientCommandMediaFileInfo' on server.";
+			errorString += "\n--> Application server replied with error code: '" + responseContainer.getErrorCode() + "'";
+			errorString += "\n--> Media resource identifier: '" + mediaResourceContainer.getRecourceIdentifier() + "'";
+			if (dataIdentifier != null) errorString += "\n--> Data identifier of media: '" + dataIdentifier + "'";
+			errorString += responseContainer.toString();
+			context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Media", "ErrorOnCheckingFile"), errorString, null);
+			return null;
+		}
+
+		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "\n--> CHECK ON SERVER: Result of checking media file on server: '" + command.isExisting() + "'");
+
+		/*
+		 * Return
+		 */
+		if (command.isExisting() == null || command.isExisting() == false) return null;
+		return command;
 	}
 
 	/**

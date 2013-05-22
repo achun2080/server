@@ -3,6 +3,7 @@ package fmagic.test.classes;
 import fmagic.basic.command.ConnectionContainer;
 import fmagic.basic.context.Context;
 import fmagic.basic.media.ResourceContainerMedia;
+import fmagic.client.command.ClientCommandMediaFileInfo;
 import fmagic.server.media.ServerMediaManager;
 
 /**
@@ -170,5 +171,14 @@ public class ServerMediaManagerTest extends ServerMediaManager
 	{
 		if (!context.isRunningInTestMode()) return false;
 		return super.poolUploadMediaFileToPool(context, mediaResourceContainer, uploadFileNamePath, dataIdentifier);
+	}
+
+	/**
+	 * Specific test method
+	 */
+	public ClientCommandMediaFileInfo poolInfoMediaFileOnPool(Context context, ResourceContainerMedia mediaResourceContainer, String dataIdentifier)
+	{
+		if (!context.isRunningInTestMode()) return null;
+		return super.poolInfoMediaFileOnPool(context, mediaResourceContainer, dataIdentifier);
 	}
 }
