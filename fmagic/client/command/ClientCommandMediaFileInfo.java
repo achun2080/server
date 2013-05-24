@@ -76,6 +76,14 @@ public class ClientCommandMediaFileInfo extends ClientCommand
 	{
 		try
 		{
+			// Get result: IsExisting
+			String result = this.responseContainer.getProperty(ResourceManager.commandParameter(this.getContext(), "MediaFileInfo", "IsExisting").getAliasName(), "false");
+			if (result != null && result.equalsIgnoreCase("true")) this.isExisting = true;
+			if (result != null && result.equalsIgnoreCase("false")) this.isExisting = false;
+			
+			if (this.isExisting == false) return true;
+
+			// Prepare reading and checking results
 			String errorText = "--> Error on validating command result values";
 			boolean isError = false;
 
@@ -123,11 +131,6 @@ public class ClientCommandMediaFileInfo extends ClientCommand
 				errorText += "\n--> Missing value 'FileSize'";
 				isError = true;
 			}
-
-			// Get result: IsExisting
-			String result = this.responseContainer.getProperty(ResourceManager.commandParameter(this.getContext(), "MediaFileInfo", "IsExisting").getAliasName(), "false");
-			if (result != null && result.equalsIgnoreCase("true")) this.isExisting = true;
-			if (result != null && result.equalsIgnoreCase("false")) this.isExisting = false;
 
 			// Get result: IsEncoded
 			result = this.responseContainer.getProperty(ResourceManager.commandParameter(this.getContext(), "MediaFileInfo", "IsEncoded").getAliasName(), "false");
@@ -177,11 +180,11 @@ public class ClientCommandMediaFileInfo extends ClientCommand
 	 * Get the result value of the command: Information if the media files
 	 * exists on server, or not.
 	 * 
-	 * @return Returns <TT>null</TT> if the command wasn't processed yet or an
-	 *         error occurred, otherwise <TT>true</TT> or <TT>false</TT>.
+	 * @return Returns <TT>true</TT> or <TT>false</TT>.
 	 */
-	public Boolean isExisting()
+	public boolean isExisting()
 	{
+		if (this.isExisting == null) return false;
 		return this.isExisting;
 	}
 
@@ -247,11 +250,11 @@ public class ClientCommandMediaFileInfo extends ClientCommand
 	 * Get the result value of the command: Information if the media file is
 	 * encoded on server, or not.
 	 * 
-	 * @return Returns <TT>null</TT> if the command wasn't processed yet or an
-	 *         error occurred, otherwise <TT>true</TT> or <TT>false</TT>.
+	 * @return Returns <TT>true</TT> or <TT>false</TT>.
 	 */
-	public Boolean isEncoded()
+	public boolean isEncoded()
 	{
+		if (this.isEncoded == null) return false;
 		return this.isEncoded;
 	}
 }

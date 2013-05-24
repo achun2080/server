@@ -24,6 +24,8 @@ public class ResponseContainer
 	// Common data
 	final private String serverApplicationIdentifier;
 	final private int serverVersion;
+	private String serverCodeName;
+	
 	private String clientSessionIdentifier;
 	private String clientCodeName;
 
@@ -211,6 +213,14 @@ public class ResponseContainer
 	}
 
 	/**
+	 * Getter
+	 */
+	public String getServerCodeName()
+	{
+		return serverCodeName;
+	}
+
+	/**
 	 * To string
 	 */
 	@Override
@@ -223,11 +233,12 @@ public class ResponseContainer
 
 		// Common value
 		outputString += "\n" + "----------";
-		outputString += "\n" + "Application identifier: " + this.serverApplicationIdentifier;
+		if (this.serverApplicationIdentifier != null) outputString += "\n" + "Application identifier: " + this.serverApplicationIdentifier;
 		outputString += "\n" + "Server version: " + String.valueOf(this.serverVersion);
-		outputString += "\n" + "Session: " + this.clientSessionIdentifier;
-		outputString += "\n" + "Client code name: " + this.clientCodeName;
-		outputString += "\n" + "CommandManager identifier: " + this.commandIdentifier;
+		if (this.clientSessionIdentifier != null) outputString += "\n" + "Session: " + this.clientSessionIdentifier;
+		if (this.clientCodeName != null) outputString += "\n" + "Client code name (Caller): " + this.clientCodeName;
+		if (this.serverCodeName != null) outputString += "\n" + "Server code name (Remote): " + this.serverCodeName;
+		if (this.commandIdentifier != null) outputString += "\n" + "Command identifier: " + this.commandIdentifier;
 
 		// Properties
 		if (this.properties.size() > 0)
@@ -304,6 +315,13 @@ public class ResponseContainer
 	public void setClientCodeName(String clientCodeName)
 	{
 		this.clientCodeName = clientCodeName;
+	}
+	/**
+	 * Setter
+	 */
+	public void setServerCodeName(String serverCodeName)
+	{
+		this.serverCodeName = serverCodeName;
 	}
 
 	/**

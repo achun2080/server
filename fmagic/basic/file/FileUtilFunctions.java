@@ -191,6 +191,31 @@ public class FileUtilFunctions
 	}
 
 	/**
+	 * Check if one date is later than the other.
+	 * 
+	 * @param date1
+	 *            The first Date to compare with.
+	 * 
+	 * @param date2
+	 *            The other Date to compare with.
+	 * 
+	 * @return Returns <TT>true</TT> if the first date is later than the second
+	 *         date, otherwise <TT>false</TT>, or <TT>null</TT> if an error
+	 *         occurred.
+	 */
+	public static Boolean generalDateIsLater(Date date1, Date date2)
+	{
+		if (date1 == null) return null;
+		if (date2 == null) return null;
+
+		long date1Seconds = date1.getTime();
+		long date2Seconds = date2.getTime();
+
+		if (date1Seconds > date2Seconds) return true;
+		return false;
+	}
+
+	/**
 	 * Wait for the end of a thread, but after maximum of x seconds the method
 	 * always returns.
 	 * 
@@ -845,8 +870,8 @@ public class FileUtilFunctions
 	 * @param filePath
 	 *            The path of the file to be analyzed.
 	 * 
-	 * @return Returns the last modified date of a file, or <TT>null</TT> if the file
-	 *         couldn't be read.
+	 * @return Returns the last modified date of a file, or <TT>null</TT> if the
+	 *         file couldn't be read.
 	 */
 	public static Date fileGetLastModifiedDate(String filePath)
 	{
@@ -1540,8 +1565,8 @@ public class FileUtilFunctions
 	 * @param directoryPath
 	 *            The path of the directory to be considered.
 	 * 
-	 * @return Returns <TT>true</TT> if the directory could be deleted, otherwise
-	 *         <TT>false</TT>.
+	 * @return Returns <TT>true</TT> if the directory could be deleted,
+	 *         otherwise <TT>false</TT>.
 	 */
 	public static boolean directoryDeleteRecursively(String directoryPath)
 	{

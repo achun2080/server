@@ -59,7 +59,7 @@ public class ServerWorkerThread implements Runnable
 	public void run()
 	{
 		// Logging on starting request
-		this.context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "Server request started.");
+		this.context.getNotificationManager().notifyLogMessage(this.context, NotificationManager.SystemLogLevelEnum.NOTICE, "Server request started.");
 
 		// Create server response container as default response
 		ResponseContainer responseContainer = new ResponseContainer(serverManager.getApplicationIdentifier().toString(), serverManager.getApplicationVersion(), null);
@@ -69,7 +69,7 @@ public class ServerWorkerThread implements Runnable
 
 		// Decode raw data onto a client request container
 		RequestContainer requestContainer = this.workstepConvertSocketDataToRequestContainer(commandToDecrypt, responseContainer);
-		if (requestContainer != null) this.context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.CODE, requestContainer.toString());
+		if (requestContainer != null) this.context.getNotificationManager().notifyLogMessage(this.context, NotificationManager.SystemLogLevelEnum.CODE, requestContainer.toString());
 
 		// Instantiate server command object
 		ServerCommand serverCommand = workstepGetServerCommandObjectInstance(requestContainer, responseContainer);
@@ -97,7 +97,7 @@ public class ServerWorkerThread implements Runnable
 		this.context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.CODE, responseContainer.toString());
 
 		// Flush the SILENT dump if an error occurred
-		if (responseContainer.getErrorCode() != null) context.getNotificationManager().flushDump(context);
+		if (responseContainer.getErrorCode() != null) this.context.getNotificationManager().flushDump(this.context);
 
 		// Notify WATCHDOG
 		this.notifyWatchdog(this.context, requestContainer, responseContainer);
@@ -375,6 +375,7 @@ public class ServerWorkerThread implements Runnable
 		{
 			responseContainer.setSession(requestContainer.getClientSessionIdentifier());
 			responseContainer.setClientCodeName(requestContainer.getClientCodeName());
+			responseContainer.setServerCodeName(this.context.getCodeName());
 		}
 		catch (Exception exception)
 		{

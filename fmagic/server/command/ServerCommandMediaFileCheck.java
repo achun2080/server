@@ -145,7 +145,9 @@ public class ServerCommandMediaFileCheck extends ServerCommand
 		try
 		{
 			// Set parameter: IsExisting
-			this.responseContainer.addProperty(ResourceManager.commandParameter(this.getContext(), "MediaFileCheck", "IsExisting").getAliasName(), this.isExisting.toString());
+			String isExistingString = null;
+			if (this.isExisting != null) isExistingString = this.isExisting.toString();
+			this.responseContainer.addProperty(ResourceManager.commandParameter(this.getContext(), "MediaFileCheck", "IsExisting").getAliasName(), isExistingString);
 			
 			// Return
 			return true;

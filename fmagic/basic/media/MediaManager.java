@@ -279,6 +279,21 @@ public abstract class MediaManager implements ManagerInterface
 	public abstract boolean isEncodingEnabled(Context context, ResourceContainerMedia mediaResourceContainer);
 
 	/**
+	 * Check if a media is allowed to be stored in the local repository.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @param mediaResourceContainer
+	 *            The media resource container to consider.
+	 * 
+	 * @return Returns <TT>true</TT> if the concrete media is allowed to be
+	 *         stored locally, otherwise <TT>false</TT>.
+	 * 
+	 */
+	public abstract boolean isLocalStorageEnabled(Context context, ResourceContainerMedia mediaResourceContainer);
+
+	/**
 	 * Encrypt a media file.
 	 * 
 	 * @param context
@@ -1205,20 +1220,20 @@ public abstract class MediaManager implements ManagerInterface
 			return false;
 		}
 
-		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "\n--> CHECK ON SERVER: Result of checking media file on server: '" + command.isMediaFileExisting() + "'");
+		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, "\n--> CHECK ON SERVER: Result of checking media file on server: '" + command.isExisting() + "'");
 
 		/*
 		 * Return
 		 */
-		if (command.isMediaFileExisting() == null || command.isMediaFileExisting() == false) return false;
+		if (command.isExisting() == false) return false;
 		return true;
 	}
 
 	/**
 	 * Executes the Client/Server COMMAND <TT>CommandMediaFileInfo</TT>.
 	 * <p>
-	 * Get information of a media file on server. Only the most recent
-	 * media file is searched for on server, not any obsolete files.
+	 * Get information of a media file on server. Only the most recent media
+	 * file is searched for on server, not any obsolete files.
 	 * 
 	 * @param context
 	 *            Application context.
@@ -1232,8 +1247,8 @@ public abstract class MediaManager implements ManagerInterface
 	 * @param dataIdentifier
 	 *            The identifier of the concrete media item to consider.
 	 * 
-	 * @return Returns the command container of the requested command if the media file exists, otherwise
-	 *         <TT>null</TT>.
+	 * @return Returns the command container of the requested command if the
+	 *         media file exists, otherwise <TT>null</TT>.
 	 */
 	protected ClientCommandMediaFileInfo commandInfoOnServer(Context context, ConnectionContainer connectionContainer, ResourceContainerMedia mediaResourceContainer, String dataIdentifier)
 	{
@@ -1293,7 +1308,7 @@ public abstract class MediaManager implements ManagerInterface
 		/*
 		 * Return
 		 */
-		if (command.isExisting() == null || command.isExisting() == false) return null;
+		if (command.isExisting() == false) return null;
 		return command;
 	}
 
@@ -1375,12 +1390,12 @@ public abstract class MediaManager implements ManagerInterface
 			return null;
 		}
 
-		String logText = "\n--> READ FROM SERVER: Result values 'Media File exists?': '" + command.isMediaFileExisting() + "'";
-		logText += "\n--> Media File exists on server: '" + command.isMediaFileExisting() + "'";
-		logText += "\n--> Media File could be read: '" + command.isMediaFileRead() + "'";
+		String logText = "\n--> READ FROM SERVER: Result values 'Media File exists?': '" + command.isExisting() + "'";
+		logText += "\n--> Media File exists on server: '" + command.isExisting() + "'";
+		logText += "\n--> Media File could be read: '" + command.isRead() + "'";
 		context.getNotificationManager().notifyLogMessage(context, NotificationManager.SystemLogLevelEnum.NOTICE, logText);
 
-		if (command.isMediaFileRead() == false) return null;
+		if (command.isRead() == false) return null;
 
 		/*
 		 * Extract media content into a pending file

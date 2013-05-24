@@ -159,10 +159,14 @@ public class ServerCommandMediaFileUpload extends ServerCommand
 		try
 		{
 			// Set result value: IsExisting
-			this.responseContainer.addProperty(ResourceManager.commandParameter(this.getContext(), "MediaFileUpload", "IsExisting").getAliasName(), this.isExisting.toString());
+			String isExistingString = null;
+			if (this.isExisting != null) isExistingString = this.isExisting.toString();
+			this.responseContainer.addProperty(ResourceManager.commandParameter(this.getContext(), "MediaFileUpload", "IsExisting").getAliasName(), isExistingString);
 			
 			// Set result value: IsUploaded
-			this.responseContainer.addProperty(ResourceManager.commandParameter(this.getContext(), "MediaFile", "IsUploaded").getAliasName(), this.isUploaded.toString());
+			String isUploadedString = null;
+			if (this.isUploaded != null) isUploadedString = this.isUploaded.toString();
+			this.responseContainer.addProperty(ResourceManager.commandParameter(this.getContext(), "MediaFile", "IsUploaded").getAliasName(), isUploadedString);
 			
 			// Return
 			return true;

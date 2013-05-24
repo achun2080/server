@@ -116,11 +116,11 @@ public class ClientCommandMediaFileCheck extends ClientCommand
 	 * Get the result value of the command: Information if the media files
 	 * exists on server, or not.
 	 * 
-	 * @return Returns <TT>null</TT> if the command wasn't processed yet or an
-	 *         error occurred, otherwise <TT>true</TT> or <TT>false</TT>.
+	 * @return Returns <TT>true</TT> or <TT>false</TT>.
 	 */
-	public Boolean isMediaFileExisting()
+	public boolean isExisting()
 	{
+		if (this.isExisting == null) return false;
 		return this.isExisting;
 	}
 }

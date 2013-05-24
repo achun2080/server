@@ -119,6 +119,7 @@ public class ServerCommandMediaFileInfo extends ServerCommand
 			if (this.businessIsMediaFileExists(this.getContext(), this.mediaResourceContainer, this.dataIdentifier) == false)
 			{
 				this.isExisting = false;
+				return true;
 			}
 			else
 			{
@@ -144,14 +145,7 @@ public class ServerCommandMediaFileInfo extends ServerCommand
 			this.fileSize = this.businessGetMediaFileSize(this.getContext(), this.mediaResourceContainer, this.dataIdentifier);
 			
 			// Check if media file is encoded
-			if (this.businessIsMediaFileEncoded(this.getContext(), this.mediaResourceContainer, this.dataIdentifier) == false)
-			{
-				this.isEncoded = false;
-			}
-			else
-			{
-				this.isEncoded = true;
-			}
+			this.isEncoded = this.businessIsMediaFileEncoded(this.getContext(), this.mediaResourceContainer, this.dataIdentifier);
 
 			// Return
 			return true;
@@ -170,23 +164,27 @@ public class ServerCommandMediaFileInfo extends ServerCommand
 		{
 			// Set parameter: FileType
 			this.responseContainer.addProperty(ResourceManager.commandParameter(this.getContext(), "MediaFileInfo", "FileType").getAliasName(), this.fileType);
-			
+
 			// Set parameter: HashValue
 			this.responseContainer.addProperty(ResourceManager.commandParameter(this.getContext(), "MediaFileInfo", "HashValue").getAliasName(), this.hashValue);
-			
+
 			// Set parameter: LastModifiedDate
 			this.responseContainer.addProperty(ResourceManager.commandParameter(this.getContext(), "MediaFileInfo", "LastModifiedDate").getAliasName(), this.lastModifiedDate);
-			
+
 			// Set parameter: FileSize
 			String fileSizeString = "";
 			if (this.fileSize != null) fileSizeString = String.valueOf(this.fileSize);
 			this.responseContainer.addProperty(ResourceManager.commandParameter(this.getContext(), "MediaFileInfo", "FileSize").getAliasName(), fileSizeString);
 
 			// Set parameter: IsEncoded
-			this.responseContainer.addProperty(ResourceManager.commandParameter(this.getContext(), "MediaFileInfo", "IsEncoded").getAliasName(), this.isEncoded.toString());
+			String isEncodedString = null;
+			if (this.isEncoded != null) isEncodedString = this.isEncoded.toString();
+			this.responseContainer.addProperty(ResourceManager.commandParameter(this.getContext(), "MediaFileInfo", "IsEncoded").getAliasName(), isEncodedString);
 
 			// Set parameter: IsExisting
-			this.responseContainer.addProperty(ResourceManager.commandParameter(this.getContext(), "MediaFileInfo", "IsExisting").getAliasName(), this.isExisting.toString());
+			String isExistingString = null;
+			if (this.isExisting != null) isExistingString = this.isExisting.toString();
+			this.responseContainer.addProperty(ResourceManager.commandParameter(this.getContext(), "MediaFileInfo", "IsExisting").getAliasName(), isExistingString);
 
 			// Return
 			return true;
@@ -360,8 +358,8 @@ public class ServerCommandMediaFileInfo extends ServerCommand
 	 * @param dataIdentifier
 	 *            The data identifier of the media.
 	 * 
-	 * @return Returns the file size, or <TT>null</TT> if the media
-	 *         file doesn't exist.
+	 * @return Returns the file size, or <TT>null</TT> if the media file doesn't
+	 *         exist.
 	 * 
 	 */
 	private Long businessGetMediaFileSize(Context context, ResourceContainerMedia mediaResourceContainer, String dataIdentifier)
@@ -397,8 +395,8 @@ public class ServerCommandMediaFileInfo extends ServerCommand
 	 * @param dataIdentifier
 	 *            The data identifier of the media.
 	 * 
-	 * @return Returns <TT>true</TT> or <TT>false</TT>, or <TT>null</TT> if the media
-	 *         file doesn't exist.
+	 * @return Returns <TT>true</TT> or <TT>false</TT>, or <TT>null</TT> if the
+	 *         media file doesn't exist.
 	 * 
 	 */
 	private Boolean businessIsMediaFileEncoded(Context context, ResourceContainerMedia mediaResourceContainer, String dataIdentifier)

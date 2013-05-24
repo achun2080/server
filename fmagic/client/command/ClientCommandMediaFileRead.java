@@ -70,6 +70,14 @@ public class ClientCommandMediaFileRead extends ClientCommand
 	{
 		try
 		{
+			// Get result: IsExisting
+			String result = this.responseContainer.getProperty(ResourceManager.commandParameter(this.getContext(), "MediaFileRead", "IsExisting").getAliasName(), "false");
+			if (result != null && result.equalsIgnoreCase("true")) this.isExisting = true;
+			if (result != null && result.equalsIgnoreCase("false")) this.isExisting = false;
+			
+			if (this.isExisting == false) return true;
+
+			// Prepare reading and checking results
 			String errorText = "--> Error on validating command result values";
 			boolean isError = false;
 
@@ -81,11 +89,6 @@ public class ClientCommandMediaFileRead extends ClientCommand
 				errorText += "\n--> Missing value 'FileType'";
 				isError = true;
 			}
-
-			// Get result: IsExisting
-			String result = this.responseContainer.getProperty(ResourceManager.commandParameter(this.getContext(), "MediaFileRead", "IsExisting").getAliasName(), "false");
-			if (result != null && result.equalsIgnoreCase("true")) this.isExisting = true;
-			if (result != null && result.equalsIgnoreCase("false")) this.isExisting = false;
 
 			// Get result: IsRead
 			result = this.responseContainer.getProperty(ResourceManager.commandParameter(this.getContext(), "MediaFileRead", "IsRead").getAliasName(), "false");
@@ -144,11 +147,11 @@ public class ClientCommandMediaFileRead extends ClientCommand
 	 * Get the result value of the command: Information if the media files
 	 * exists on server, or not.
 	 * 
-	 * @return Returns <TT>null</TT> if the command wasn't processed yet or an
-	 *         error occurred, otherwise <TT>true</TT> or <TT>false</TT>.
+	 * @return Returns <TT>true</TT> or <TT>false</TT>.
 	 */
-	public Boolean isMediaFileExisting()
+	public boolean isExisting()
 	{
+		if (this.isExisting == null) return false;
 		return this.isExisting;
 	}
 
@@ -156,11 +159,11 @@ public class ClientCommandMediaFileRead extends ClientCommand
 	 * Get the result value of the command: Information if the media files could
 	 * be read, or not.
 	 * 
-	 * @return Returns <TT>null</TT> if the command wasn't processed yet or an
-	 *         error occurred, otherwise <TT>true</TT> or <TT>false</TT>.
+	 * @return Returns <TT>true</TT> or <TT>false</TT>.
 	 */
-	public Boolean isMediaFileRead()
+	public boolean isRead()
 	{
+		if (this.isRead == null) return false;
 		return this.isRead;
 	}
 

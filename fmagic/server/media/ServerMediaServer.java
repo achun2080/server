@@ -204,7 +204,7 @@ public class ServerMediaServer extends Thread
 		if (this.mediaManager.isEnableMediaPool() == false) return true;
 
 		// Something to do?
-		if (this.mediaManager.getNumberOfCommandsInMainQueue() <= 0 && this.mediaManager.getNumberOfCommandsInSecondaryQueue() <= 0 && this.mediaManager.getNumberOfCommandsInSynchronizingQueue() <= 0) return true;
+		if (this.mediaManager.getNumberOfCommandsInMainQueue() <= 0 && this.mediaManager.getNumberOfCommandsInSecondaryQueue() <= 0 && this.mediaManager.getNumberOfCommandsInSynchronizingQueue() <= 0 && this.mediaManager.getNumberOfCommandsInCheckIntegrityQueue() <= 0) return true;
 
 		// Check if media server processing context is already set
 		if (this.processingContext == null) return false;
@@ -235,7 +235,7 @@ public class ServerMediaServer extends Thread
 					this.processingContext.getNotificationManager().notifyLogMessage(this.processingContext, NotificationManager.SystemLogLevelEnum.CODE, mediaServerCommand.toString());
 
 					// Execute command
-					this.mediaManager.poolExecuteQueueOrder(this.processingContext, mediaServerCommand, true);
+					this.mediaManager.poolExecuteQueueUploadOrder(this.processingContext, mediaServerCommand, true);
 				}
 
 				// Logging
@@ -262,7 +262,7 @@ public class ServerMediaServer extends Thread
 				this.processingContext.getNotificationManager().notifyLogMessage(this.processingContext, NotificationManager.SystemLogLevelEnum.CODE, mediaServerCommand.toString());
 
 				// Execute command
-				this.mediaManager.poolExecuteQueueOrder(this.processingContext, mediaServerCommand, false);
+				this.mediaManager.poolExecuteQueueUploadOrder(this.processingContext, mediaServerCommand, false);
 
 				// Logging
 				this.processingContext.getNotificationManager().notifyLogMessage(this.processingContext, NotificationManager.SystemLogLevelEnum.NOTICE, "Media server processing has ended actual cycle");
@@ -288,6 +288,33 @@ public class ServerMediaServer extends Thread
 				this.processingContext.getNotificationManager().notifyLogMessage(this.processingContext, NotificationManager.SystemLogLevelEnum.CODE, mediaServerCommand.toString());
 				
 				// Execute command
+				this.mediaManager.poolExecuteQueueSynchronizingOrder(this.processingContext, mediaServerCommand);
+
+				// Logging
+				this.processingContext.getNotificationManager().notifyLogMessage(this.processingContext, NotificationManager.SystemLogLevelEnum.NOTICE, "Media server processing has ended actual cycle");
+
+				// Return
+				return true;
+			}
+
+			// Process check integrity queue
+			if (this.mediaManager.getNumberOfCommandsInCheckIntegrityQueue() > 0)
+			{
+				// Logging
+				this.processingContext.getNotificationManager().notifyLogMessage(this.processingContext, NotificationManager.SystemLogLevelEnum.NOTICE, "Media server process CHECK INTEGRITY queue");
+
+				// Process one command in check integrity queue
+
+				// Read media server command from queue
+				ServerMediaPoolCommand mediaServerCommand = this.mediaManager.pollNextCommandFromCheckIntegrityQueue();
+				if (mediaServerCommand == null) return false;
+
+				// Logging
+				this.processingContext.getNotificationManager().notifyLogMessage(this.processingContext, NotificationManager.SystemLogLevelEnum.NOTICE, "Media pool command pulled from CHECK INTEGRITY queue: " + String.valueOf(this.mediaManager.getNumberOfCommandsInSynchronizingQueue()) + " items left");
+				this.processingContext.getNotificationManager().notifyLogMessage(this.processingContext, NotificationManager.SystemLogLevelEnum.CODE, mediaServerCommand.toString());
+				
+				// Execute command
+				this.mediaManager.poolExecuteQueueSynchronizingOrder(this.processingContext, mediaServerCommand);
 
 				// Logging
 				this.processingContext.getNotificationManager().notifyLogMessage(this.processingContext, NotificationManager.SystemLogLevelEnum.NOTICE, "Media server processing has ended actual cycle");

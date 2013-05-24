@@ -20,7 +20,7 @@ public class ClientCommandMediaFileUpload extends ClientCommand
 	private final String dataIdentifier;
 	private final String hashValue;
 	private final String fileToBeUploaded;
-	
+
 	private Boolean isUploaded = null;
 	private Boolean isExisting = null;
 
@@ -34,8 +34,10 @@ public class ClientCommandMediaFileUpload extends ClientCommand
 	 *            Application client.
 	 */
 	public ClientCommandMediaFileUpload(Context context,
-			ApplicationManager application, ConnectionContainer connectionContainer, String fileToBeUploaded, String  mediaResourceIdentifier, String fileType, String dataIdentifier,
-			String hashValue)
+			ApplicationManager application,
+			ConnectionContainer connectionContainer, String fileToBeUploaded,
+			String mediaResourceIdentifier, String fileType,
+			String dataIdentifier, String hashValue)
 	{
 		super(context, application, ResourceManager.command(context, "MediaFileUpload").getRecourceIdentifier(), connectionContainer, context.getConfigurationManager().getPropertyAsIntegerValue(context, ResourceManager.configuration(context, "CommandMediaFileUpload", "SocketTimeoutInMilliseconds"), false));
 
@@ -62,7 +64,7 @@ public class ClientCommandMediaFileUpload extends ClientCommand
 
 			// Set parameter: HashValue
 			this.requestContainer.addProperty(ResourceManager.commandParameter(this.getContext(), "MediaFileUpload", "HashValue").getAliasName(), this.hashValue);
-			
+
 			// Set parameter: MediaContent
 			if (this.fileToBeUploaded == null || this.fileToBeUploaded.length() == 0)
 			{
@@ -79,7 +81,7 @@ public class ClientCommandMediaFileUpload extends ClientCommand
 				this.context.getNotificationManager().notifyError(this.context, ResourceManager.notification(this.context, "Command", "ErrorOnProcessingCommand"), additionalText, null);
 				return false;
 			}
-			
+
 			this.requestContainer.addProperty(ResourceManager.commandParameter(this.getContext(), "MediaFile", "MediaContent").getAliasName(), mediaContent);
 		}
 		catch (Exception e)
@@ -96,15 +98,15 @@ public class ClientCommandMediaFileUpload extends ClientCommand
 	protected boolean evaluateResults()
 	{
 		// Get result: IsExisting
-		 String result = this.responseContainer.getProperty(ResourceManager.commandParameter(this.getContext(), "MediaFileUpload", "IsExisting").getAliasName(), "false");
-		 if (result != null && result.equalsIgnoreCase("true")) this.isExisting = true;
-		 if (result != null && result.equalsIgnoreCase("false")) this.isExisting = false;
-		 
+		String result = this.responseContainer.getProperty(ResourceManager.commandParameter(this.getContext(), "MediaFileUpload", "IsExisting").getAliasName(), "false");
+		if (result != null && result.equalsIgnoreCase("true")) this.isExisting = true;
+		if (result != null && result.equalsIgnoreCase("false")) this.isExisting = false;
+
 		// Get result: IsUploaded
-		 result = this.responseContainer.getProperty(ResourceManager.commandParameter(this.getContext(), "MediaFileUpload", "IsUploaded").getAliasName(), "false");
-		 if (result != null && result.equalsIgnoreCase("true")) this.isUploaded = true;
-		 if (result != null && result.equalsIgnoreCase("false")) this.isUploaded = false;
-		 
+		result = this.responseContainer.getProperty(ResourceManager.commandParameter(this.getContext(), "MediaFileUpload", "IsUploaded").getAliasName(), "false");
+		if (result != null && result.equalsIgnoreCase("true")) this.isUploaded = true;
+		if (result != null && result.equalsIgnoreCase("false")) this.isUploaded = false;
+
 		// Return
 		return true;
 	}
@@ -129,23 +131,23 @@ public class ClientCommandMediaFileUpload extends ClientCommand
 	 * Get the result value of the command: Information if the media files
 	 * exists on server, or not.
 	 * 
-	 * @return Returns <TT>null</TT> if the command wasn't processed yet or an
-	 *         error occurred, otherwise <TT>true</TT> or <TT>false</TT>.
+	 * @return Returns <TT>true</TT> or <TT>false</TT>.
 	 */
-	public Boolean isMediaFileExisting()
+	public boolean isExisting()
 	{
+		if (this.isExisting == null) return false;
 		return this.isExisting;
 	}
 
 	/**
-	 * Get the result value of the command: Information if the media file
-	 * could be uploaded successfully on server, or not.
+	 * Get the result value of the command: Information if the media file could
+	 * be uploaded successfully on server, or not.
 	 * 
-	 * @return Returns <TT>null</TT> if the command wasn't processed yet or an
-	 *         error occurred, otherwise <TT>true</TT> or <TT>false</TT>.
+	 * @return Returns <TT>true</TT> or <TT>false</TT>.
 	 */
-	public Boolean isMediaFileUploaded()
+	public boolean isUploaded()
 	{
+		if (this.isUploaded == null) return false;
 		return this.isUploaded;
 	}
 }

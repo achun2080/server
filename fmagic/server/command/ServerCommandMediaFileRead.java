@@ -163,10 +163,14 @@ public class ServerCommandMediaFileRead extends ServerCommand
 			this.responseContainer.addProperty(ResourceManager.commandParameter(this.getContext(), "MediaFileRead", "FileType").getAliasName(), this.fileType);
 
 			// Set parameter: IsExisting
-			this.responseContainer.addProperty(ResourceManager.commandParameter(this.getContext(), "MediaFileRead", "IsExisting").getAliasName(), this.isExisting.toString());
+			String isExistingString = null;
+			if (this.isExisting != null) isExistingString = this.isExisting.toString();
+			this.responseContainer.addProperty(ResourceManager.commandParameter(this.getContext(), "MediaFileRead", "IsExisting").getAliasName(), isExistingString);
 
 			// Set parameter: IsRead
-			this.responseContainer.addProperty(ResourceManager.commandParameter(this.getContext(), "MediaFileRead", "IsRead").getAliasName(), this.isRead.toString());
+			String isReadString = null;
+			if (this.isRead != null) isReadString = this.isRead.toString();
+			this.responseContainer.addProperty(ResourceManager.commandParameter(this.getContext(), "MediaFileRead", "IsRead").getAliasName(), isReadString);
 
 			// Set parameter: MediaContent
 			this.responseContainer.addProperty(ResourceManager.commandParameter(this.getContext(), "MediaFileRead", "MediaContent").getAliasName(), this.mediaContent);

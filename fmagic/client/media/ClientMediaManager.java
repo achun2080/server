@@ -23,7 +23,7 @@ public class ClientMediaManager extends MediaManager
 	{
 		super();
 	}
-	
+
 	@Override
 	public boolean readConfiguration(Context context)
 	{
@@ -33,8 +33,17 @@ public class ClientMediaManager extends MediaManager
 		if (readConfigurationEncodingKeyList(context) == true) isError = true;
 		if (readConfigurationEncodingKeyNumber(context) == true) isError = true;
 		if (readConfigurationEncodingEnabled(context) == true) isError = true;
-		
+
 		return isError;
+	}
+
+	@Override
+	public boolean isLocalStorageEnabled(Context context, ResourceContainerMedia mediaResourceContainer)
+	{
+		if (mediaResourceContainer == null) return false;
+
+		boolean isAllowed = mediaResourceContainer.attributeIsStorageLocationClient(context) || mediaResourceContainer.attributeIsStorageLocationSynchronize(context);
+		return isAllowed;
 	}
 
 	/**

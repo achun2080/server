@@ -15,7 +15,6 @@ import fmagic.basic.context.Context;
 import fmagic.basic.notification.NotificationManager;
 import fmagic.basic.resource.ResourceContainer.OriginEnum;
 import fmagic.basic.resource.ResourceManager;
-import fmagic.server.media.ServerMediaManager;
 import fmagic.server.media.ServerMediaServer;
 import fmagic.server.watchdog.WatchdogManager;
 import fmagic.server.watchdog.WatchdogServer;
@@ -160,6 +159,16 @@ public abstract class ServerManager extends ApplicationManager
 		}
 
 		// Return
+		return isError;
+	}
+
+	@Override
+	public boolean startRemoteConnections(Context context)
+	{
+		boolean isError = false;
+		
+		if (this.context.getServerMediaManager().startRemoteConnections(context) == true) isError = true;
+		
 		return isError;
 	}
 

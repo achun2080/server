@@ -2,6 +2,7 @@ package fmagic.client.application;
 
 import fmagic.basic.application.ApplicationManager;
 import fmagic.basic.command.ConnectionContainer;
+import fmagic.basic.context.Context;
 import fmagic.basic.notification.NotificationManager;
 import fmagic.basic.resource.ResourceContainer.OriginEnum;
 import fmagic.basic.resource.ResourceManager;
@@ -70,6 +71,12 @@ public abstract class ClientManager extends ApplicationManager
 
 		// Go back to the tracking context after initializing application server
 		this.context = this.getContext().createTrackingContext(ResourceManager.context(this.getContext(), "Overall", "Tracking"));
+	}
+	
+	@Override
+	protected boolean startRemoteConnections(Context context)
+	{
+		return false;
 	}
 
 	/**

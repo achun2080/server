@@ -139,6 +139,20 @@ public abstract class ApplicationManager implements ManagerInterface
 	protected abstract void initialize();
 
 	/**
+	 * Start and check remote connections.
+	 * <p>
+	 * This method is invoked once after all resource files were read by the
+	 * initializing process.
+	 * 
+	 * @param context
+	 *            The context to use.
+	 * 
+	 * @return Returns <TT>true</TT> if an error was found, otherwise
+	 *         <TT>false</TT>.
+	 */
+	protected abstract boolean startRemoteConnections(Context context);
+
+	/**
 	 * Creates all resources needed by an application.
 	 * 
 	 * @return Returns <TT>true</TT> if an error occurred, otherwise
@@ -198,6 +212,9 @@ public abstract class ApplicationManager implements ManagerInterface
 			if (this.readConfiguration(this.getContext()) == true) isError = true;
 			if (this.validateResources(this.getContext()) == true) isError = true;
 			if (this.cleanEnvironment(this.getContext()) == true) isError = true;
+
+			// Start and check remote connections
+			if (this.startRemoteConnections(this.getContext()) == true) isError = true;
 		}
 		catch (Exception e)
 		{

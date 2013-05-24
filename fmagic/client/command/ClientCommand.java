@@ -7,6 +7,7 @@ import fmagic.basic.command.ConnectionContainer;
 import fmagic.basic.command.RequestContainer;
 import fmagic.basic.command.ResponseContainer;
 import fmagic.basic.context.Context;
+import fmagic.basic.notification.NotificationManager;
 import fmagic.basic.resource.ResourceManager;
 
 /**
@@ -82,6 +83,7 @@ public abstract class ClientCommand extends Command
 			if (this.establishConnection() == false)
 			{
 				this.notifyError("Application", "ErrorOnEstablishingConnection", null, null);
+				this.context.getNotificationManager().notifyLogMessage(this.context, NotificationManager.SystemLogLevelEnum.CODE, this.responseContainer.toString());
 				this.context.getNotificationManager().flushDump(this.context);
 				return this.responseContainer;
 			}
@@ -90,6 +92,7 @@ public abstract class ClientCommand extends Command
 			if (this.prepareRequestContainer() == false)
 			{
 				this.notifyError("Application", "ErrorOnPreparingCommandOnClient", null, null);
+				this.context.getNotificationManager().notifyLogMessage(this.context, NotificationManager.SystemLogLevelEnum.CODE, this.responseContainer.toString());
 				this.context.getNotificationManager().flushDump(this.context);
 				return this.responseContainer;
 			}
@@ -98,6 +101,7 @@ public abstract class ClientCommand extends Command
 			if (this.validateCommandParameters() == false)
 			{
 				this.context.getNotificationManager().flushDump(this.context);
+				this.context.getNotificationManager().notifyLogMessage(this.context, NotificationManager.SystemLogLevelEnum.CODE, this.responseContainer.toString());
 				return this.responseContainer;
 			}
 
@@ -105,16 +109,22 @@ public abstract class ClientCommand extends Command
 			if (this.processOnServer() == false)
 			{
 				this.notifyError("Application", "ErrorOnProcessingRequestOnServer", null, null);
+				this.context.getNotificationManager().notifyLogMessage(this.context, NotificationManager.SystemLogLevelEnum.CODE, this.responseContainer.toString());
 				this.context.getNotificationManager().flushDump(this.context);
 				return this.responseContainer;
 			}
 
 			// Check if there is an error code on the response container
-			if (this.responseContainer.getErrorCode() != null) { return this.responseContainer; }
+			if (this.responseContainer.getErrorCode() != null)
+			{
+				this.context.getNotificationManager().notifyLogMessage(this.context, NotificationManager.SystemLogLevelEnum.CODE, this.responseContainer.toString());
+				return this.responseContainer;
+			}
 
 			if (this.evaluateResults() == false)
 			{
 				this.notifyError("Application", "ErrorOnEvaluatingCommandOnClient", null, null);
+				this.context.getNotificationManager().notifyLogMessage(this.context, NotificationManager.SystemLogLevelEnum.CODE, this.responseContainer.toString());
 				this.context.getNotificationManager().flushDump(this.context);
 				return this.responseContainer;
 			}
@@ -122,6 +132,7 @@ public abstract class ClientCommand extends Command
 			// Process the results of the command call on client side.
 			if (this.responseContainer.getErrorCode() != null)
 			{
+				this.context.getNotificationManager().notifyLogMessage(this.context, NotificationManager.SystemLogLevelEnum.CODE, this.responseContainer.toString());
 				this.context.getNotificationManager().flushDump(this.context);
 				return this.responseContainer;
 			}
@@ -129,6 +140,7 @@ public abstract class ClientCommand extends Command
 			if (this.processResults() == false)
 			{
 				this.notifyError("Application", "ErrorOnProcessingCommandOnClient", null, null);
+				this.context.getNotificationManager().notifyLogMessage(this.context, NotificationManager.SystemLogLevelEnum.CODE, this.responseContainer.toString());
 				this.context.getNotificationManager().flushDump(this.context);
 				return this.responseContainer;
 			}

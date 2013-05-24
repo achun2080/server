@@ -28,6 +28,9 @@ public class ConnectionContainer
 	private String keyRemotePublicKey;
 	private String sessionIdentifier = null;
 
+	private String serverCodeName;
+	private String clientCodeName;
+
 	// Processing
 	private boolean initialized = false;
 	private boolean error = false;
@@ -112,8 +115,9 @@ public class ConnectionContainer
 		// Set parameter, if not set yet
 		try
 		{
-			if (this.getKeyRemotePublicKey() == null || getKeyRemotePublicKey().length() == 0) this.setKeyApplicationPrivateKey(context.getApplicationManager().getKeyApplicationPrivateKey());
-			if (this.getSessionIdentifier() == null || getSessionIdentifier().length() == 0) this.setSessionIdentifier(ConnectionContainer.createClientSessionIdentifier());
+			if (this.getKeyRemotePublicKey() == null || this.getKeyRemotePublicKey().length() == 0) this.setKeyApplicationPrivateKey(context.getApplicationManager().getKeyApplicationPrivateKey());
+			if (this.getSessionIdentifier() == null || this.getSessionIdentifier().length() == 0) this.setSessionIdentifier(ConnectionContainer.createClientSessionIdentifier());
+			if (this.getClientCodeName() == null || this.getClientCodeName().length() == 0) this.setClientCodeName(context.getCodeName());
 		}
 		catch (Exception e)
 		{
@@ -164,7 +168,7 @@ public class ConnectionContainer
 				this.initialized = false;
 				this.error = true;
 				resultValue = false;
-				
+
 				// Notify error message
 				context.getNotificationManager().notifyError(context, ResourceManager.notification(context, "Application", "ErrorOnEstablishingConnection"), null, null);
 
@@ -204,6 +208,9 @@ public class ConnectionContainer
 			// COMMAND Handshake
 			ClientCommand command = new ClientCommandHandshake(context, context.getApplicationManager(), this);
 			ResponseContainer responseContainer = command.execute();
+			
+			// Get server code name
+			if (responseContainer != null) { this.setServerCodeName(responseContainer.getServerCodeName()); }
 
 			// Error occurred
 			if (responseContainer == null || responseContainer.isError()) { return false; }
@@ -253,6 +260,9 @@ public class ConnectionContainer
 					responseContainer = command.execute();
 				}
 			}
+			
+			// Get server code name
+			if (responseContainer != null) { this.setServerCodeName(responseContainer.getServerCodeName()); }
 
 			// Error
 			if (responseContainer == null || responseContainer.isError()) { return false; }
@@ -409,6 +419,38 @@ public class ConnectionContainer
 		return !(this.getSessionIdentifier() == null || this.getSessionIdentifier().length() == 0);
 	}
 
+	/**
+	 * Setter
+	 */
+	public void setServerCodeName(String serverCodeName)
+	{
+		this.serverCodeName = serverCodeName;
+	}
+
+	/**
+	 * Setter
+	 */
+	public void setClientCodeName(String clientCodeName)
+	{
+		this.clientCodeName = clientCodeName;
+	}
+
+	/**
+	 * Getter
+	 */
+	public String getServerCodeName()
+	{
+		return serverCodeName;
+	}
+
+	/**
+	 * Getter
+	 */
+	public String getClientCodeName()
+	{
+		return clientCodeName;
+	}
+
 	@Override
 	public String toString()
 	{
@@ -420,6 +462,8 @@ public class ConnectionContainer
 		// Common value
 		outputString += "----------" + "\n";
 		outputString += "Number: '" + String.valueOf(this.getNumber()) + "'\n";
+		if (this.clientCodeName != null) outputString += "\n" + "Client code name (Caller): " + this.clientCodeName;
+		if (this.serverCodeName != null) outputString += "\n" + "Server code name (Remote): " + this.serverCodeName;
 		if (this.getHost() != null) outputString += "Host: '" + this.getHost() + "'\n";
 		if (this.getHost() != null) outputString += "Port: '" + String.valueOf(this.getPort()) + "'\n";
 		if (this.getKeyApplicationPrivateKey() != null) outputString += "Private key of client: '" + this.getKeyApplicationPrivateKey().substring(0, Math.min(10, this.getKeyApplicationPrivateKey().length())) + "'\n";
@@ -435,4 +479,5 @@ public class ConnectionContainer
 		// Return
 		return outputString;
 	}
+
 }

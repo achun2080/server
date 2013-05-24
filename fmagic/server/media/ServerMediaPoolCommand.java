@@ -4,9 +4,9 @@ import java.util.Date;
 
 import fmagic.basic.context.Context;
 
-
 /**
- * This class implements a container used for media pool commands to be executed on media pool.
+ * This class implements a container used for media pool commands to be executed
+ * on media pool.
  * <p>
  * Please pay attention to the tread safety of this class, because there are
  * many threads using one and the same instance.
@@ -23,17 +23,29 @@ public class ServerMediaPoolCommand
 	private final String mediaFilePendingName;
 	private final String dataIdentifier;
 	private final Date requestDate;
+	private final String commandHashKey;
 
 	/**
 	 * Constructor
 	 */
-	public ServerMediaPoolCommand(Context context, String mediaResourceIdentifier, String mediaFilePendingName, String dataIdentifier)
+	public ServerMediaPoolCommand(Context context,
+			String mediaResourceIdentifier, String mediaFilePendingName,
+			String dataIdentifier)
 	{
 		this.context = context;
 		this.mediaResourceIdentifier = mediaResourceIdentifier;
 		this.mediaFilePendingName = mediaFilePendingName;
 		this.dataIdentifier = dataIdentifier;
 		this.requestDate = new Date();
+
+		if (mediaResourceIdentifier != null && dataIdentifier != null)
+		{
+			this.commandHashKey = mediaResourceIdentifier.trim() + ":" + dataIdentifier.trim();
+		}
+		else
+		{
+			this.commandHashKey = null;
+		}
 	}
 
 	/**
@@ -41,7 +53,7 @@ public class ServerMediaPoolCommand
 	 */
 	public Context getContext()
 	{
-		return context;
+		return this.context;
 	}
 
 	/**
@@ -49,7 +61,7 @@ public class ServerMediaPoolCommand
 	 */
 	public String getMediaResourceIdentifier()
 	{
-		return mediaResourceIdentifier;
+		return this.mediaResourceIdentifier;
 	}
 
 	/**
@@ -57,7 +69,7 @@ public class ServerMediaPoolCommand
 	 */
 	public String getMediaFilePendingName()
 	{
-		return mediaFilePendingName;
+		return this.mediaFilePendingName;
 	}
 
 	/**
@@ -65,7 +77,7 @@ public class ServerMediaPoolCommand
 	 */
 	public Date getRequestDate()
 	{
-		return requestDate;
+		return this.requestDate;
 	}
 
 	/**
@@ -73,7 +85,15 @@ public class ServerMediaPoolCommand
 	 */
 	public String getDataIdentifier()
 	{
-		return dataIdentifier;
+		return this.dataIdentifier;
+	}
+
+	/**
+	 * Getter
+	 */
+	public String getCommandHashKey()
+	{
+		return this.commandHashKey;
 	}
 
 	@Override
@@ -86,9 +106,10 @@ public class ServerMediaPoolCommand
 
 		// Common value
 		outputString += "----------" + "\n";
-		outputString += "Media resource identifier: '" + mediaResourceIdentifier + "'\n";
-		outputString += "Media file pending name: '" + mediaFilePendingName + "'\n";
-		outputString += "Data identifier: '" + dataIdentifier + "'\n";
+		if (this.mediaResourceIdentifier != null) outputString += "Media resource identifier: '" + this.mediaResourceIdentifier + "'\n";
+		if (this.mediaFilePendingName != null) outputString += "Media file pending name: '" + this.mediaFilePendingName + "'\n";
+		if (this.dataIdentifier != null) outputString += "Data identifier: '" + this.dataIdentifier + "'\n";
+		if (this.commandHashKey != null) outputString += "Command hash key: '" + this.commandHashKey + "'\n";
 		outputString += "----------" + "\n";
 
 		// End of output string
